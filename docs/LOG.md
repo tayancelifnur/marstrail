@@ -363,3 +363,10 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Ne yapıldı:** Plan kartına "Radyasyon" satırı: EVA dozu = süre × 0,64 mSv/gün (Curiosity RAD, Hassler vd. 2014) + profildeki birikmiş doz; 1 mSv eşiği aşılırsa uyarı. Demo planı: +0,11 mSv → 0,41 mSv.
 - **Açık kalan:** Kilo hâlâ hesaba girmiyor (eva.js yük düzeltmesi 1 − yük/100, vücut kütlesinden bağımsız). Giysi bilgi amaçlı (O₂ kapasitesi giysiden). Elif'e öneri: yük oranını yük/kilo ile almak.
 - **Dosyalar:** `web/app.js`
+
+## G5 (gözden geçirme) · Nokta kartları ve rota çizme · Paz 15 Kas 2026, 00:35
+
+- **Kontrol:** 8 pinin kartı açılıyor; 6 fotoğrafın 6'sı yükleniyor (yerel, `web/data/photos`, 584 KB). Gerçek fare tıklamasıyla 4 noktalı rota çift tıklamayla bitti: 11,39 km, 248 dk, O₂ 235 dk, +145/−208 m, sonu SARI; yükseklik grafiği çiziliyor (pin yüksekliği değişikliğinden sonra da).
+- **Düzeltildi:** Yükseklik grafiğinin ekseni rotanın sonunda bitiyor (11,4 km'lik rotada 15 km'ye uzuyordu).
+- **Elif'e (scripts/build_regions.py, E7):** Tarihçeler ince (5 noktada 1 olay, kum alanında 0) ve 3 kaynak zayıf: Rochette → Wikipedia'nın rastgele bir aynası (kaweah.freedombox.rocks/kiwix), Three Forks → spaceodysseyhub.com, Cheyava Falls → skyatnightmagazine. NASA birincil sayfalarıyla değiştirilmeli. Cheyava Falls'a Eylül 2025 "olası biyoimza" (Sapphire Canyon numunesi, Nature) duyurusu eklenebilir.
+- **Dosyalar:** `web/app.js`

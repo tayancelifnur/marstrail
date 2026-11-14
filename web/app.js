@@ -1406,7 +1406,9 @@
           },
         },
         scales: {
-          x: { type: "linear", ticks: { color: ink, callback: (v) => v + " km", maxTicksLimit: 6 }, grid: { color: grid } },
+          // Eksen rotanın sonunda bitsin (Chart.js yuvarlayınca 11,4 km'lik rotada eksen 15 km'ye uzuyordu)
+          x: { type: "linear", min: 0, max: pts.length ? pts[pts.length - 1].x : undefined,
+               ticks: { color: ink, callback: (v) => v.toLocaleString("tr-TR", { maximumFractionDigits: 1 }) + " km", maxTicksLimit: 6 }, grid: { color: grid } },
           y: { ticks: { color: ink, maxTicksLimit: 5 }, grid: { color: grid } },
         },
       },
