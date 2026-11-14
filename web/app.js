@@ -407,13 +407,15 @@
     return res.json();
   }
 
-  async function addOverlay(def) {
+  function loadOverlayProvider(def) {
     const [w, s, e, n] = def.bbox;
-    const provider = await Cesium.SingleTileImageryProvider.fromUrl("data/" + def.file, {
+    return Cesium.SingleTileImageryProvider.fromUrl("data/" + def.file, {
       rectangle: Cesium.Rectangle.fromDegrees(w, s, e, n),
       ellipsoid: MARS,
       credit: def.source,
     });
+  }
+  function addOverlay(def, provider) {
     const layer = viewer.imageryLayers.addImageryProvider(provider);
     layer.alpha = def.default_opacity ?? 0.6;
     layer.show = false;
@@ -472,6 +474,7 @@
     cb.addEventListener("change", () => {
       layer.show = cb.checked;
       body.hidden = !cb.checked;
+      dimZonesForOverlays();
     });
     slider.addEventListener("input", () => {
       layer.alpha = Number(slider.value) / 100;
@@ -492,11 +495,15 @@
     }
     if (defs.length) studyBbox = defs[0].bbox;
     list.innerHTML = "";
-    for (const def of defs) {
-      try {
-        const layer = await addOverlay(def);
-        list.append(renderLayerRow(def, layer));
-      } catch (err) {
+    // PNG'ler aynı anda iner (sırayla beklemek yavaş ağda listeyi tek tek dolduruyordu);
+    // haritaya ve listeye yine layers.json sırasıyla eklenir (üst üste binme sırası sabit kalsın)
+    const results = await Promise.allSettled(defs.map(loadOverlayProvider));
+    for (const [i, def] of defs.entries()) {
+      const r = results[i];
+      if (r.status === "fulfilled") {
+        list.append(renderLayerRow(def, addOverlay(def, r.value)));
+      } else {
+        const err = r.reason;
         console.error("Katman yüklenemedi:", def.id, err);
         const p = document.createElement("p");
         p.className = "muted small";
@@ -799,6 +806,10 @@
   // O₂ nabız çarpanıyla bölünür. Yeşil ≤ O₂/1,25, sarı ≤ O₂, kırmızı > O₂ (PLAN.md §3.3).
   // Burada sadece çizim ve arayüz var.
   const ZONE_ALPHA = 0.4;          // bölge dolgusunun saydamlığı (arazi görünsün diye)
+  // Veri katmanı (eğim, termal…) açıkken bölge dolgusu bu oranda soluklaşır, sınır çizgileri kalır.
+  // Neden: eğim ve geçilebilirlik de yeşil/sarı/kırmızı; dolgu üstte kalınca katman okunmuyordu.
+  // 0,25: dolgu ~%10 görünür (0,4 × 0,25), renk ipucu kalır ama alttaki katmanı boyamaz (göz kararı).
+  const ZONE_DIM_WITH_OVERLAY = 0.25;
   let zonesReady = false;
   let zoneLayer = null;            // dolgu (ImageryLayer)
   const zoneEntities = [];         // sınır çizgileri + astronot simgesi
@@ -844,6 +855,13 @@
     if (oldLayer || oldEntities.length) setTimeout(drop, ZONE_SWAP_MS);
   }
 
+  // Herhangi bir veri katmanı açıksa O₂ bölge dolgusunu soluklaştır (çizgiler her zaman tam)
+  function dimZonesForOverlays() {
+    if (!zoneLayer) return;
+    const anyOn = Object.values(overlays).some((o) => o.layer.show);
+    zoneLayer.alpha = anyOn ? ZONE_DIM_WITH_OVERLAY : 1;
+  }
+
   function drawZones() {
     if (!zonesReady) return;
     if (typeof rescue !== "undefined" && rescue.active) return; // G8: acil durumda ısı haritası okunsun
@@ -862,6 +880,7 @@
         tileHeight: Walkback.grid.h,
       })
     );
+    dimZonesForOverlays();
 
     // 2) Sınır çizgileri: araziye yapışık, net görünsün diye kalın
     const lines = [

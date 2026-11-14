@@ -337,3 +337,11 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
   - Güven eşiği 0,25. Hücrenin en az %50'si kapsanmalı.
   - Jeoloji ve YOLO'ya eşit ağırlık (kalibrasyon verisi yok).
   - Kontroller: E8, E11 ve E13 testleri yeni grid ile geçti.
+
+## G2 (gözden geçirme) · Katmanlar O₂ bölgelerinin altında okunmuyordu · Cmt 14 Kas 2026, 23:45
+
+- **Kontrol (kartın satırı):** 5 katmanın hepsi aç/kapa ve opaklıkla çalışıyor; Jezero uçuşu alanı ~25 km'den gösteriyor (headless Chrome).
+- **Eleştiri:** O₂ bölge dolgusu her zaman açık ve katmanların üstünde; eğim/geçilebilirlik de yeşil-sarı-kırmızı olduğu için krater içinde eğim okunmuyordu. PNG'ler sırayla indiriliyordu (yavaş ağda liste tek tek doluyordu).
+- **Ne yapıldı:** Bir veri katmanı açıkken bölge dolgusu ×0,25 soluklaşır, sınır çizgileri tam kalır (kapatınca geri gelir). PNG'ler aynı anda iner, haritaya layers.json sırasıyla eklenir.
+- **Elif'e not:** `scripts/prep_layers.py` hillshade azimutu 315° (KB); beyaz = KB'ya bakan yamaç. Lejantta "Güneye bakan yamaç" yazıyor → "KB'ya bakan yamaç (ışık KB'dan)" olmalı.
+- **Dosyalar:** `web/app.js`
