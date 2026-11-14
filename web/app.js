@@ -90,10 +90,43 @@
   baseSelect.addEventListener("change", () => setBaseLayer(baseSelect.value));
   setBaseLayer(baseSelect.value);
 
-  // --- Başlangıç görünümü: Jezero yarımküresi ---
-  viewer.camera.setView({
-    destination: Cesium.Cartesian3.fromDegrees(JEZERO.lon, JEZERO.lat, 11000000, MARS),
+  // --- Jezero yüksek çözünürlüklü mozaikler (Mars Trek, bölgesel) ---
+  // Küresel mozaikler en fazla seviye 7 (~300 m/piksel) olduğu için Jezero'da bulanıktı.
+  // Bu iki mozaik sadece kendi kutularında karo ister; dışı şeffaf.
+  // Seviye sınırları Mars Trek'te denendi: CTX 13'e, HiRISE 17'ye kadar karo var.
+  const DETAIL_LAYERS = [
+    {
+      name: "CTX Jezero mozaiği (6 m)",
+      label: "JEZ_ctx_B_soc_008_orthoMosaic_6m_Eqc_latTs0_lon0",
+      bbox: [77.1604655, 18.2110274, 77.6991776, 18.7211945],
+      maxLevel: 13,
+    },
+    {
+      name: "HiRISE Jezero mozaiği (25 cm)",
+      label: "JEZ_hirise_soc_006_orthoMosaic_25cm_Eqc_latTs0_lon0_first_dd",
+      bbox: [77.2229331, 18.3067994, 77.583964, 18.669315],
+      maxLevel: 17,
+    },
+  ];
+  DETAIL_LAYERS.forEach((d) => {
+    const [w, s, e, n] = d.bbox;
+    viewer.imageryLayers.addImageryProvider(
+      new Cesium.UrlTemplateImageryProvider({
+        url: TREK + d.label + "/1.0.0/default/default028mm/{z}/{y}/{x}.png",
+        tilingScheme: new Cesium.GeographicTilingScheme({ ellipsoid: MARS }),
+        rectangle: Cesium.Rectangle.fromDegrees(w, s, e, n),
+        maximumLevel: d.maxLevel,
+        credit: "NASA/JPL-Caltech/USGS Mars Trek – " + d.name,
+      })
+    );
   });
+
+  // --- Başlangıç görünümü: Jezero yarımküresi ---
+  const HOME_VIEW = {
+    destination: Cesium.Cartesian3.fromDegrees(JEZERO.lon, JEZERO.lat, 11000000, MARS),
+    orientation: { heading: 0, pitch: -Cesium.Math.PI_OVER_TWO, roll: 0 },
+  };
+  viewer.camera.setView(HOME_VIEW);
 
   // --- Otomatik dönüş ---
   let autoRotate = true;
@@ -137,6 +170,14 @@
     });
   }
   document.getElementById("jezeroBtn").addEventListener("click", flyToJezero);
+
+  // Tüm küreye geri dön ve dönmeye devam et
+  function flyHome() {
+    setAutoRotate(false);
+    document.getElementById("leftPanel").classList.remove("open");
+    viewer.camera.flyTo({ ...HOME_VIEW, duration: 3, complete: () => setAutoRotate(true) });
+  }
+  document.getElementById("homeBtn").addEventListener("click", flyHome);
 
   // --- G2: Katman menüsü (web/data/layers.json) ---
   const overlays = {}; // id -> { def, layer }
@@ -415,7 +456,7 @@
 
   // Sonraki kartlar için dışarı aç
   window.MarsTrail = {
-    viewer, MARS, JEZERO, setBaseLayer, setAutoRotate, flyToJezero, overlays, loadJSON,
+    viewer, MARS, JEZERO, setBaseLayer, setAutoRotate, flyToJezero, flyHome, overlays, loadJSON,
     showDetail, hideDetail, el, kvList, setLink, updateTopBar,
     get astronauts() { return astronauts; },
     get selectedAstronaut() { return astronauts.find((x) => x.id === selectedAstroId); },
