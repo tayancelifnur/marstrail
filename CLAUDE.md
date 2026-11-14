@@ -32,3 +32,11 @@ Koordinatlar derece, doğu pozitif, boylam -180..180. Dosya adları değişmez.
 - 30 dakikadan uzun takılırsan dur, kartın "Takılırsan" satırını uygula.
 - Büyük dosyaları (data/raw, data/processed, ml/dataset, *.tif, *.zip, *.pt) git'e ekleme; .gitignore'a yaz.
 - Her kart bitince commit + push.
+
+## Takip ve açıklama kuralları
+- Her kartın sonunda docs/LOG.md'ye şunu ekle: kart adı, saat, ne yapıldı,
+  hangi dosyalar değişti, nasıl çalıştırılır, varsayımlar/formüller (3-8 satır).
+- Uzun süren işleri (model eğitimi, büyük indirme) kendin çalıştırma;
+  komutu yaz, Elif terminalde çalıştırsın.
+- Bir formül veya eşik değeri seçtiğinde nedenini kodda yorum satırıyla yaz.
+- Kartı bitirince bana 3 cümlelik özet ver ve commit mesajı öner.
