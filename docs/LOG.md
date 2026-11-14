@@ -27,3 +27,8 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Çalışma alanı:** 77.28–77.48°D, 18.365–18.555°K (~11×11 km). Üs, delta önü, Three Forks ve Cheyava Falls içeride (koordinatlar D1'den).
 - **Formüller/varsayımlar:** Eğim 20 m DEM'de hesaplanıp ortalandı. Termal eylemsizlik alan içindeki %2–98 aralığıyla 0–1'e ölçeklendi. Skor = 0,4·eğim/25° + 0,25·kum + 0,15·kaya + 0,2·(1−termal). Kum = eolyen birim. Kaya = jeoloji birimi vekili (YOLO gelene kadar). Birim katsayıları takdirle seçildi. Geçilmez: eğim >25° ya da skor >0,8 (%0,3). Maliyet: Tobler ×0,6, yük 0.
 - **Kontrol:** Krater kenarı, delta (Jezero fan), Belva krateri ve Neretva Vallis PNG'lerde net görünüyor. Grid'de üs → Three Forks 82 dk, delta önü 93 dk, Cheyava Falls 305 dk (tek yön). Perseverance yolunun (D2) %100'ü geçilebilir hücrelerde.
+
+## E4 · Envanter · Cmt 14 Kas 2026
+
+- **Ne yapıldı:** `docs/veri_envanteri.md`: D1–D8 için görev, alet, tarih, çözünürlük, projeksiyon, kaynak linki, üründeki rolü ve durumu; türetilen web/data dosyaları; 6 veri türü.
+- **Kontrol:** D7 API'si test edildi (Sol 652 → Mastcam-Z görüntüleri ve 320/800/1200 px linkleri geliyor). D8 hâlâ iniyor.
