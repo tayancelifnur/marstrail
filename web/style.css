@@ -674,7 +674,7 @@ button:disabled { opacity: 0.45; cursor: default; }
 #walkHome.mid, #walkHrVal.mid { color: var(--yellow); }
 #walkHome.bad, #walkHrVal.bad { color: var(--red); font-weight: 600; }
 .wh-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; color: var(--muted); }
-.wh-row input[type=range] { flex: 1; accent-color: var(--accent); }
+.wh-row input[type=range] { flex: 1; min-width: 0; accent-color: var(--accent); } /* min-width 0: dar kartta kaydırıcı küçülsün, "20 dk" kesilmesin */
 .wh-row b { width: 30px; text-align: right; color: var(--text); font-variant-numeric: tabular-nums; }
 .wh-row input[type=text] {
   flex: 1; min-width: 0; font: inherit; font-size: 13px; color: var(--text);
@@ -719,7 +719,8 @@ button:disabled { opacity: 0.45; cursor: default; }
 
 @media (max-width: 768px) {
   /* Telefonda yürüyüş paneli altta, tam genişlik (çekmece kapalıyken) */
-  #walkHud { top: auto; bottom: 8px; left: 8px; right: 8px; width: auto; padding: 10px 12px; }
+  /* bottom: kapalı çekmecenin görünen 64 px'lik başlığının üstünde kalsın (yoksa çekmece kenarı altından taşıyordu) */
+  #walkHud { top: auto; bottom: calc(64px + 8px + env(safe-area-inset-bottom)); left: 8px; right: 8px; width: auto; padding: 10px 12px; }
   .wh-o2 b { font-size: 22px; }
   #walkToasts { top: calc(var(--topbar-h) + 8px); }
 }

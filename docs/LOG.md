@@ -256,3 +256,13 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Nasıl çalıştırılır:** Bir kez repo Settings → Pages → Source: "GitHub Actions". Sonra adres: https://tayancelifnur.github.io/marstrail/ (Actions sekmesinde "Pages" iş akışı yeşil olmalı).
 - **Varsayımlar:** Service worker yok (çevrimdışı çalışma hedef değil; Cesium zaten CDN'den yükleniyor, eski önbellek demo sırasında sorun çıkarmasın diye). Tüm yollar göreli, alt dizinde çalışır.
 - **Kontrol:** Manifest geçerli JSON; yerel sunucuda index, manifest ve ikonlar 200. Telefon testi yayın açılınca yapılacak.
+
+## G9 (2. kısım) · Telefon testi ve düzeltmeler · Cmt 14 Kas 2026, 22:10
+
+- **Ne yapıldı:** Demo akışı 390×844 (telefon, dikey) ekranda baştan sona denendi: çekmece → Planla → Yürüyüşü başlat → Telsiz koptu → Aramayı oynat. Bulunan sorunlar düzeltildi:
+  - Dikey ekranda kamera alanı kartın üstüne yerleştiriyor ve 1,4× uzaklaşıyor (`flyToFit`, plan ve acil durum ortak). Önceden acil durumda arama alanı kartın arkasında kalıyordu, soldaki durak adları kesiliyordu.
+  - Yürüyüş paneli telefonda kapalı çekmecenin üstünde duruyor (çekmece kenarı altından taşıyordu).
+  - Yürüyen astronotun etiketi noktanın üstünde ("Üs" ile çakışıyordu). İHA etiketi üstte, Ali altta. Acil durumda plan etiketleri gizli (Son konum ile çakışıyordu), kapatınca geri gelir.
+  - Masaüstü acil durum kartında kaydırıcı küçülebiliyor, yatay kaydırma çubuğu çıkmıyor.
+- **Dosyalar:** `web/app.js`, `web/style.css`
+- **Kontrol:** Headless Chrome 390×844 (DPR 2) ve 1440×900: dört ekran temiz; acil durum kapat/aç tekrar çalışıyor; demo değerleri E13 ile aynı (İHA %50 11,6 dk, %90 21,6 dk).

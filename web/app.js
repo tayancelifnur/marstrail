@@ -1471,15 +1471,22 @@
     const pts = p.coords.map((c) => Cesium.Cartesian3.fromDegrees(c[0], c[1], 0, MARS)); // yükseklik 0: arazi göreli ve 3× abartılı (mutlak elev değil)
     const sphere = Cesium.BoundingSphere.fromPoints(pts);
     const range = Math.max(3000, sphere.radius * 4.2); // en az 3 km; yan paneller arasında rota tümüyle görünsün
+    flyToFit(sphere, range, -50);
+  }
+
+  // Kamerayı bir alana yaklaştır. Telefonda (dikey) kart ekranın alt ~%60'ını kaplar:
+  // - bakış noktası güneye kaydırılır, alan ekranın üst yarısında kalır (0,45 × uzaklık, 390×844'te denendi);
+  // - dikey ekranda yatay görüş açısı dar, kenardaki etiketler kesilmesin diye 1,4× uzaklaşılır (göz kararı).
+  function flyToFit(sphere, range, pitchDeg) {
     if (portrait()) {
-      // Telefonda plan kartı ekranın alt ~%60'ını kaplıyor: bakış noktasını güneye kaydır,
-      // rota ekranın üst yarısında kalsın (0,45 × uzaklık göz kararı, 390×844'te denendi)
+      range *= 1.4;
       const c = Cesium.Cartographic.fromCartesian(sphere.center, MARS);
       const shiftM = range * 0.45;
-      sphere.center = Cesium.Cartesian3.fromRadians(c.longitude, c.latitude - shiftM / 3389500, 0, MARS); // m → rad (Mars yarıçapı)
+      sphere = new Cesium.BoundingSphere(
+        Cesium.Cartesian3.fromRadians(c.longitude, c.latitude - shiftM / 3389500, 0, MARS), sphere.radius); // m → rad (Mars yarıçapı)
     }
     viewer.camera.flyToBoundingSphere(sphere, {
-      offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(portrait() ? -70 : -50), range),
+      offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(portrait() ? -70 : pitchDeg), range),
       duration: 2,
     });
   }
@@ -1708,8 +1715,10 @@
         font: "700 13px system-ui, sans-serif",
         fillColor: Cesium.Color.WHITE,
         ...LABEL_BG,
-        pixelOffset: new Cesium.Cartesian2(12, 0),
-        horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+        // Noktanın üstünde: sağ (pin adları) ve sol (Üs) dolu, yürüyüş başında "Üs" ile çakışıyordu
+        pixelOffset: new Cesium.Cartesian2(0, -14),
+        horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
         heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
       },
@@ -2056,16 +2065,14 @@
     setLink(false);
     document.body.classList.add("emergency");
     clearZoneDrawing(); // ısı haritası okunsun diye O₂ bölgeleri acil durumda gizli
+    setPlanLabels(false); // plan etiketleri (telsiz gölgesi, dönüş noktası) "Son konum" ile çakışmasın
     computeRescue();
     showToast("danger", "ACİL", rescue.lostName + " ile telsiz bağlantısı koptu. Arama başlatıldı.");
     // Kamerayı son konum + üs + Ali'nin rotasına yaklaştır
     const pts = [last, Walkback.BASE].map((q) => Cesium.Cartesian3.fromDegrees(q.lon, q.lat, 0, MARS));
     const sphere = Cesium.BoundingSphere.fromPoints(pts);
     sphere.radius = Math.max(sphere.radius, 1500);
-    viewer.camera.flyToBoundingSphere(sphere, {
-      offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(portrait() ? -70 : -55), sphere.radius * 4.5),
-      duration: 2,
-    });
+    flyToFit(sphere, sphere.radius * 4.5, -55); // telefonda arama alanı kartın üstünde kalsın
   }
 
   function computeRescue() {
@@ -2132,8 +2139,9 @@
       }, false),
       point: { pixelSize: 10, color: Cesium.Color.WHITE, outlineColor: Cesium.Color.fromCssColorString("#5dade2"), outlineWidth: 3,
                heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY },
-      label: { text: "İHA", font: "700 12px system-ui, sans-serif", fillColor: Cesium.Color.WHITE, ...LABEL_BG, pixelOffset: new Cesium.Cartesian2(10, 0),
-               horizontalOrigin: Cesium.HorizontalOrigin.LEFT, heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+      // İHA etiketi noktanın üstünde, Ali'ninki altında: ikisi de üsten çıkıyor, yan yana olunca çakışıyordu
+      label: { text: "İHA", font: "700 12px system-ui, sans-serif", fillColor: Cesium.Color.WHITE, ...LABEL_BG, pixelOffset: new Cesium.Cartesian2(0, -12),
+               horizontalOrigin: Cesium.HorizontalOrigin.CENTER, verticalOrigin: Cesium.VerticalOrigin.BOTTOM, heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
                disableDepthTestDistance: Number.POSITIVE_INFINITY },
     });
     rescue.buddyEnt = viewer.entities.add({
@@ -2145,7 +2153,8 @@
                heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY },
       label: { text: rescue.rescuerName, font: "700 13px system-ui, sans-serif", fillColor: Cesium.Color.fromCssColorString("#00e5ff"),
                ...LABEL_BG,
-               pixelOffset: new Cesium.Cartesian2(10, 0), horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+               pixelOffset: new Cesium.Cartesian2(0, 12), horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+               verticalOrigin: Cesium.VerticalOrigin.TOP,
                heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY },
     });
     rescue.entities.push(rescue.droneEnt, rescue.buddyEnt);
@@ -2374,8 +2383,14 @@
     if (rescue.chart) { rescue.chart.destroy(); rescue.chart = null; }
     document.body.classList.remove("emergency");
     setLink(true);
+    setPlanLabels(true);
     hideDetail();
     drawZones();
+  }
+
+  // Plan işaretlerinin yazılarını gizle/göster (çizgiler ve noktalar kalır)
+  function setPlanLabels(show) {
+    evaPlan.entities.forEach((e) => { if (e.label) e.label.show = show; });
   }
 
   $("radioLostBtn").addEventListener("click", radioLost);
