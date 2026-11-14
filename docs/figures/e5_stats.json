@@ -1,0 +1,34 @@
+{
+  "ortho": {
+    "width": 76576,
+    "height": 107264,
+    "dtype": "uint8",
+    "res_m": 0.25,
+    "nodata": 0.0,
+    "crs": "Equirectangular_MARS",
+    "file_gb": 4.67
+  },
+  "screen": {
+    "tiles_total": 2590,
+    "dropped_nodata": 1444,
+    "dropped_flat": 58,
+    "flat_std_threshold": 8.56,
+    "usable": 1088,
+    "cand_sand": 338,
+    "cand_rock": 261,
+    "cand_neg": 37,
+    "stretch_p0_5": 60.0,
+    "stretch_p99_5": 219.0
+  },
+  "selected": {
+    "kum_adayi": 70,
+    "kaya_adayi": 65,
+    "negatif": 15,
+    "dropped_nodata_fullres": 0,
+    "total": 150
+  },
+  "upload": {
+    "zip_mb": 28.2,
+    "files": 150
+  }
+}

@@ -203,9 +203,42 @@ Ham NASA/USGS verisinden tarayıcıdaki haritaya kadar her adım: ne aldık, ney
 - **Çıktı:** `web/data/photos/*.jpg` (800 px yerel kopya, toplam ~580 KB, çevrimdışı demo için). Kaynak sayfa, büyük boy bağlantısı, `imageid`, UTC tarih, yerel Mars saati ve kredi (NASA/JPL-Caltech[/ASU]) `regions.json` içinde.
 - **İstatistik:** [figures/e7_stats.json](figures/e7_stats.json)
 
-## D8 · HiRISE ortogörüntü mozaiği
+## D8 · HiRISE ortogörüntü mozaiği → YOLO karoları (E5, scripts/tile_for_yolo.py)
 
-E5'te dolduruluyor: karolama, karo seçimi, etiketleme, train/val ayrımı.
+- **Neden bu veri:** Opportunity'yi 5 hafta tutan kum dalgası 10–15 cm yüksekliğindeydi. Kayalar da metre ölçeğinde. 20 m'lik DEM ve 100 m'lik termal veri bunları göremez; 25 cm/piksel HiRISE görebilir. Kendi tespit modelimizin (YOLOv8) eğitim verisi bu.
+- **Ham içerik:**
+  - Zip 5,47 GB, 17 dosya.
+  - Ortogörüntü: 76.576 × 107.264 piksel, uint8, 0,25 m, NoData = 0, Equirectangular_MARS projeksiyonu. Kapsam 77,058–77,381°D, 18,136–18,588°K. Dosya 4,68 GB (LZW).
+- **Atılanlar (zip):**
+  - DTM 1 m (712 MB): rota grid'i için 20 m CTX yeterli, 44 m hücreye zaten ortalanıyor.
+  - Renkli güven haritası (1,5 GB) ve README/PDF dışındaki yardımcı dosyalar.
+  - Güven haritası (FOM, 66 MB) çıkarıldı ama kullanılmadı. Görüntünün değil DTM eşleştirmesinin kalitesini gösteriyor; karo kalitesini doğrudan görüntüden ölçtük.
+- **Kapsam sınırı:** Mozaik çalışma alanının yalnızca güneybatı çeyreğini kapsıyor (~%23). Üs, delta önü, Three Forks ve Cheyava Falls kapsam dışında. E10'da model kapsam dışı bölgeye Mars Trek'in HiRISE Jezero mozaiğiyle uygulanacak ya da YOLO katmanı kapsanan bölgeyle sınırlı kalacak.
+
+### Karolama ve eleme
+
+| Adım | Karo | Neden |
+| --- | --- | --- |
+| Çalışma alanı penceresi, 640 × 640 px (160 × 160 m), örtüşmesiz | 2590 (37 × 70) | 640 = YOLOv8 giriş boyu, yeniden boyutlandırma yok |
+| NoData içeren karolar atıldı | −1444 (%55,8) | Mozaik eğik bir şerit; köşeler ve şerit arası boşluklar boş |
+| Dokusuz karolar atıldı | −58 | 1/16 ön görünümde std < 8,56 (kullanılabilir karoların alt %5'i). Düz toz ya da gölge, etiketlenecek nesne yok |
+| Kullanılabilir | 1088 | |
+| Aday: kum | 338 | Eolyen birim ≥ %60 (D6) |
+| Aday: kaya | 261 | Eolyen < %20 ve kaya vekili yüksek birimler ≥ %60 (krater kenarı, pürüzlü, delta, aşınmış, ejekta) ve doku medyanın üstünde |
+| Aday: negatif | 37 | Düz taban ya da smooth birim ≥ %90 ve doku medyanın altında |
+| Seçilen | 150 = 70 kum + 65 kaya + 15 negatif | |
+| Tam çözünürlükte NoData yeniden kontrolü | 0 atıldı | |
+
+- **Mekânsal yayılım:** Her gruptan en uzak nokta örneklemesiyle seçim yapıldı. Böylece aynı yerin komşu karoları eğitimde tekrar etmiyor, val kümesi train'e sızmıyor. Seed = 42, sonuç tekrarlanabilir.
+- **Normalizasyon:**
+  - Formül: `piksel' = clip((piksel − 60) / (219 − 60) · 255, 0, 255)`
+  - 60 ve 219 değerleri, çalışma alanının (NoData hariç) %0,5 ve %99,5 yüzdelikleri.
+  - Karo başına değil, alan genelinde tek doğrusal germe: aynı zemin her karoda aynı parlaklıkta görünür. Çıkarımda (E10) da aynı parametreler kullanılacak; `ml/tiles_meta.json` içinde saklı.
+- **Çıktı:**
+  - `ml/roboflow_upload.zip`: 150 PNG, 28,2 MB.
+  - `ml/tiles_manifest.csv`: karo → piksel konumu, derece sınırları, birim oranları, seçim nedeni.
+- **Etiketleme:** Elif, Roboflow'da elle. Sınıflar `kaya` ve `kum_dalgasi`. Kurallar `ml/ETIKETLEME.md`'de; kaya için alt sınır ~8 px (2 m). Train/val 80/20, Roboflow'da çoğaltma yok (Ultralytics yapacak). Etiket sayıları etiketleme bitince buraya eklenecek.
+- **Görseller:** [figures/d8_tile_selection.png](figures/d8_tile_selection.png) (karo haritası ve atılanlar), [figures/d8_tile_samples.png](figures/d8_tile_samples.png) (örnek karolar). Sayılar: [figures/e5_stats.json](figures/e5_stats.json).
 
 ---
 
@@ -220,5 +253,5 @@ E5'te dolduruluyor: karolama, karo seçimi, etiketleme, train/val ayrımı.
 | D5 | CTX DEM | 90,3 MB · 22,6 M px, 20 m | 22,26 M px (alan dışı), 13.977 NoData | 1024² (×2 PNG) + 256² grid | 20 m'de eğim, average, hillshade |
 | D6 | SIM 3464 jeoloji | 349 MB · 181 dosya, 13 katman, 1304 poligon | 19 sistem dosyası, 12 katman, 1250 poligon; 2 kaynak hatası düzeltildi | 54 poligon, 8 birim → 1024² | Reprojeksiyon, rasterize, katsayı tablosu |
 | D7 | Perseverance ham görüntüleri | 7 Sol · 1795 görüntü kaydı | 1785: kamera, alt kare, renkli/gri ikiz, açı, doku eşiği, 1 insan kontrolü | 10 fotoğraf (800 px, ~580 KB) | Kural tabanlı eleme hunisi + kenar şiddeti eşiği |
-| D8 | HiRISE 25 cm mozaiği | 5,5 GB zip | E5 | E5 | E5 |
+| D8 | HiRISE 25 cm mozaiği | 5,47 GB zip · 76.576 × 107.264 px | Zip'te ortogörüntü dışındaki her şey (DTM, güven haritaları); 2590 karonun 1444'ü NoData, 58'i dokusuz | 150 karo (640², 28 MB) → etiket: E5 | Karolama, birim tabanlı aday seçimi, en uzak nokta örneklemesi, %0,5–99,5 germe |
 | Füzyon | Geçilebilirlik + grid | D4 + D5 + D6 | – | 65.536 hücre, 193 geçilmez | Ağırlıklı toplam, Tobler, Dijkstra |

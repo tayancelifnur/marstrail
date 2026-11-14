@@ -1,0 +1,30 @@
+{
+  "ortho": "MSR_hirise_soc_003_Orthomosaic_0.25m_Eqc_latTs0_lon0_First_NoBlend.tif",
+  "crs_wkt": "PROJCS[\"Equirectangular_MARS\",GEOGCS[\"GCS_D_MARS\",DATUM[\"D_MARS\",SPHEROID[\"MARS_localRadius\",3396190,0]],PRIMEM[\"Reference_Meridian\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Equirectangular\"],PARAMETER[\"standard_parallel_1\",0],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH]]",
+  "transform": [
+    0.25,
+    0.0,
+    4567580.0,
+    0.0,
+    -0.25,
+    1101802.0
+  ],
+  "study_origin_px": [
+    52674,
+    7839
+  ],
+  "tiles_x": 37,
+  "tiles_y": 70,
+  "tile_px": 640,
+  "res_m": 0.25,
+  "stretch": {
+    "method": "linear, study-area percentiles 0.5\u201399.5 (NoData excluded)",
+    "lo": 60.0,
+    "hi": 219.0
+  },
+  "nodata": 0.0,
+  "classes": [
+    "kaya",
+    "kum_dalgasi"
+  ]
+}

@@ -16,3 +16,6 @@ __pycache__/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# E5: Roboflow yükleme karoları (büyük, yeniden üretilebilir)
+ml/roboflow_upload/

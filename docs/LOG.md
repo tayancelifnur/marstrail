@@ -55,3 +55,16 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
   - Ayrıntı: DATA_PIPELINE.md E7.
 - **Ek:** `regions.json`'a `terrain`, `position_source` ve `poi_type` alanları eklendi; sözleşmedeki alanlar aynı. Fotoğraflarda `credit`, `page`, `url_large`, `lmst` var. `make_dummies.py` artık gerçek dosyaların üzerine yazmıyor.
 - **Kontrol:** Gözde'nin kartında tarih, olay ve fotoğraf görünmesi G5'te test edilecek. Veri tarafında 10 fotoğrafın hepsi gözle kontrol edildi.
+
+## E2 ek · D8 indi · Cmt 14 Kas 2026
+
+- D8 HiRISE zip'i (5,47 GB) indi ve açılıyor. Ortogörüntü ve güven haritası `data/raw/D8_hirise/` altına çıkarıldı (~20 sn).
+
+## E5 · YOLO karoları (etiketleme Elif'te) · Cmt 14 Kas 2026
+
+- **Ne yapıldı:** `scripts/tile_for_yolo.py`: çalışma alanı 640×640 karolara (160 m) bölündü. NoData (1444) ve dokusuz (58) karolar atıldı. Jeoloji birimine göre 70 kum, 65 kaya ve 15 negatif karo, en uzak nokta örneklemesiyle seçildi.
+- **Çıktı:** `ml/roboflow_upload.zip` (150 PNG, 28 MB; git dışı), `ml/tiles_manifest.csv`, `ml/tiles_meta.json` (germe parametreleri E10 için), `ml/ETIKETLEME.md` (Roboflow adımları ve kurallar), figürler.
+- **Çalıştır:** `venv\Scripts\python scripts\tile_for_yolo.py` (~16 sn)
+- **Varsayımlar:** Kaya alt sınırı ~8 px (2 m). Normalizasyon %0,5–99,5 (60 → 0, 219 → 255), alan genelinde tek germe.
+- **Dikkat (E10):** HiRISE mozaiği çalışma alanının sadece GB çeyreğini kapsıyor (~%23). Demo noktalarının hepsi kapsam dışında.
+- **Kalan:** Etiketleme (en az 120 karo) → Roboflow'dan YOLOv8 dışa aktarımı → `ml/dataset/`.
