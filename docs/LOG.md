@@ -396,3 +396,10 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
   - Arama animasyonu ×60'ta ~2,5 dk sürüyordu → ×180, demo ~46 sn (ölçülen 47 sn).
 - **Elif'e not:** rescue.js `buddyRoute` mesajlarında "Ali"/"Ayşe" sabit; `input.rescuer.name`/`input.lost.name` kullanılmalı. `survivable` İHA'nın bulma süresini hesaba katmıyor (arayüz şimdilik birleştiriyor).
 - **Dosyalar:** `web/app.js`
+
+## G9 (gözden geçirme) · Yayın durumu ve uçtan uca demo · Paz 15 Kas 2026, 02:10
+
+- **Yayın:** GitHub Actions "Pages" iş akışı her push'ta çalışıyor; "Cesium'u yerel kopyala" adımı GitHub'da **başarılı**, yalnızca `configure-pages` adımı "Pages site Not Found" ile düşüyor (repo ayarında Pages kapalı). Repo sahibi Settings → Pages → Source: GitHub Actions seçince son commit yayınlanır: https://tayancelifnur.github.io/marstrail/ (şu an 404).
+- **Uçtan uca demo (headless Chrome, 1440×900, ×300):** Demo'yu sıfırla → Jezero → Planla (GO, 4 sa 3 dk, 5,5 km) → Yürüyüşü başlat → nabız 150 → T+27'de Telsiz koptu (KURTARILABİLİR) → Aramayı oynat (üste varış, 305 dk O₂) → Acil durumu kapat (ağ "bağlı"). Toplam 49 sn, JS hatası yok.
+- **Kalan:** gerçek telefonda link testi (Pages açılınca), 08:30'da kod dondurma (öneri: `git tag demo-v1`).
+- **Not:** Bu makineden registry.npmjs.org'a erişilemiyor; yerel kopyalı Cesium derlemesi burada denenemedi, GitHub'da adım geçti.
