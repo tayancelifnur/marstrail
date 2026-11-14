@@ -386,3 +386,13 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Düzeltildi:** Özet kartında yetmeyen planın O₂'si "plan -148 dk" görünüyordu → "plan 148 dk EKSİK".
 - **Not:** ×900'de olaylar 1–3 sim. dk gecikebiliyor (kare başına adım büyük); demo hızında (×60/×300) fark yok. Demo için ×300 önerilir (4 saatlik plan ~48 sn).
 - **Dosyalar:** `web/app.js`
+
+## G8 (gözden geçirme) · Hayatta Kal: bulunma süresi karara girdi, ad karışıklığı, animasyon hızı · Paz 15 Kas 2026, 01:55
+
+- **Kontrol (kartın satırı):** Demo: KURTARILABİLİR, alan 1,1 km², İHA 11 şerit 24,2 dk (%50 11,6 / %90 21,6 dk), Ali 116/480 YEŞİL. Ali O₂ 60 → MÜMKÜN DEĞİL ("Ali de dönemez"). Kapatınca üst bar "bağlı", bölgeler geri. Animasyon sonuna kadar oynuyor.
+- **Eleştiri → düzeltme:**
+  - Karar yalnızca arkadaşın son bilinen konuma yürüyüşüne bakıyordu (rescue.js konumu biliniyor kabul ediyor). 120 dk geç fark etmede alan 41,9 km², İHA %90'ı 629 dk'da tarıyor, yine "KURTARILABİLİR" diyordu. Şimdi buluşma = max(İHA %90 bulma, arkadaş varışı); kayıp O₂ buluşmada ve üste varışta (60 dk yedek tüple) hesaplanıyor; kartta tek satırlık zaman çizelgesi. Sonuç: 0/20/40 dk geç → kurtarılabilir (201/169/136 dk), 60 dk → yedek tüple 21 dk, 120 dk → MÜMKÜN DEĞİL (O₂ buluşmadan 485 dk önce biter).
+  - Ali kaybolunca mesajlar "Ali: … gidiş, Ali vardığında Ayşe'nin O₂'si" diyordu (rescue.js adları sabit) → arayüzde roller gerçek adlarla değiştiriliyor.
+  - Arama animasyonu ×60'ta ~2,5 dk sürüyordu → ×180, demo ~46 sn (ölçülen 47 sn).
+- **Elif'e not:** rescue.js `buddyRoute` mesajlarında "Ali"/"Ayşe" sabit; `input.rescuer.name`/`input.lost.name` kullanılmalı. `survivable` İHA'nın bulma süresini hesaba katmıyor (arayüz şimdilik birleştiriyor).
+- **Dosyalar:** `web/app.js`

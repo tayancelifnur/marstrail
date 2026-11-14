@@ -2129,7 +2129,9 @@
   const DISPATCH_MIN = 10;        // rescue.js: Ali'nin giyinip çıkması (dk); İHA hemen kalkar (varsayım)
   const rescue = {
     active: false, input: null, result: null, elapsed: 20, entities: [], layer: null, chart: null,
-    anim: { on: false, t: 0, speed: 60, last: 0, raf: 0, flags: {} },
+    // ×180: 139 dk'lık demo kurtarma ~46 sn'de biter (×60'ta ~2,5 dk sürüyordu; 5 dk'lık sunuma sığmıyordu).
+    // İHA taraması (~24 dk) ~8 sn: %50/%90 uyarıları hâlâ okunacak kadar ayrık.
+    anim: { on: false, t: 0, speed: 180, last: 0, raf: 0, flags: {} },
     lostName: "", rescuerName: "",
   };
 
@@ -2324,10 +2326,44 @@
     return p;
   }
 
+  // rescue.js mesajları adları sabit yazıyor (kurtarıcı "Ali", kayıp "Ayşe"). Ali kaybolup Ayşe kurtarınca
+  // "Ali vardığında Ayşe'nin O₂'si…" yanlış kişiyi gösteriyordu: rolleri gerçek adlarla değiştir.
+  // Türkçe ekler ikisinde de aynı (Ali'nin / Ayşe'nin, ünlüyle biten ad), metin bozulmuyor.
+  function rescueNames(msg) {
+    const R = rescue.rescuerName, L = rescue.lostName;
+    if (R === "Ali" && L === "Ayşe") return msg;
+    return String(msg).replace(/Ali|Ayşe/g, (n) => (n === "Ali" ? "@@R@@" : "@@L@@"))
+      .replace(/@@R@@/g, R).replace(/@@L@@/g, L);
+  }
+
+  // İHA + arkadaş birlikte: rescue.js arkadaşın varışını "son bilinen konum biliniyor" kabulüyle hesaplıyor
+  // (geçen + 10 dk hazırlık + gidiş). Geç fark edilince astronot alan içinde herhangi bir yerde olabilir:
+  // önce İHA bulmalı. Buluşma = max(İHA'nın %90 olasılıkla bulduğu an, arkadaşın vardığı an), kopmadan itibaren.
+  //   Kayıp O₂ (buluşmada) = kopmadaki O₂ − buluşma × çarpan; üste = − dönüş × çarpan (+60 dk yedek tüp).
+  // %90: olasılığın %90'ı taranınca bulunmuş kabul (muhafazakâr; %50'de bulma şansı da var).
+  // 120 dk geç fark etmede alan 42 km², İHA %90'ı 629 dk'da tarıyor; eski karar yine "KURTARILABİLİR" diyordu.
+  const SPARE_TANK_MIN = 60; // rescue.js SPARE_O2_MIN ile aynı
+  function rescueTimeline() {
+    const { drone, buddy } = rescue.result;
+    const i = rescue.input;
+    if (!buddy || !buddy.ok) return null;
+    const mL = Walkback.o2Multiplier(i.lost.heart_rate);
+    const foundT = rescue.elapsed + (drone && drone.t90 != null ? drone.t90 : 0);
+    const buddyT = buddy.arriveAfterMin;
+    const meetT = Math.max(foundT, buddyT);
+    const atMeet = i.lost.o2LeftMin - meetT * mL;
+    const atBaseRaw = atMeet - buddy.backMin * mL;
+    const spare = atBaseRaw < 0;
+    const atBase = atBaseRaw + (spare ? SPARE_TANK_MIN : 0);
+    const survivable = buddy.status !== "red" && atMeet > 0 && atBase >= 0;
+    return { foundT, buddyT, meetT, atMeet, atBase, spare, survivable, droneLimits: foundT > buddyT };
+  }
+
   function rescueCard() {
     const { area, drone, buddy } = rescue.result;
     const i = rescue.input;
-    const ok = buddy && buddy.survivable;
+    const tl = rescueTimeline();
+    const ok = tl ? tl.survivable : false;
     const fmt1 = (v) => (v == null ? "–" : v.toLocaleString("tr-TR", { maximumFractionDigits: 1 }));
     const slider = el("input", { type: "range", min: "0", max: "120", step: "5", value: String(rescue.elapsed), "aria-label": "Fark edilene kadar geçen süre" });
     const sliderVal = el("b", null, rescue.elapsed + " dk");
@@ -2380,7 +2416,19 @@
         parts.push(el("div", { class: "zone-line" }, zoneBadge(buddy.status),
           el("span", { class: "muted small" }, buddy.toMin + " dk gidiş + " + buddy.backMin + " dk birlikte dönüş · " + fmt1(buddy.distanceM / 1000) + " km")));
       }
-      parts.push(el("ul", { class: "rescue-msgs" }, buddy.messages.map((m) => el("li", null, m))));
+      parts.push(el("ul", { class: "rescue-msgs" }, buddy.messages.map((m) => el("li", null, rescueNames(m)))));
+      if (tl) {
+        // Bulunma süresiyle birleşik zaman çizelgesi: kararın gerçek dayanağı
+        const t = (v) => "T+" + Math.round(v) + " dk";
+        parts.push(el("p", { class: tl.survivable ? "small" : "warn-line" },
+          (tl.droneLimits
+            ? "İHA " + rescue.lostName + "'yi %90 olasılıkla " + t(tl.foundT) + "'da bulur (" + rescue.rescuerName + " " + t(tl.buddyT) + "'da hazır bekler) → "
+            : rescue.rescuerName + " " + t(tl.buddyT) + "'da varır (İHA " + t(tl.foundT) + "'da bulmuş olur) → ") +
+          (tl.atMeet > 0
+            ? "buluşmada O₂ " + Math.round(tl.atMeet) + " dk, üste " + Math.round(tl.atBase) + " dk" + (tl.spare ? " (yedek tüple)" : "") +
+              (tl.survivable ? "." : ": dönüşe yetmiyor.")
+            : "O₂ buluşmadan " + Math.round(-tl.atMeet / Walkback.o2Multiplier(i.lost.heart_rate)) + " dk önce biter.")));
+      }
     }
     parts.push(el("p", { class: "muted small" },
       "Alan: son konumdan min(geçen süre, O₂/çarpan) içinde yürünebilen hücreler, olasılık ∝ 1/(1+süre), plan rotasına ≤150 m ise ×2. " +
@@ -2476,8 +2524,9 @@
     if (a.t >= rescueEndMin()) {
       a.t = rescueEndMin();
       stopRescueAnim();
-      if (buddy && buddy.ok) showToast(buddy.survivable ? "ok" : "danger", fmtT(a.t), buddy.survivable
-        ? "Üste varıldı: " + rescue.lostName + " güvende (" + Math.round(buddy.lostO2AtBase + (buddy.spareNeeded ? 60 : 0)) + " dk O₂)."
+      const tl = rescueTimeline();
+      if (tl) showToast(tl.survivable ? "ok" : "danger", fmtT(a.t), tl.survivable
+        ? "Üste varıldı: " + rescue.lostName + " güvende (" + Math.round(tl.atBase) + " dk O₂)."
         : "Kurtarma başarısız: " + rescue.lostName + " üste canlı ulaşamadı.");
       return;
     }
