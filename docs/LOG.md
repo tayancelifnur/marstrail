@@ -203,3 +203,9 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
   - Ali: 60 dk gidiş + 69 dk dönüş, O₂ 116/480 → YEŞİL; Ayşe üste 168 dk O₂ ile varıyor.
   - Zor durum (90 dk geç fark, O₂ 120): Ali varmadan O₂ bitiyor → "kurtarma mümkün değil".
   - Hesap 19 ms. Görsel: `docs/figures/e13_rescue.png`.
+
+## G-ek · Çalışma alanı v2 kontrolü · Cmt 14 Kas 2026, 18:50
+
+- **Ne yapıldı:** Elif'in genişlettiği alan (77.28–77.60°D) arayüzde denendi: arazi, katmanlar ve O₂ bölgeleri yeni `grid.json`/`layers.json`'dan kod değişmeden geldi; bölgeler artık kenarda kesilmiyor. Alan büyüyünce pinler ekranda sıkıştı; Ayşe adı sağa, Delta önü ve Kum alanı etiketleri sola alındı.
+- **Dosyalar:** `web/app.js`
+- **Kontrol:** Headless Chrome 1440×900, Jezero uçuşu sonrası ekran görüntüsü; etiketler çakışmıyor.

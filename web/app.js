@@ -813,8 +813,10 @@
           outlineColor: Cesium.Color.BLACK,
           outlineWidth: 3,
           style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-          pixelOffset: new Cesium.Cartesian2(0, -12),
-          verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+          // Ad sağda: üstte Three Forks etiketi, altta üs etiketi var (alan v2'de pinler sıkıştı)
+          pixelOffset: new Cesium.Cartesian2(10, 0),
+          horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+          verticalOrigin: Cesium.VerticalOrigin.CENTER,
           heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
           disableDepthTestDistance: Number.POSITIVE_INFINITY,
         },
@@ -864,9 +866,9 @@
   const LABEL_PLACE = {
     base: { off: [0, 18], origin: "CENTER", vOrigin: "TOP" },          // üs etiketi altta (Ayşe üstte)
     airfield: { off: [12, 0], origin: "LEFT", maxDist: 3000 },          // sadece çok yakında
-    delta_front: { off: [-12, 0], origin: "RIGHT" },                    // sola
+    delta_front: { off: [-12, -7], origin: "RIGHT" },                   // sola, biraz yukarı
     three_forks: { off: [12, -2], origin: "LEFT" },                     // sağa
-    sand_field: { off: [0, 16], origin: "CENTER", vOrigin: "TOP" },     // alta
+    sand_field: { off: [-12, 7], origin: "RIGHT" },                     // sola, biraz aşağı (alta koyunca üs etiketine değiyordu)
     rochette: { off: [0, 16], origin: "CENTER", vOrigin: "TOP" },       // alta (üs etiketiyle çakışmasın)
   };
   let regions = [];
