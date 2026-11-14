@@ -1663,6 +1663,21 @@
     return box;
   }
 
+  // Radyasyon: yüzeyde doz eşdeğeri hızı 0,64 mSv/gün (Curiosity RAD, Gale; Hassler vd. 2014, Science 343).
+  // EVA dozu = süre × 0,64/24 mSv/sa. Eşik: profildeki uyarıyla aynı 1 mSv (EVA başına varsayım).
+  // Habitat içi kalkan ihmal; Jezero ile Gale benzer enlem/yükseklik kabulü.
+  const RAD_MSV_PER_DAY = 0.64;
+  const RAD_LIMIT_MSV = 1;
+  function radiationText(p) {
+    const a = astronauts.find((x) => x.id === p.astronautId);
+    const eva = (p.totals.minutes / 60) * (RAD_MSV_PER_DAY / 24);
+    const before = Number(a && a.radiation_msv) || 0;
+    const total = before + eva;
+    const f = (v) => v.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return "+" + f(eva) + " mSv bu EVA'da → toplam " + f(total) + " mSv" +
+      (total > RAD_LIMIT_MSV ? " ⚠ eşik (" + RAD_LIMIT_MSV + " mSv) aşılıyor" : " (eşik " + RAD_LIMIT_MSV + " mSv)");
+  }
+
   function planCard(p) {
     const t = p.totals;
     const first = p.timeline[0], last = p.timeline[p.timeline.length - 1];
@@ -1679,6 +1694,7 @@
         ["Mesafe", (t.distanceM / 1000).toLocaleString("tr-TR", { maximumFractionDigits: 2 }) + " km"],
         ["O₂", t.o2UsedMin + " dk harcanır, " + o2LeftText(t) + " (nabız ×" + t.multiplier.toFixed(2) + ")"],
         ["Batarya / su", "dönüşte %" + t.batteryPct + " / %" + t.waterPct],
+        ["Radyasyon", radiationText(p)],
       ]),
     ];
     if (p.turnaround) {
@@ -1718,7 +1734,8 @@
     ])));
     parts.push(el("p", { class: "muted small" },
       "Rota: Dijkstra, eğim ≥25° geçilmez (walkback.js). Süre: Tobler × 0,6 × (1 − yük/100) × yorgunluk (1 + 0,05·saat). " +
-      "O₂ = süre × (1 + (nabız−90)/100). Durak başına 1 kg numune. Katsayılar varsayım (eva.js)."));
+      "O₂ = süre × (1 + (nabız−90)/100). Durak başına 1 kg numune. Katsayılar varsayım (eva.js). " +
+      "Radyasyon = süre × 0,64 mSv/gün (Curiosity RAD, Hassler vd. 2014)."));
     return el("div", { class: "card plan-card" }, parts);
   }
 

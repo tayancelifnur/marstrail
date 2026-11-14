@@ -355,3 +355,11 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
   - Tablet (iPad dikey 768–834 px) masaüstü düzenine düşüyordu, iki panel arasında harita ~196 px → çekmece düzeni 900 px'e kadar.
 - **Elif'e not:** conditions.json gerçek MEDA verisiyle (sıcaklık, basınç, toz τ) değiştirilirse arayüz kendiliğinden "Hava · MEDA" yazar.
 - **Dosyalar:** `web/index.html`, `web/style.css`, `web/app.js`
+
+## G4 (gözden geçirme) · Profil kaydı doğrulandı, radyasyon plana bağlandı · Paz 15 Kas 2026, 00:20
+
+- **Kontrol (kartın satırı):** Ad "Ayşe K.", nabız 150, O₂ 200, yük 35 kaydedildi → sayfa yenilendi → dördü de duruyor (localStorage `marstrail.astronauts.v1`). O₂ 9999 girilince form reddediyor (üst sınır giysi kapasitesi 480). Nabız ve yük uyarı rengi alıyor.
+- **Eleştiri:** 9 alandan kilo, giysi ve radyasyon hiçbir hesaba girmiyordu. Radyasyon girilip hiçbir yerde etkisi görünmüyordu.
+- **Ne yapıldı:** Plan kartına "Radyasyon" satırı: EVA dozu = süre × 0,64 mSv/gün (Curiosity RAD, Hassler vd. 2014) + profildeki birikmiş doz; 1 mSv eşiği aşılırsa uyarı. Demo planı: +0,11 mSv → 0,41 mSv.
+- **Açık kalan:** Kilo hâlâ hesaba girmiyor (eva.js yük düzeltmesi 1 − yük/100, vücut kütlesinden bağımsız). Giysi bilgi amaçlı (O₂ kapasitesi giysiden). Elif'e öneri: yük oranını yük/kilo ile almak.
+- **Dosyalar:** `web/app.js`
