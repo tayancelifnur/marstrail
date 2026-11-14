@@ -32,3 +32,14 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 
 - **Ne yapıldı:** `docs/veri_envanteri.md`: D1–D8 için görev, alet, tarih, çözünürlük, projeksiyon, kaynak linki, üründeki rolü ve durumu; türetilen web/data dosyaları; 6 veri türü.
 - **Kontrol:** D7 API'si test edildi (Sol 652 → Mastcam-Z görüntüleri ve 320/800/1200 px linkleri geliyor). D8 hâlâ iniyor.
+
+## Organizatör cevapları · Cmt 14 Kas 2026
+
+- **Ne yapıldı:**
+  - CLAUDE.md'ye eklendi: veri hattı kuralı, sunum/teslim kuralları, NASA logosu/bayrağı/arması yasağı.
+  - `docs/DATA_PIPELINE.md`: E1–E4 geriye dönük dolduruldu, özet tablo eklendi.
+  - `scripts/pipeline_stats.py` ve `docs/figures/` (önce/sonra görselleri, istatistik JSON'u).
+  - PLAN.md bölüm 7: 7 slayt, 5 dk, ≤30 sn video.
+  - `docs/TESLIM.md` (form taslakları, kaynaklar, YZ beyanı, Drive listesi).
+  - README UTF-8 olarak yeniden yazıldı, YZ notu eklendi.
+- **Çalıştır:** `venv\Scripts\python scripts\pipeline_stats.py`. Bu komut DATA_PIPELINE sayılarını ve figürlerini yeniden üretir.

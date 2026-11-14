@@ -1,0 +1,107 @@
+{
+  "D1": {
+    "file_mb": 0.6,
+    "features": 708,
+    "inside_area": 516,
+    "fields_total": 23,
+    "fields_used": [
+      "sol",
+      "lon",
+      "lat",
+      "elev_geoid"
+    ],
+    "sol_range": [
+      13,
+      2022
+    ]
+  },
+  "D2": {
+    "file_mb": 1.72,
+    "features": 559,
+    "vertices": 36661,
+    "vertices_inside": 25231,
+    "length_km": 46.0
+  },
+  "D3": {
+    "file_mb": 2.3,
+    "features": 72,
+    "inside_area": 72
+  },
+  "D4": {
+    "file_mb": 1.72,
+    "pixels": 792100,
+    "nodata": 298150,
+    "inside_area": 13328,
+    "inside_nodata": 0,
+    "dropped_outside": 778772,
+    "ti_min": 132.83340454101562,
+    "ti_max": 400.6114807128906,
+    "p2": 160.79068359375,
+    "p98": 331.32453124999995,
+    "clipped_low": 267,
+    "clipped_high": 267
+  },
+  "D5": {
+    "file_mb": 90.35,
+    "pixels": 22578552,
+    "nodata": 13977,
+    "inside_area": 316969,
+    "inside_nodata": 0,
+    "dropped_outside": 22261583,
+    "elev_min": -2621.215087890625,
+    "elev_max": -1745.6324462890625,
+    "slope_gt25_20m": 1263
+  },
+  "D6": {
+    "zip_mb": 349.34,
+    "zip_files": 181,
+    "zip_dropped_macosx_lock": 19,
+    "gdb_layers": [
+      "MapBoundary",
+      "Nomenclature",
+      "CrossSections",
+      "Figures",
+      "FiguresAnno",
+      "GeoContacts",
+      "SurfaceFeatures",
+      "LinearFeatures",
+      "LocationFeatures",
+      "GeoUnitsAnno",
+      "LandingEllipse",
+      "megabreccia_fig2",
+      "GeoUnits_v1"
+    ],
+    "layers_used": [
+      "GeoUnits_v1"
+    ],
+    "polygons": 1304,
+    "units": 14,
+    "typo_fixed": 1,
+    "unit_code_mismatch": 1,
+    "polygons_in_area": 54,
+    "polygons_dropped_outside": 1250,
+    "unit_km2_in_area": {
+      "Jezero floor unit": 30.56,
+      "Jezero fan 2 unit": 23.79,
+      "Eolian bedform unit": 21.97,
+      "Upper etched unit": 19.24,
+      "Crater rim unit": 18.31,
+      "Lower etched unit": 7.84,
+      "Smooth unit, undivided": 4.67,
+      "Nili Planum 1 unit": 0.27
+    }
+  },
+  "grid": {
+    "cells": 65536,
+    "blocked": 193,
+    "nodata": 0,
+    "blocked_slope": 193,
+    "blocked_score": 0,
+    "cell_m": 44.0,
+    "score_mean": 0.29
+  },
+  "D8": {
+    "zip_mb": null,
+    "status": "iniyor"
+  }
+}

@@ -183,29 +183,52 @@ Saatlik plan, kontrol noktaları ve kesme sırası: docs/GOREV_KARTLARI.md.
 
 ## 7. Demo ve sunum
 
-Sunum 5 dakika varsayımıyla; süre belli olunca ölçekleyin. Açılış, hikâye ve mühendisliği Elif, demoyu Gözde anlatır.
+**Organizatör kuralları:**
+- 7 slayt, 5 dk sunum + 2 dk soru-cevap.
+- Video en fazla 30 sn. Canlı demo yok, demo video ile gösterilir.
+- Jüri veri hakimiyetini ölçüyor: temizleme, gereksiz verinin atılması, normalizasyon, öğrenme yöntemleri. Bu yüzden veri hattı ve yöntemler iki ayrı slayt.
+- Slaytlarda ve uygulamada NASA logosu, bayrağı veya görev arması yok. Kaynaklar metin olarak yazılır.
 
-### Slayt akışı
+**Konuşmacılar:** Hikâye ve kapanışı Elif, veri ve yöntemleri Elif, demo ve doğrulamayı Gözde anlatır.
 
-1. **Hikâye (45 sn):** Apollo 14, Opportunity, Spirit. "Houston 14 dakika uzakta. Kim 'geri dön' diyecek?"
-2. **Problem (20 sn):** Veri onlarca göreve dağınık; dönüş kuralı hâlâ sabit hızla hesaplanıyor; NASA'nın kendi testinde gerçek süre tahminden uzun çıktı.
-3. **Çözüm (10 sn):** "MarsTrail: hazırlan, planla, yürü, hayatta kal."
-4. **Canlı demo (2,5 dk):** Gözde.
-5. **Mühendislik (40 sn):** YOLO örnek tespitleri + mAP, füzyon diyagramı, Dijkstra bölgeleri, (varsa) Perseverance doğrulama yüzdesi.
-6. **Veri (20 sn):** kaynaklar ve 6 veri türü, tek görselde katman katman.
-7. **Etki (15 sn):** Kask içi ekran, Artemis'e uyarlama, Dünya'da afet araması (Worldview).
-8. **Ekip (5 sn).**
+### Slayt akışı (toplam 5:00)
 
-### Demo tıklama listesi
+1. **Hikâye (0:45):**
+   - Apollo 14, Opportunity, Spirit.
+   - Kapanış sorusu: "Houston 14 dakika uzakta. Kim 'geri dön' diyecek?"
+2. **MarsTrail (0:30):**
+   - Problem: Veri onlarca göreve dağınık. Dönüş kuralı hâlâ sabit hızla hesaplanıyor. NASA'nın kendi saha testinde gerçek süre tahminden uzun çıktı.
+   - Çözüm: "Hazırlan, planla, yürü, hayatta kal." Dört aşama tek ekranda.
+3. **Veri hattı (0:50):**
+   - DATA_PIPELINE.md'deki özet tablo: 8 veri seti, ham boyut → atılan → son boyut → yöntem.
+   - Önce/sonra görselleri (figures/).
+   - Vurgular: 3 projeksiyonun birleştirilmesi, NoData temizliği, %2–98 normalizasyon, kaynak haritadaki hataların düzeltilmesi.
+4. **Yöntemler (0:50):**
+   - Füzyon formülü ve fusion.png.
+   - YOLOv8: veri seti, sınıflar, mAP, örnek tespitler.
+   - Tobler hız modeli, Dijkstra ile O₂ bölgeleri, dönüş noktası.
+   - Varsayımlar açıkça yazılır.
+5. **Demo videosu (0:40):**
+   - 30 sn video ve 10 sn giriş/çıkış cümlesi.
+   - Video senaryosu aşağıda.
+6. **Doğrulama (0:35):**
+   - Perseverance'ın gerçek yolu (D2) haritamızda yüzde kaç geçilebilir? Rastgele hücrelerle kıyas.
+   - YOLO val sonuçları.
+   - Grid'deki süreler (üs → Three Forks 82 dk).
+7. **Etki ve YZ beyanı (0:30):**
+   - Kask içi ekran, Artemis'e uyarlama.
+   - Dünya'da afet araması: aynı kurtarma mantığı.
+   - YZ kullanım beyanı: Claude Code, insan denetiminde kod ve veri işleme. Ekip adları.
 
-1. Küre döner; üst barda Sol, Jezero saati, Dünya saati, "Dünya X dk uzakta".
-2. Ayşe'nin profili açılır: O₂ %100, nabız 85, yük 6 kg. Haritada O₂ bölgeleri zaten açık.
-3. "Jezero'ya git" uçuşu. Bilgi kartı: "Opportunity buna benzer bir kum dalgasında 5 hafta kaldı."
-4. Delta pinine tıklanır: 2005'te tanımlandı, Perseverance Sol X'te geldi, o günün fotoğrafı.
-5. YOLO katmanı açılır: "Bu kırmızı noktaları modelimiz buldu."
-6. Plan: üs → delta → Three Forks → dönüş. Zaman çizelgesi ve dönüş noktası görünür. Go/No-Go: yeşil.
-7. Yürüyüş başlar. Nabız 150'ye çekilir, **bölgeler gözle görülür şekilde daralır**, dönüş noktası uyarısı çıkar.
-8. "Telsiz koptu": arama alanı, İHA tarama rotası, Ali'ye arkadaşını kurtar rotası. Kapanış cümlesi.
+### Demo videosu senaryosu (en fazla 30 sn)
+
+| Süre | Ekranda |
+| --- | --- |
+| 0–5 sn | Küre → "Jezero'ya git". Üst barda Sol, Jezero saati, "Dünya X dk uzakta". |
+| 5–10 sn | Ayşe'nin profili; O₂ bölgeleri zaten açık. Delta pinine tıklanır: tarihçe ve Perseverance'ın o Sol'deki fotoğrafı. |
+| 10–16 sn | YOLO katmanı açılır. Plan: üs → delta → Three Forks → üs. Zaman çizelgesi, dönüş noktası, Go/No-Go yeşil. |
+| 16–24 sn | Yürüyüş ×60. Nabız 150'ye çekilir, **bölgeler gözle görülür şekilde daralır**, dönüş noktası uyarısı çıkar. |
+| 24–30 sn | "Telsiz koptu": arama alanı, İHA zikzak rotası, Ali'ye kurtarma rotası. |
 
 ### Hazır cevaplar
 

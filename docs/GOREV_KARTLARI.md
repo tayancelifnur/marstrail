@@ -180,7 +180,7 @@ Opportunity ve Spirit Jezero'da değil. Haritada "bu kum türü buna benziyor" b
 
 ### E15 · 06:30–08:30 · Slaytlar
 
-- **Yap:** 8 slayt (PLAN.md bölüm 7). Gözde'den ekran görüntüleri al.
+- **Yap:** 7 slayt (PLAN.md bölüm 7; veri hattı slaytı = DATA_PIPELINE.md özet tablosu). Gözde'den ekran görüntüleri al. NASA logosu, bayrağı, arması yok.
 - **Kontrol:** Slaytlar okunuyor, hikâye 45 saniyede anlatılabiliyor.
 
 ## 6. Gözde'nin görev kartları
@@ -244,7 +244,7 @@ Tek sayfa: `web/index.html`, `web/app.js`, `web/style.css`. Harita CesiumJS (CDN
 | Saat | Görev | Bitti sayılır eğer… |
 | --- | --- | --- |
 | 08:30–09:30 | Demo senaryosu (PLAN.md bölüm 7) demo bilgisayarında birebir | Her tıklama çalışıyor |
-| 09:30–10:00 | Yedek demo videosu (2,5 dk, OBS) | Video kaydedildi |
-| 10:00–12:00 | 3 tam prova, kronometreyle; her provadan sonra tek düzeltme; birbirinize jüri soruları sorun | Süre tutuyor |
+| 09:30–10:00 | Demo videosu (en fazla 30 sn, OBS; senaryo PLAN.md bölüm 7) | Video kaydedildi, ≤30 sn |
+| 10:00–12:00 | 3 tam prova (5 dk + 2 dk soru-cevap), kronometreyle; her provadan sonra tek düzeltme; birbirinize jüri soruları sorun | Süre tutuyor |
 | 12:00–13:00 | Son düzeltmeler + 1 prova | — |
-| 13:00–13:30 | Teslim sayfası: link, GitHub, video, slayt, tüm kaynakların listesi (NASA kaynak göstermeyen takımların ödülünü geri alabiliyor) | **13:30'da teslim edildi** |
+| 13:00–13:30 | Teslim: docs/TESLIM.md (form cevapları, kaynak listeleri, YZ beyanı, Drive kontrol listesi) | **13:30'da teslim edildi** |
