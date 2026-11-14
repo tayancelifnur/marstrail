@@ -127,6 +127,7 @@
 
   function flyToJezero() {
     setAutoRotate(false);
+    document.getElementById("leftPanel").classList.remove("open");
     const [w, s, e, n] = studyBbox;
     const padLon = (e - w) * 0.6;
     const padLat = (n - s) * 0.6;
@@ -246,6 +247,178 @@
   }
   initLayers();
 
+  // --- G3: Üst bar ---
+  // Mars saati şimdilik SABİT (senaryo: Sol 34). E8'de Elif'in web/marstime.js'i gelince
+  // marsClock() içi onunla değiştirilecek. Dünya saatleri gerçek.
+  const SCENARIO_SOL = 34;
+  function marsClock() {
+    return {
+      sol: SCENARIO_SOL,
+      lmst: "14:20",      // Jezero yerel saati (sabit, E8'de hesaplanacak)
+      delayMin: 12.5,     // Dünya–Mars tek yön ışık gecikmesi, dk (sabit, E8'de hesaplanacak)
+    };
+  }
+
+  let conditions = [];
+  let linkUp = true; // G8 "Telsiz koptu" ile false olacak
+
+  const fmtTime = (d, tz) =>
+    d.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: tz });
+
+  const toMin = (hhmm) => {
+    const [h, m] = hhmm.split(":").map(Number);
+    return h * 60 + m;
+  };
+
+  function todaysConditions(sol) {
+    if (!conditions.length) return null;
+    return conditions.find((c) => c.sol === sol) || conditions[conditions.length - 1];
+  }
+
+  function updateTopBar() {
+    const now = new Date();
+    const mc = marsClock();
+    const $ = (id) => document.getElementById(id);
+
+    $("tbMarsTime").textContent = mc.lmst + " LMST";
+    $("tbSol").textContent = mc.sol;
+    $("tbUtc").textContent = fmtTime(now, "UTC");
+    $("tbTr").textContent = fmtTime(now, "Europe/Istanbul");
+    $("tbDelay").textContent = mc.delayMin.toLocaleString("tr-TR", { maximumFractionDigits: 1 }) + " dk uzakta";
+
+    const c = todaysConditions(mc.sol);
+    if (c) {
+      const left = toMin(c.sunset_lmst) - toMin(mc.lmst);
+      $("tbSunset").textContent = left > 0 ? Math.floor(left / 60) + " sa " + (left % 60) + " dk" : "gün battı";
+      $("tbWeather").textContent =
+        Math.round(c.temp_min_c) + "…" + Math.round(c.temp_max_c) + " °C · toz τ " + c.dust_tau.toFixed(2);
+    }
+
+    const link = $("tbLink");
+    link.textContent = linkUp ? "● bağlı" : "● kopuk";
+    link.className = linkUp ? "link-ok" : "link-lost";
+  }
+
+  function setLink(up) {
+    linkUp = up;
+    updateTopBar();
+  }
+
+  loadJSON("data/conditions.json")
+    .then((d) => { conditions = d; updateTopBar(); })
+    .catch((err) => console.error(err));
+  updateTopBar();
+  setInterval(updateTopBar, 1000);
+
+  // --- G3: Sağ panel (detay kartı) ---
+  const detailPanel = document.getElementById("detailPanel");
+  const detailBody = document.getElementById("detailBody");
+
+  // content: DOM düğümü. Kartları G5'te pinler de buraya basacak.
+  function showDetail(content) {
+    detailBody.replaceChildren(content);
+    detailPanel.hidden = false;
+    closeDrawer();
+  }
+  function hideDetail() {
+    detailPanel.hidden = true;
+  }
+  document.getElementById("detailClose").addEventListener("click", hideDetail);
+
+  function el(tag, attrs, ...children) {
+    const n = document.createElement(tag);
+    Object.entries(attrs || {}).forEach(([k, v]) => (k === "class" ? (n.className = v) : n.setAttribute(k, v)));
+    children.flat().forEach((c) => c != null && n.append(c));
+    return n;
+  }
+
+  function kvList(pairs) {
+    return el("dl", { class: "kv" }, pairs.flatMap(([k, v]) => [el("dt", null, k), el("dd", null, String(v))]));
+  }
+
+  // --- G3: Astronotlar (G4'te tam profil formu gelecek) ---
+  let astronauts = [];
+  let selectedAstroId = null;
+
+  // Bölge etiketi için yer (G6'da Walkback.zones ile hesaplanacak). null = bilinmiyor.
+  function zoneBadge(zone) {
+    const labels = { green: "YEŞİL", yellow: "SARI", red: "KIRMIZI" };
+    return el("span", { class: "zone " + (zone || "") }, zone ? labels[zone] : "BÖLGE –");
+  }
+
+  function astroDetail(a) {
+    return el(
+      "div",
+      null,
+      el("h3", null, a.name),
+      el("p", { class: "muted" }, a.role),
+      zoneBadge(a.zone),
+      kvList([
+        ["Giysi", a.suit],
+        ["Kilo", a.mass_kg + " kg"],
+        ["O₂", a.o2_min + " / " + a.o2_capacity_min + " dk"],
+        ["Batarya", "%" + a.battery_pct],
+        ["Su", "%" + a.water_pct],
+        ["Nabız", a.heart_rate + " atım/dk"],
+        ["Yük", a.load_kg + " kg"],
+        ["Radyasyon", a.radiation_msv + " mSv"],
+      ])
+    );
+  }
+
+  function renderAstronauts() {
+    const list = document.getElementById("astroList");
+    list.replaceChildren(
+      ...astronauts.map((a) => {
+        const card = el(
+          "button",
+          { type: "button", class: "astro" + (a.id === selectedAstroId ? " selected" : "") },
+          el("div", { class: "astro-top" }, el("span", { class: "astro-name" }, a.name), zoneBadge(a.zone)),
+          el("div", { class: "astro-role" }, a.role),
+          el(
+            "div",
+            { class: "astro-vitals" },
+            el("span", null, "O₂ " + a.o2_min + " dk"),
+            el("span", null, "♥ " + a.heart_rate),
+            el("span", null, "🔋 %" + a.battery_pct)
+          )
+        );
+        card.addEventListener("click", () => selectAstronaut(a.id, true));
+        return card;
+      })
+    );
+  }
+
+  function selectAstronaut(id, openDetail) {
+    selectedAstroId = id;
+    renderAstronauts();
+    const a = astronauts.find((x) => x.id === id);
+    if (a && openDetail) showDetail(astroDetail(a));
+  }
+
+  loadJSON("data/astronauts.json")
+    .then((d) => {
+      astronauts = d;
+      selectAstronaut(d[0] && d[0].id, false);
+    })
+    .catch((err) => {
+      console.error(err);
+      document.getElementById("astroList").innerHTML = '<p class="muted">astronauts.json okunamadı.</p>';
+    });
+
+  // --- G3: Mobil çekmece ---
+  const leftPanel = document.getElementById("leftPanel");
+  function closeDrawer() {
+    leftPanel.classList.remove("open");
+  }
+  document.getElementById("drawerHandle").addEventListener("click", () => leftPanel.classList.toggle("open"));
+
   // Sonraki kartlar için dışarı aç
-  window.MarsTrail = { viewer, MARS, JEZERO, setBaseLayer, setAutoRotate, flyToJezero, overlays, loadJSON };
+  window.MarsTrail = {
+    viewer, MARS, JEZERO, setBaseLayer, setAutoRotate, flyToJezero, overlays, loadJSON,
+    showDetail, hideDetail, el, kvList, setLink, updateTopBar,
+    get astronauts() { return astronauts; },
+    get selectedAstronaut() { return astronauts.find((x) => x.id === selectedAstroId); },
+    selectAstronaut, renderAstronauts,
+  };
 })();

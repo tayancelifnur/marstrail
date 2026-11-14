@@ -2,7 +2,8 @@
 <html lang="tr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0d0b0a">
   <title>MarsTrail</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cesium@1.123.0/Build/Cesium/Widgets/widgets.css">
   <link rel="stylesheet" href="style.css">
@@ -15,22 +16,56 @@
 <body>
   <div id="globe"></div>
 
-  <div id="hud">
+  <!-- Üst bar: her ekranda -->
+  <header id="topbar">
     <div class="brand">Mars<span>Trail</span></div>
-    <label class="field">
-      Taban harita
-      <select id="baseSelect">
-        <option value="viking">Viking renkli mozaik</option>
-        <option value="mola">MOLA renkli gölgeli kabartma</option>
-      </select>
-    </label>
-    <button id="rotateBtn" type="button">Dönmeyi durdur</button>
-    <button id="jezeroBtn" type="button" class="primary">Jezero'ya git</button>
-  </div>
+    <div class="stats">
+      <div class="stat"><small>Jezero saati</small><b id="tbMarsTime">--:--</b></div>
+      <div class="stat"><small>Sol</small><b id="tbSol">--</b></div>
+      <div class="stat"><small>UTC</small><b id="tbUtc">--:--</b></div>
+      <div class="stat"><small>Türkiye</small><b id="tbTr">--:--</b></div>
+      <div class="stat"><small>Dünya</small><b id="tbDelay">-- dk uzakta</b></div>
+      <div class="stat"><small>Gün batımına</small><b id="tbSunset">--</b></div>
+      <div class="stat"><small>Hava</small><b id="tbWeather">--</b></div>
+      <div class="stat"><small>Habitat ağı</small><b id="tbLink" class="link-ok">● bağlı</b></div>
+    </div>
+  </header>
 
-  <aside id="layerPanel" class="panel">
-    <h2>Katmanlar</h2>
-    <div id="layerList"><p class="muted">Yükleniyor…</p></div>
+  <!-- Sol panel: astronotlar, harita, katmanlar (mobilde alttan çekmece) -->
+  <aside id="leftPanel" class="panel">
+    <button id="drawerHandle" type="button" aria-label="Paneli aç/kapat"><span></span></button>
+    <div class="panel-scroll">
+      <section>
+        <h2>Astronotlar</h2>
+        <div id="astroList"><p class="muted">Yükleniyor…</p></div>
+      </section>
+
+      <section>
+        <h2>Harita</h2>
+        <div class="controls">
+          <button id="jezeroBtn" type="button" class="primary">Jezero'ya git</button>
+          <button id="rotateBtn" type="button">Dönmeyi durdur</button>
+        </div>
+        <label class="field">
+          Taban harita
+          <select id="baseSelect">
+            <option value="viking">Viking renkli mozaik</option>
+            <option value="mola">MOLA renkli gölgeli kabartma</option>
+          </select>
+        </label>
+      </section>
+
+      <section>
+        <h2>Katmanlar</h2>
+        <div id="layerList"><p class="muted">Yükleniyor…</p></div>
+      </section>
+    </div>
+  </aside>
+
+  <!-- Sağ panel: detay kartı -->
+  <aside id="detailPanel" class="panel" hidden>
+    <button id="detailClose" type="button" class="icon" aria-label="Kapat">×</button>
+    <div id="detailBody"></div>
   </aside>
 
   <div id="error" hidden></div>
