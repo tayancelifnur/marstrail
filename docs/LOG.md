@@ -155,3 +155,13 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Dosyalar:** `web/index.html`, `web/app.js`, `web/style.css`
 - **Formüller:** Süre = Σ mesafe / [6·exp(−3,5·|tanθ+0,05|)·0,6·(1−yük/100)], 25 m adımla, yükseklik `grid.json`'dan. O₂ ihtiyacı = süre × (1 + (nabız−90)/100). Rota düz çizgi; güvenli rota (Dijkstra) planlayıcıda.
 - **Kontrol (headless Chrome, gerçek fare tıklamaları):** 4 noktalı rota çift tıklamayla bitti: 8,86 km, 218 dk, +370/−95 m, sonu KIRMIZI bölgede. Delta önü kartında Sol 415 fotoğrafı ve tarihçe görünüyor.
+
+## Çalışma alanı v2 · Cmt 14 Kas 2026
+
+- **Ne yapıldı:** Alan 77,28–77,48°D → **77,28–77,60°D**, 18,293–18,597°K (enlem üsse ortalı, ~18 × 18 km). Grid hücresi 44 → 70,4 m. E3, E7, istatistikler, önizlemeler ve e8_zones.png yeniden üretildi; DATA_PIPELINE, PLAN ve envanterdeki sayılar güncellendi.
+- **Neden:** O₂ tam doluyken (480 dk, nabız 85) yeşil bölge doğu kenarında kesiliyordu. Ara deneme 77,56° yetmedi (doğu kenarında 64 yeşil hücre). 77,60'ta test geçiyor: 0 hücre.
+- **Korunan:** E5 karolama alanı `tile_for_yolo.TILE_BBOX` ile ilk alanda sabit (ızgara başlangıcı doğrulandı: aynı). Etiketlenen karolar geçerli. Fotoğraf seçimi değişmedi.
+- **Yeni sayılar:**
+  - Geçilmez hücre 150 (%0,2). Rover yolu 397 hücre, %100 geçilebilir.
+  - Üsten süreler (yük 0): Three Forks 73 dk, delta önü 75 dk, Cheyava Falls 278 dk.
+  - Yeşil alan: nabız 85'te 130 km², nabız 150'de 47 km².

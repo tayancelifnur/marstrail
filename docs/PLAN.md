@@ -214,7 +214,7 @@ Saatlik plan, kontrol noktaları ve kesme sırası: docs/GOREV_KARTLARI.md.
 6. **Doğrulama (0:35):**
    - Perseverance'ın gerçek yolu (D2) haritamızda yüzde kaç geçilebilir? Rastgele hücrelerle kıyas.
    - YOLO val sonuçları.
-   - Grid'deki süreler (üs → Three Forks 82 dk).
+   - Grid'deki süreler (üs → Three Forks 73 dk, Cheyava Falls 278 dk: kırmızı bölge).
 7. **Etki ve YZ beyanı (0:30):**
    - Kask içi ekran, Artemis'e uyarlama.
    - Dünya'da afet araması: aynı kurtarma mantığı.

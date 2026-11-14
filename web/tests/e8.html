@@ -46,6 +46,11 @@ Walkback.load("../data/grid.json").then(() => {
   const r2 = Walkback.path(TF, BASE, { loadKg: 6 });
   log(`Rota üs → Three Forks: ${r1.minutes.toFixed(0)} dk, ${(r1.distanceM / 1000).toFixed(2)} km; dönüş ${r2.minutes.toFixed(0)} dk (yönlü eğim: farklı olmalı)`,
       r1.ok && r2.ok && Math.abs(r1.minutes - r2.minutes) > 0.5);
+  const r3 = Walkback.path(BASE, DF, { loadKg: 0 }), r4 = Walkback.path(BASE, TF, { loadKg: 0 }), r5 = Walkback.path(BASE, CF, { loadKg: 0 });
+  log(`Yük 0 kg, üsten tek yön: delta önü ${r3.minutes.toFixed(0)} dk, Three Forks ${r4.minutes.toFixed(0)} dk, Cheyava Falls ${r5.minutes.toFixed(0)} dk (${(r5.distanceM / 1000).toFixed(1)} km)`, r3.ok && r4.ok && r5.ok);
+  const zg = Walkback.grid, zb = Walkback.zones(BASE, 480, 85, 6).classes;
+  let edge = 0; for (let k = 0; k < zg.h; k++) edge += zb[k * zg.w + zg.w - 1] === 1;
+  log(`Doğu kenarında yeşil hücre (O₂ 480, nabız 85): ${edge} (bölge kenarda kesilmemeli)`, edge === 0);
   const cases = [
     { title: "Ayşe: O₂ 480 dk, nabız 85, yük 6 kg", args: [BASE, 480, 85, 6] },
     { title: "Aynı, nabız 150 (Apollo 14)", args: [BASE, 480, 150, 6] },

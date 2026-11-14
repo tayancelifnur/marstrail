@@ -17,9 +17,9 @@
     "source": "CTX DEM 20 m, USGS Astrogeology / JPL (Mars 2020)",
     "bbox": [
       77.28,
-      18.365,
-      77.48,
-      18.555
+      18.293,
+      77.6,
+      18.597
     ]
   },
   {
@@ -44,9 +44,9 @@
     "source": "CTX DEM 20 m (USGS) → eğim, 20 m'de hesaplanıp ortalandı",
     "bbox": [
       77.28,
-      18.365,
-      77.48,
-      18.555
+      18.293,
+      77.6,
+      18.597
     ]
   },
   {
@@ -57,19 +57,19 @@
     "legend": [
       {
         "color": "#e67e22",
-        "label": "Düşük (~162 TIU) – gevşek kum/toz"
+        "label": "Düşük (~156 TIU) – gevşek kum/toz"
       },
       {
         "color": "#34495e",
-        "label": "Yüksek (~329 TIU) – sert kaya"
+        "label": "Yüksek (~325 TIU) – sert kaya"
       }
     ],
     "source": "THEMIS termal eylemsizlik, Jezero mozaiği (Zenodo 4931348), 100 m",
     "bbox": [
       77.28,
-      18.365,
-      77.48,
-      18.555
+      18.293,
+      77.6,
+      18.597
     ]
   },
   {
@@ -78,6 +78,10 @@
     "file": "layers/geology.png",
     "default_opacity": 0.5,
     "legend": [
+      {
+        "color": "#5d9cec",
+        "label": "Jezero fan 1 unit (yürünebilirlik 0.7)"
+      },
       {
         "color": "#78aff5",
         "label": "Jezero fan 2 unit (yürünebilirlik 0.7)"
@@ -99,6 +103,10 @@
         "label": "Nili Planum 1 unit (yürünebilirlik 0.7)"
       },
       {
+        "color": "#7d7364",
+        "label": "Nili Planum 2 unit (yürünebilirlik 0.7)"
+      },
+      {
         "color": "#f0c878",
         "label": "Eolian bedform unit (yürünebilirlik 0.3)"
       },
@@ -114,9 +122,9 @@
     "source": "USGS SIM 3464, Jezero Krateri ve Nili Planum jeolojik haritası (Sun ve Stack, 2020)",
     "bbox": [
       77.28,
-      18.365,
-      77.48,
-      18.555
+      18.293,
+      77.6,
+      18.597
     ]
   },
   {
@@ -145,9 +153,9 @@
     "source": "0,4·eğim + 0,25·kum (eolyen birim) + 0,15·kaya (jeoloji vekili; YOLO E10'da) + 0,2·(1−termal)",
     "bbox": [
       77.28,
-      18.365,
-      77.48,
-      18.555
+      18.293,
+      77.6,
+      18.597
     ]
   }
 ]

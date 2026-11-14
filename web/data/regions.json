@@ -38,11 +38,11 @@
       "elevation_m": -2567,
       "geology_unit": "Jezero floor unit",
       "geology_walkability": 0.85,
-      "slope_deg": 2.6,
-      "max_slope_300m_deg": 5.7,
+      "slope_deg": 2.0,
+      "max_slope_300m_deg": 5.5,
       "sand_pct_300m": 0.0,
-      "thermal_norm": 0.48,
-      "traversability_score": 0.17
+      "thermal_norm": 0.51,
+      "traversability_score": 0.15
     },
     "poi_type": "habitat"
   },
@@ -83,7 +83,12 @@
     "terrain": {
       "elevation_m": -2628,
       "geology_unit": "Jezero floor unit",
-      "geology_walkability": 0.85
+      "geology_walkability": 0.85,
+      "slope_deg": 3.2,
+      "max_slope_300m_deg": 5.7,
+      "sand_pct_300m": 0.0,
+      "thermal_norm": 0.37,
+      "traversability_score": 0.2
     },
     "poi_type": "history"
   },
@@ -139,10 +144,10 @@
       "elevation_m": -2568,
       "geology_unit": "Jezero floor unit",
       "geology_walkability": 0.85,
-      "slope_deg": 2.7,
-      "max_slope_300m_deg": 5.7,
+      "slope_deg": 2.8,
+      "max_slope_300m_deg": 5.5,
       "sand_pct_300m": 0.0,
-      "thermal_norm": 0.48,
+      "thermal_norm": 0.51,
       "traversability_score": 0.17
     },
     "poi_type": "history"
@@ -198,11 +203,11 @@
       "elevation_m": -2578,
       "geology_unit": "Lower etched unit",
       "geology_walkability": 0.75,
-      "slope_deg": 2.9,
+      "slope_deg": 2.5,
       "max_slope_300m_deg": 8.2,
       "sand_pct_300m": 0.0,
-      "thermal_norm": 0.52,
-      "traversability_score": 0.18
+      "thermal_norm": 0.54,
+      "traversability_score": 0.17
     },
     "poi_type": "science"
   },
@@ -264,10 +269,10 @@
       "geology_unit": "Jezero floor unit",
       "geology_walkability": 0.85,
       "slope_deg": 5.6,
-      "max_slope_300m_deg": 11.0,
-      "sand_pct_300m": 0.6,
-      "thermal_norm": 0.41,
-      "traversability_score": 0.23
+      "max_slope_300m_deg": 10.6,
+      "sand_pct_300m": 0.8,
+      "thermal_norm": 0.44,
+      "traversability_score": 0.22
     },
     "poi_type": "science"
   },
@@ -328,10 +333,10 @@
       "elevation_m": -2546,
       "geology_unit": "Jezero floor unit",
       "geology_walkability": 0.85,
-      "slope_deg": 1.1,
-      "max_slope_300m_deg": 11.0,
+      "slope_deg": 1.3,
+      "max_slope_300m_deg": 10.6,
       "sand_pct_300m": 0.0,
-      "thermal_norm": 0.25,
+      "thermal_norm": 0.28,
       "traversability_score": 0.19
     },
     "poi_type": "science"
@@ -345,7 +350,7 @@
     "science_value": 5,
     "summary": "\"Leopar benekli\" kaya: antik mikrobik yaşamın olası izi (biyoimza). Üsten ~15 km uzakta; tek EVA ile gidip dönülemez, O₂ haritasında kırmızı bölgede.",
     "hazards": [
-      "Dik yamaç: 300 m içinde 30.0° (sınır 25°)",
+      "Dik yamaç: 300 m içinde 29.3° (sınır 25°)",
       "Eolyen kum: 300 m çevrenin %24'i kum dalgası birimi"
     ],
     "missions": [
@@ -378,9 +383,9 @@
       "elevation_m": -2353,
       "geology_unit": "Upper etched unit",
       "geology_walkability": 0.75,
-      "slope_deg": 14.8,
-      "max_slope_300m_deg": 30.0,
-      "sand_pct_300m": 24.5,
+      "slope_deg": 14.4,
+      "max_slope_300m_deg": 29.3,
+      "sand_pct_300m": 23.8,
       "thermal_norm": 1.0,
       "traversability_score": 0.27
     },

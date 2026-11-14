@@ -43,9 +43,13 @@ THERMAL = RAW / "Jezero_Thermal_Inertia_v1.tiff"
 GEOLOGY = RAW / "D6_geology" / "Jezero_GeoUnits.shp"
 
 # Çalışma alanı: üs (77.451, 18.445), delta önü / Three Forks (77.40-77.41, 18.45),
-# Cheyava Falls (77.305, 18.498) hepsi içeride. Kenarlar metre cinsinden ~kare:
-# 0.20° boylam × cos(18.46°) ≈ 0.19° enlem → ~11.2 × 11.2 km.
-BOUNDS = {"west": 77.28, "south": 18.365, "east": 77.48, "north": 18.555}
+# Cheyava Falls (77.305, 18.498) hepsi içeride. Kenarlar metre cinsinden ~kare (hücreler kare olsun):
+# 0.32° boylam × cos(18.445°) ≈ 0.3036° enlem → ~18 × 18 km, 256² grid'de ~70 m hücre.
+# v2 (E8 sonrası): üs doğu kenarına 1.6 km uzaktaydı; O₂ tam doluyken (480 dk, nabız 85) yeşil bölge
+# yarıçapı ~6.2 km, sarı ~7.8 km olduğundan bölgeler harita kenarında kesiliyordu. Enlem üsse ortalı,
+# doğu sınırı 77.60: üsten doğuya 8.4 km, kuzey/güneye 9 km. Batı 77.28 Cheyava Falls için sabit.
+# İlk sürüm (E3–E5): 77.28–77.48°D, 18.365–18.555°K, 44 m hücre.
+BOUNDS = {"west": 77.28, "south": 18.293, "east": 77.60, "north": 18.597}
 BBOX = [BOUNDS["west"], BOUNDS["south"], BOUNDS["east"], BOUNDS["north"]]
 N_IMG = 1024  # PNG çözünürlüğü (~11 m/piksel; DEM 20 m olduğu için yeterli)
 N_GRID = 256  # veri sözleşmesi: 256x256

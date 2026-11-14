@@ -12,7 +12,7 @@ Girdi:  data/raw/D8_hirise/MSR_hirise_soc_003_Orthomosaic_0.25m_..._First_NoBlen
 Çalıştır:  venv\\Scripts\\python scripts\\tile_for_yolo.py
 
 Yöntem (ayrıntı ve sayılar: docs/DATA_PIPELINE.md, D8):
- 1. Çalışma alanı (E3 ile aynı) ortogörüntü üzerinde 640×640 piksellik (160×160 m) örtüşmesiz karolara bölünür.
+ 1. E5 karolama alanı (TILE_BBOX; E3'ün ilk çalışma alanı) ortogörüntü üzerinde 640×640 piksellik (160×160 m) örtüşmesiz karolara bölünür.
  2. Eleme ön görünümde (1/16 ölçek) yapılır: NoData içeren karolar ve dokusuz (düz) karolar atılır.
  3. Her karoya jeoloji birimi oranları atanır. Seçim:
       kum adayı  : eolyen birim ≥ %60
@@ -54,6 +54,9 @@ GEOLOGY = ROOT / "data/raw/D6_geology/Jezero_GeoUnits.shp"
 UPLOAD = ROOT / "ml/roboflow_upload"
 FIG = ROOT / "docs/figures"
 
+# E5 karolama alanı SABİT: Elif bu karoları etiketledi; karo adları (jz_rRRR_cCCC) bu alanın
+# ızgarasına göre. Ortak çalışma alanı (prep_layers.BBOX) sonradan genişletildi, burası değişmemeli.
+TILE_BBOX = [77.28, 18.365, 77.48, 18.555]
 TILE = 640           # YOLOv8 varsayılan giriş boyu; 640 px × 0,25 m = 160 m
 DEC = 16             # ön görünüm ölçeği: karo = 40×40 ön görünüm pikseli
 N_SAND, N_ROCK, N_NEG = 70, 65, 15   # toplam 150 (kart: 150 karo; ~%10 negatif örnek)
@@ -66,7 +69,7 @@ SEED = 42
 
 def study_window(src):
     """E3 çalışma alanının ortogörüntüdeki piksel penceresi, karo katına yuvarlanmış."""
-    l, b, r, t = transform_bounds(P.target_crs(), src.crs, *P.BBOX)
+    l, b, r, t = transform_bounds(P.target_crs(), src.crs, *TILE_BBOX)
     c0, r0 = ~src.transform * (l, t)
     c1, r1 = ~src.transform * (r, b)
     c0, r0 = max(0, int(c0)), max(0, int(r0))
