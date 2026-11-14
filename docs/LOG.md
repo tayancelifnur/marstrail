@@ -248,3 +248,11 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Ne yapıldı:** Cesium artık ekranın gerçek pikselinde çiziyor (`useBrowserRecommendedResolution = false`, DPI > 2'de en fazla 2×). Bütün harita etiketleri (pinler, astronot, plan işaretleri, yürüyüş, İHA/Ali) koyu yarı saydam zeminli düz yazı (`LABEL_BG`). Haritada kısa adlar (Üs, Three Forks, Rochette, Jezero Krateri…), tam adlar kartta. Üs etiketi solda; plan işaretlerinin etiketleri noktanın altında; durak numaraları kaldırıldı (sıra sol panelde).
 - **Dosyalar:** `web/app.js`
 - **Kontrol:** Headless Chrome, cihaz ölçeği 1,5 (1280×720 → 1920×1080): genel görünüm ve NO-GO plan görünümünde yazılar net, çakışma yok.
+
+## G9 (1. kısım) · Yayın hazırlığı: PWA + GitHub Pages · Cmt 14 Kas 2026, 21:50
+
+- **Ne yapıldı:** `manifest.webmanifest` (ad, tam ekran/standalone, koyu tema, ikonlar) ve ikon seti (192/512, maskable, apple-touch, favicon; Pillow ile çizildi: Mars diski + kesikli yürüyüş izi, NASA logosu yok). index.html'e manifest/ikon/mobil meta etiketleri. `.github/workflows/pages.yml`: main'e her `web/**` push'unda `web/` klasörü GitHub Pages'e yayınlanır.
+- **Dosyalar:** `web/index.html`, `web/manifest.webmanifest`, `web/icons/*`, `.github/workflows/pages.yml`
+- **Nasıl çalıştırılır:** Bir kez repo Settings → Pages → Source: "GitHub Actions". Sonra adres: https://tayancelifnur.github.io/marstrail/ (Actions sekmesinde "Pages" iş akışı yeşil olmalı).
+- **Varsayımlar:** Service worker yok (çevrimdışı çalışma hedef değil; Cesium zaten CDN'den yükleniyor, eski önbellek demo sırasında sorun çıkarmasın diye). Tüm yollar göreli, alt dizinde çalışır.
+- **Kontrol:** Manifest geçerli JSON; yerel sunucuda index, manifest ve ikonlar 200. Telefon testi yayın açılınca yapılacak.
