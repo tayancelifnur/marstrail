@@ -1,0 +1,145 @@
+[
+  {
+    "sol": 28,
+    "temp_min_c": -83.6,
+    "temp_max_c": -22.0,
+    "pressure_pa": 714,
+    "wind_ms": 6.5,
+    "dust_tau": 0.62,
+    "sunrise_lmst": "05:52",
+    "sunset_lmst": "18:08",
+    "dummy": true
+  },
+  {
+    "sol": 29,
+    "temp_min_c": -83.1,
+    "temp_max_c": -27.2,
+    "pressure_pa": 709,
+    "wind_ms": 6.6,
+    "dust_tau": 0.45,
+    "sunrise_lmst": "05:52",
+    "sunset_lmst": "18:08",
+    "dummy": true
+  },
+  {
+    "sol": 30,
+    "temp_min_c": -81.2,
+    "temp_max_c": -22.8,
+    "pressure_pa": 727,
+    "wind_ms": 4.7,
+    "dust_tau": 0.51,
+    "sunrise_lmst": "05:52",
+    "sunset_lmst": "18:08",
+    "dummy": true
+  },
+  {
+    "sol": 31,
+    "temp_min_c": -83.8,
+    "temp_max_c": -27.4,
+    "pressure_pa": 736,
+    "wind_ms": 4.8,
+    "dust_tau": 0.5,
+    "sunrise_lmst": "05:52",
+    "sunset_lmst": "18:08",
+    "dummy": true
+  },
+  {
+    "sol": 32,
+    "temp_min_c": -84.1,
+    "temp_max_c": -27.2,
+    "pressure_pa": 718,
+    "wind_ms": 7.2,
+    "dust_tau": 0.49,
+    "sunrise_lmst": "05:52",
+    "sunset_lmst": "18:08",
+    "dummy": true
+  },
+  {
+    "sol": 33,
+    "temp_min_c": -84.7,
+    "temp_max_c": -24.3,
+    "pressure_pa": 724,
+    "wind_ms": 8.3,
+    "dust_tau": 0.48,
+    "sunrise_lmst": "05:52",
+    "sunset_lmst": "18:08",
+    "dummy": true
+  },
+  {
+    "sol": 34,
+    "temp_min_c": -81.7,
+    "temp_max_c": -19.6,
+    "pressure_pa": 711,
+    "wind_ms": 3.1,
+    "dust_tau": 0.54,
+    "sunrise_lmst": "05:52",
+    "sunset_lmst": "18:08",
+    "dummy": true
+  },
+  {
+    "sol": 35,
+    "temp_min_c": -85.7,
+    "temp_max_c": -23.3,
+    "pressure_pa": 722,
+    "wind_ms": 5.2,
+    "dust_tau": 0.66,
+    "sunrise_lmst": "05:52",
+    "sunset_lmst": "18:08",
+    "dummy": true
+  },
+  {
+    "sol": 36,
+    "temp_min_c": -78.9,
+    "temp_max_c": -21.6,
+    "pressure_pa": 736,
+    "wind_ms": 2.1,
+    "dust_tau": 0.51,
+    "sunrise_lmst": "05:52",
+    "sunset_lmst": "18:08",
+    "dummy": true
+  },
+  {
+    "sol": 37,
+    "temp_min_c": -87.4,
+    "temp_max_c": -26.3,
+    "pressure_pa": 711,
+    "wind_ms": 2.9,
+    "dust_tau": 0.56,
+    "sunrise_lmst": "05:52",
+    "sunset_lmst": "18:08",
+    "dummy": true
+  },
+  {
+    "sol": 38,
+    "temp_min_c": -81.4,
+    "temp_max_c": -19.3,
+    "pressure_pa": 734,
+    "wind_ms": 3.6,
+    "dust_tau": 0.47,
+    "sunrise_lmst": "05:52",
+    "sunset_lmst": "18:08",
+    "dummy": true
+  },
+  {
+    "sol": 39,
+    "temp_min_c": -85.6,
+    "temp_max_c": -26.6,
+    "pressure_pa": 716,
+    "wind_ms": 5.9,
+    "dust_tau": 0.53,
+    "sunrise_lmst": "05:52",
+    "sunset_lmst": "18:08",
+    "dummy": true
+  },
+  {
+    "sol": 40,
+    "temp_min_c": -81.0,
+    "temp_max_c": -23.5,
+    "pressure_pa": 728,
+    "wind_ms": 4.9,
+    "dust_tau": 0.48,
+    "sunrise_lmst": "05:52",
+    "sunset_lmst": "18:08",
+    "dummy": true
+  }
+]

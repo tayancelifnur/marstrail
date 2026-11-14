@@ -1,0 +1,232 @@
+[
+  {
+    "id": "base",
+    "name": "Üs – Octavia E. Butler iniş alanı",
+    "lat": 18.4447,
+    "lon": 77.4508,
+    "science_value": 2,
+    "summary": "Perseverance'ın iniş noktası; MarsTrail habitatının yeri.",
+    "hazards": [],
+    "missions": [
+      "Mars 2020 / Perseverance"
+    ],
+    "sol": 0,
+    "history": [
+      {
+        "date": "2021-02-18",
+        "event": "Perseverance Jezero'ya indi",
+        "source": "https://science.nasa.gov/mission/mars-2020-perseverance/location-map/"
+      }
+    ],
+    "elevation_m": -2600,
+    "photos": [
+      {
+        "url": "photos/placeholder.jpg",
+        "sol": 0,
+        "camera": "NAVCAM_LEFT",
+        "caption": "Üs – Octavia E. Butler iniş alanı – Sol 0 (sahte)",
+        "dummy": true
+      }
+    ],
+    "dummy": true
+  },
+  {
+    "id": "jezero_lake",
+    "name": "Jezero antik gölü",
+    "lat": 18.45,
+    "lon": 77.42,
+    "science_value": 5,
+    "summary": "Yaklaşık 3,5 milyar yıl önce göl olan krater tabanı.",
+    "hazards": [
+      "gevşek toz"
+    ],
+    "missions": [
+      "MRO",
+      "Mars 2020"
+    ],
+    "sol": null,
+    "history": [
+      {
+        "date": "2005",
+        "event": "Antik göl yörünge görüntülerinden tanımlandı (Caleb Fassett)",
+        "source": "https://www.astronomy.com/?p=40600"
+      },
+      {
+        "date": "2020-12-02",
+        "event": "USGS jeolojik haritası (SIM 3464) yayımlandı",
+        "source": "https://www.usgs.gov/maps/geologic-map-jezero-crater-and-nili-planum-region-mars"
+      }
+    ],
+    "elevation_m": -2564,
+    "photos": [],
+    "dummy": true
+  },
+  {
+    "id": "airfield",
+    "name": "Ingenuity uçuş alanı (Wright Brothers Field)",
+    "lat": 18.4446,
+    "lon": 77.4512,
+    "science_value": 3,
+    "summary": "Başka bir gezegende ilk güçlü, kontrollü uçuşun yapıldığı alan.",
+    "hazards": [],
+    "missions": [
+      "Ingenuity"
+    ],
+    "sol": 58,
+    "history": [
+      {
+        "date": "2021-04-19",
+        "event": "Ingenuity ilk uçuşunu yaptı",
+        "source": "https://mars.nasa.gov/mmgis-maps/M20/Layers/json/m20_heli_flight_path.json"
+      }
+    ],
+    "elevation_m": -2602,
+    "photos": [
+      {
+        "url": "photos/placeholder.jpg",
+        "sol": 58,
+        "camera": "NAVCAM_LEFT",
+        "caption": "Ingenuity uçuş alanı (Wright Brothers Field) – Sol 58 (sahte)",
+        "dummy": true
+      }
+    ],
+    "dummy": true
+  },
+  {
+    "id": "rochette",
+    "name": "Rochette kayası",
+    "lat": 18.437,
+    "lon": 77.444,
+    "science_value": 4,
+    "summary": "İlk başarılı kaya numunesinin alındığı yer.",
+    "hazards": [
+      "kayalık zemin"
+    ],
+    "missions": [
+      "Mars 2020"
+    ],
+    "sol": 190,
+    "history": [
+      {
+        "date": "2021-09-01",
+        "event": "İlk başarılı kaya numunesi",
+        "source": "https://kaweah.freedombox.rocks/kiwix/wikipedia_en_all_maxi_2023-10/Timeline_of_Mars_2020"
+      }
+    ],
+    "elevation_m": -2583,
+    "photos": [
+      {
+        "url": "photos/placeholder.jpg",
+        "sol": 190,
+        "camera": "NAVCAM_LEFT",
+        "caption": "Rochette kayası – Sol 190 (sahte)",
+        "dummy": true
+      }
+    ],
+    "dummy": true
+  },
+  {
+    "id": "delta_front",
+    "name": "Delta önü (Kodiak / Hawksbill Gap)",
+    "lat": 18.456,
+    "lon": 77.404,
+    "science_value": 5,
+    "summary": "Göl ve nehir deltası; ani sel izleri.",
+    "hazards": [
+      "eğim",
+      "kum dalgası"
+    ],
+    "missions": [
+      "Mars 2020"
+    ],
+    "sol": 223,
+    "history": [
+      {
+        "date": "2021-10-07",
+        "event": "Rover görüntüleri göl deltasını ve ani sel izlerini doğruladı (Science)",
+        "source": "https://earthsky.org/space/ancient-martian-lake-delta-floods-perseverance/"
+      }
+    ],
+    "elevation_m": -2523,
+    "photos": [
+      {
+        "url": "photos/placeholder.jpg",
+        "sol": 223,
+        "camera": "NAVCAM_LEFT",
+        "caption": "Delta önü (Kodiak / Hawksbill Gap) – Sol 223 (sahte)",
+        "dummy": true
+      }
+    ],
+    "dummy": true
+  },
+  {
+    "id": "three_forks",
+    "name": "Three Forks numune deposu",
+    "lat": 18.453,
+    "lon": 77.415,
+    "science_value": 4,
+    "summary": "Başka bir gezegendeki ilk numune deposu; 10 tüp bırakıldı.",
+    "hazards": [],
+    "missions": [
+      "Mars 2020",
+      "Mars Sample Return (plan)"
+    ],
+    "sol": 653,
+    "history": [
+      {
+        "date": "2022-12-21",
+        "event": "İlk tüp bırakıldı",
+        "source": "https://spaceodysseyhub.com/replays/perseverance"
+      },
+      {
+        "date": "2023-01-28",
+        "event": "Depo tamamlandı (10 tüp)",
+        "source": "https://spaceodysseyhub.com/replays/perseverance"
+      }
+    ],
+    "elevation_m": -2555,
+    "photos": [
+      {
+        "url": "photos/placeholder.jpg",
+        "sol": 653,
+        "camera": "NAVCAM_LEFT",
+        "caption": "Three Forks numune deposu – Sol 653 (sahte)",
+        "dummy": true
+      }
+    ],
+    "dummy": true
+  },
+  {
+    "id": "cheyava_falls",
+    "name": "Cheyava Falls (Neretva Vallis)",
+    "lat": 18.488,
+    "lon": 77.382,
+    "science_value": 5,
+    "summary": "\"Leopar benekli\" kaya; olası biyoimza.",
+    "hazards": [
+      "dik kanal duvarı"
+    ],
+    "missions": [
+      "Mars 2020"
+    ],
+    "sol": 1212,
+    "history": [
+      {
+        "date": "2024-07-18",
+        "event": "\"Leopar benekli\" kaya bulundu; olası biyoimza",
+        "source": "https://skyatnightmagazine.com/space-missions/perseverance-jezero-crater"
+      }
+    ],
+    "elevation_m": -2468,
+    "photos": [
+      {
+        "url": "photos/placeholder.jpg",
+        "sol": 1212,
+        "camera": "NAVCAM_LEFT",
+        "caption": "Cheyava Falls (Neretva Vallis) – Sol 1212 (sahte)",
+        "dummy": true
+      }
+    ],
+    "dummy": true
+  }
+]

@@ -1,0 +1,18 @@
+# Büyük veri ve model dosyaları git'e girmez
+data/raw/
+data/processed/
+ml/dataset/
+*.tif
+*.tiff
+*.zip
+*.pt
+
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Editör / OS
+.vscode/
+.DS_Store
+Thumbs.db

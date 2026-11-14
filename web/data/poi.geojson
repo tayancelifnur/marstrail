@@ -1,0 +1,138 @@
+{
+  "type": "FeatureCollection",
+  "dummy": true,
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4508,
+          18.4447
+        ]
+      },
+      "properties": {
+        "id": "base",
+        "name": "Üs – Octavia E. Butler iniş alanı",
+        "type": "habitat",
+        "region_id": "base"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.42,
+          18.45
+        ]
+      },
+      "properties": {
+        "id": "jezero_lake",
+        "name": "Jezero antik gölü",
+        "type": "science",
+        "region_id": "jezero_lake"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.4512,
+          18.4446
+        ]
+      },
+      "properties": {
+        "id": "airfield",
+        "name": "Ingenuity uçuş alanı (Wright Brothers Field)",
+        "type": "science",
+        "region_id": "airfield"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.444,
+          18.437
+        ]
+      },
+      "properties": {
+        "id": "rochette",
+        "name": "Rochette kayası",
+        "type": "science",
+        "region_id": "rochette"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.404,
+          18.456
+        ]
+      },
+      "properties": {
+        "id": "delta_front",
+        "name": "Delta önü (Kodiak / Hawksbill Gap)",
+        "type": "science",
+        "region_id": "delta_front"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.415,
+          18.453
+        ]
+      },
+      "properties": {
+        "id": "three_forks",
+        "name": "Three Forks numune deposu",
+        "type": "science",
+        "region_id": "three_forks"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.382,
+          18.488
+        ]
+      },
+      "properties": {
+        "id": "cheyava_falls",
+        "name": "Cheyava Falls (Neretva Vallis)",
+        "type": "science",
+        "region_id": "cheyava_falls"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          77.43,
+          18.43
+        ]
+      },
+      "properties": {
+        "id": "sand_field",
+        "name": "Kum alanı (eolyen birim)",
+        "type": "hazard",
+        "story_ids": [
+          "opportunity",
+          "spirit"
+        ],
+        "note": "Opportunity buna benzer bir kum dalgasında 5 hafta kaldı."
+      }
+    }
+  ]
+}

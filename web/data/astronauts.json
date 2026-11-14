@@ -1,0 +1,38 @@
+[
+  {
+    "id": "ayse",
+    "name": "Ayşe",
+    "mass_kg": 62,
+    "o2_min": 480,
+    "battery_pct": 100,
+    "water_pct": 100,
+    "heart_rate": 85,
+    "load_kg": 6,
+    "radiation_msv": 0.3,
+    "role": "Jeolog – delta numunesi",
+    "suit": "xEMU (varsayım)",
+    "o2_capacity_min": 480,
+    "position": {
+      "lat": 18.4447,
+      "lon": 77.4508
+    }
+  },
+  {
+    "id": "ali",
+    "name": "Ali",
+    "mass_kg": 78,
+    "o2_min": 480,
+    "battery_pct": 100,
+    "water_pct": 100,
+    "heart_rate": 80,
+    "load_kg": 4,
+    "radiation_msv": 0.3,
+    "role": "Mühendis – destek",
+    "suit": "xEMU (varsayım)",
+    "o2_capacity_min": 480,
+    "position": {
+      "lat": 18.4447,
+      "lon": 77.4508
+    }
+  }
+]
