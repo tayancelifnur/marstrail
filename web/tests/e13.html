@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>E13 testi – Hayatta Kal</title>
+<style>
+  body { background: #111; color: #ddd; font: 13px/1.45 monospace; margin: 12px; }
+  .row { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-start; }
+  canvas { width: 600px; height: 600px; }
+  .ok { color: #2ecc71; } .bad { color: #e74c3c; } h3 { color: #fc0; margin: 8px 0 4px; font-size: 14px; }
+  pre { margin: 0; white-space: pre-wrap; max-width: 900px; }
+</style>
+</head>
+<body>
+<div class="row"><pre id="out">çalışıyor...</pre><canvas id="cv" width="600" height="600"></canvas></div>
+<script src="../marstime.js"></script>
+<script src="../walkback.js"></script>
+<script src="../eva.js"></script>
+<script src="../rescue.js"></script>
+<script>
+/* Kullanım: python -m http.server 8765 --directory web  →  http://localhost:8765/tests/e13.html */
+const out = [];
+const log = (s, ok) => out.push(ok === undefined ? s : `<span class="${ok ? "ok" : "bad"}">${ok ? "✔" : "✘"}</span> ${s}`);
+const hs = new Image(); hs.src = "../data/layers/hillshade.png";
+
+Promise.all([Walkback.load("../data/grid.json"), fetch("../data/astronauts.json").then((r) => r.json()),
+             fetch("../data/regions.json").then((r) => r.json()), hs.decode()]).then(([, astros, regions]) => {
+  const R = Object.fromEntries(regions.map((r) => [r.id, r]));
+  const stop = (id, dwellMin) => ({ id, name: R[id].name, lon: R[id].lon, lat: R[id].lat, dwellMin });
+  const ayse = astros.find((x) => x.id === "ayse"), ali = astros.find((x) => x.id === "ali");
+  const plan = Eva.plan({ astronaut: ayse, stops: [stop("delta_front", 40), stop("three_forks", 30)],
+                          departUTC: Eva.nextWindow(new Date("2026-11-15T00:00:00Z")) });
+
+  // Senaryo: çıkıştan 60 dk sonra (deltaya yürürken) telsiz koptu; Ayşe paniğe kapıldı (nabız 150, Apollo 14).
+  const T_LOSS = 60, ELAPSED = 20;
+  const p = Eva.positionAt(plan, T_LOSS);
+  const lost = { o2LeftMin: p.o2Left, heart_rate: 150, load_kg: ayse.load_kg };
+  out.push(`<h3>Telsiz koptu: çıkıştan ${T_LOSS} dk sonra (${p.phase}, ${p.lon.toFixed(5)}, ${p.lat.toFixed(5)}), O₂ ${p.o2Left} dk, nabız 150; geçen süre ${ELAPSED} dk</h3>`);
+
+  const r = Rescue.respond({ last: p, elapsedMin: ELAPSED, lost, rescuer: ali, route: plan.coords });
+  const A = r.area, D = r.drone, B = r.buddy;
+  log(`Arama alanı: bütçe ${A.budgetMin.toFixed(0)} dk (O₂ sınırı ${A.o2BudgetMin.toFixed(0)} dk, çarpan ×${A.multiplier}), ` +
+      `ulaşılabilir ${A.areaKm2} km², en olası %50 → ${A.area50Km2} km², %90 → ${A.area90Km2} km²; toplam ${r.ms.toFixed(0)} ms`,
+      A.cells.length > 0 && A.area50Km2 < A.area90Km2 && A.prob[Walkback.cellOf(p)] > 0);
+  const a5 = Rescue.searchArea({ last: p, elapsedMin: 5, lost }), a40 = Rescue.searchArea({ last: p, elapsedMin: 40, lost });
+  log(`Geçen süre arttıkça alan büyüyor: 5 dk → ${a5.areaKm2} km², 20 dk → ${A.areaKm2} km², 40 dk → ${a40.areaKm2} km²`, a5.areaKm2 < A.areaKm2 && A.areaKm2 < a40.areaKm2);
+  const aMax = Rescue.searchArea({ last: p, lost });
+  log(`Süre verilmezse O₂ sınırı: bütçe ${aMax.budgetMin.toFixed(0)} dk → ${aMax.areaKm2} km² (en kötü durum)`, aMax.budgetMin === aMax.o2BudgetMin);
+  log(`İHA: irtifa ${D.params.altitudeM} m, görüş ${D.params.fovDeg}° → şerit ${D.swathM} m, aralık ${D.spacingM} m, ${D.lanes} şerit, yön ${D.headingDeg}°; ` +
+      `rota ${(D.lengthM / 1000).toFixed(1)} km, ${D.minutes} dk (${D.sorties} batarya); olasılığın %50'si ${D.t50} dk, %90'ı ${D.t90} dk`,
+      D.t50 !== null && D.t50 < D.t90 && D.swathM === 115);
+  out.push("Ali'nin kurtarma rotası:");
+  for (const m of B.messages) out.push("  • " + m);
+  log(`Kurtarma mümkün: ${B.survivable ? "EVET" : "HAYIR"} (Ali ${B.status}, toplam ${B.distanceM} m)`, B.ok);
+
+  // Zor durum: geç fark edildi, O₂ az
+  const late = Rescue.respond({ last: p, elapsedMin: 90, lost: { o2LeftMin: 120, heart_rate: 150, load_kg: 6 }, rescuer: ali });
+  out.push("<h3>Zor durum: kopmadan 90 dk sonra fark edildi, Ayşe'nin O₂'si 120 dk</h3>");
+  for (const m of late.buddy.messages) out.push("  • " + m);
+  log(`Alan ${late.area.areaKm2} km² (bütçe O₂ ile sınırlı: ${late.area.budgetMin.toFixed(0)} dk), İHA %50: ${late.drone.t50} dk; kurtarma ${late.buddy.survivable ? "mümkün" : "MÜMKÜN DEĞİL"}`,
+      late.area.budgetMin === late.area.o2BudgetMin && !late.buddy.survivable);
+
+  // --- Harita: üs ile kayıp noktayı kapsayan yakın görünüm ---
+  const g = Walkback.grid, cv = document.getElementById("cv"), ctx = cv.getContext("2d"), S = 600;
+  const base = Walkback.BASE, pad = 0.012;
+  const lon0 = Math.min(base.lon, p.lon) - pad, lon1 = Math.max(base.lon, p.lon) + pad;
+  const latC = (base.lat + p.lat) / 2, half = ((lon1 - lon0) * Math.cos(latC * Math.PI / 180)) / 2;
+  const lat0 = latC - half, lat1 = latC + half;
+  const px = (lon, lat) => [((lon - lon0) / (lon1 - lon0)) * S, ((lat1 - lat) / (lat1 - lat0)) * S];
+  const srcX = (lon) => ((lon - g.b.west) / (g.b.east - g.b.west)), srcY = (lat) => ((g.b.north - lat) / (g.b.north - g.b.south));
+  ctx.imageSmoothingEnabled = false;
+  const crop = (img, W, H) => ctx.drawImage(img, srcX(lon0) * W, srcY(lat1) * H, (srcX(lon1) - srcX(lon0)) * W, (srcY(lat0) - srcY(lat1)) * H, 0, 0, S, S);
+  crop(hs, hs.naturalWidth, hs.naturalHeight);
+  crop(A.canvas(0.75), g.w, g.h);
+  const line = (pts, col, w, dash) => { ctx.strokeStyle = col; ctx.lineWidth = w; ctx.setLineDash(dash || []); ctx.beginPath();
+    pts.forEach(([lo, la], k) => { const [x, y] = px(lo, la); k ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke(); ctx.setLineDash([]); };
+  A.outlines.p90.forEach((l) => line(l, "#ff9800", 1.5)); A.outlines.p50.forEach((l) => line(l, "#ff1744", 2));
+  line(plan.coords, "rgba(255,255,255,.35)", 1.5, [3, 3]);
+  line(D.waypoints, "#e0e0ff", 1.2);
+  line(B.to, "#00e5ff", 3); line(B.back, "#00e5ff", 2, [7, 5]);
+  const dot = (lon, lat, col, t) => { const [x, y] = px(lon, lat); ctx.fillStyle = col; ctx.beginPath(); ctx.arc(x, y, 5, 0, 7); ctx.fill(); ctx.fillStyle = "#fff"; ctx.font = "12px monospace"; ctx.fillText(t, x + 7, y - 6); };
+  dot(base.lon, base.lat, "#fff", "Üs (İHA + Ali)"); dot(p.lon, p.lat, "#ff1744", "son konum");
+  ctx.fillStyle = "#fff"; ctx.fillText("ısı = olasılık · kırmızı çizgi %50 · turuncu %90 · beyaz İHA · turkuaz Ali", 8, S - 10);
+  document.getElementById("out").innerHTML = out.join("\n");
+  document.title = "E13 OK";
+}).catch((e) => { document.getElementById("out").textContent = out.join("\n") + "\nHATA: " + e.stack; });
+</script>
+</body>
+</html>

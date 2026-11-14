@@ -315,8 +315,18 @@
     return i < 0 ? Infinity : homeTimes((opts && opts.base) || BASE, opts && opts.loadKg)[i];
   }
 
+  /** Bir noktadan bütün hücrelere yürüme süresi (dk, Float64Array; ulaşılamaz = Infinity). rescue.js kullanır. */
+  function travelTimes(p, opts) {
+    const s = nearestOpen(cellOf(p));
+    if (s < 0) return null;
+    return dijkstra(s, opts && opts.loadKg, false).dist;
+  }
+
+  /** Herhangi bir hücre maskesinin (Uint8Array, 1 = içeride) sınır çizgileri [[lon,lat],…]. */
+  const outlineMask = (mask) => outline(mask, 1);
+
   root.Walkback = {
-    load, init, zones, path, timeHome, o2Multiplier, cellOf, lonLatOf,
+    load, init, zones, path, timeHome, travelTimes, outlineMask, o2Multiplier, cellOf, lonLatOf, nearestOpen,
     BASE, GREEN_MARGIN, SLOPE_MAX_DEG, get grid() { return G; },
   };
   if (typeof module !== "undefined") module.exports = root.Walkback;

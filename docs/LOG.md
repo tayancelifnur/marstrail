@@ -184,3 +184,22 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
   - Nabız 150 + O₂ 220: dönüş noktası T+67 dk → NO-GO.
   - Akşam çıkışı: gün batımı NO-GO.
   - Plan 67 ms'de çıkıyor. Görsel: `docs/figures/e11_plan.png`.
+
+## E13 · Hayatta Kal (kayıp astronot) · Cmt 14 Kas 2026
+
+- **Ne yapıldı:** `web/rescue.js`:
+  - `Rescue.respond()` "Telsiz koptu" için hepsi bir arada.
+  - `searchArea()`: son konumdan bütçe içinde ulaşılabilir hücreler, olasılık ∝ 1/(1+süre), plan rotasına yakınsa ×2; en olası %50 ve %90 alanları, ısı haritası canvas'ı.
+  - `droneRoute()`: alanın uzun ekseni boyunca biçerdöver zikzak, şeritler %90 alanına kırpılı, %50/%90 tarama süreleri.
+  - `buddyRoute()`: Ali'nin gidiş ve birlikte dönüş rotası, iki astronotun O₂ hesabı.
+  - `walkback.js`'e `travelTimes()` ve `outlineMask()` eklendi. Test sayfası: `web/tests/e13.html`.
+- **Varsayımlar (kodda gerekçeli):**
+  - Bütçe = min(geçen süre, O₂/çarpan).
+  - İHA: 100 m irtifa, 60° görüş → 115 m şerit, %20 örtüşme → 92 m aralık, 10 m/s, 20 dk batarya.
+  - Ali: 10 dk giyinme, birlikte dönüş %20 yavaş, 60 dk yedek O₂ tüpü.
+- **Kontrol (demo planı, çıkıştan 60 dk sonra kopma, nabız 150, 20 dk geçmiş):**
+  - Alan 1,07 km² (%50 → 0,25 km², %90 → 0,79 km²). Geçen süreye göre büyüyor: 5 dk 0,07 → 40 dk 4,43 km².
+  - İHA: 11 şerit, 14,5 km, 24 dk (2 batarya); olasılığın %50'si 11,6 dk'da, %90'ı 21,6 dk'da taranıyor.
+  - Ali: 60 dk gidiş + 69 dk dönüş, O₂ 116/480 → YEŞİL; Ayşe üste 168 dk O₂ ile varıyor.
+  - Zor durum (90 dk geç fark, O₂ 120): Ali varmadan O₂ bitiyor → "kurtarma mümkün değil".
+  - Hesap 19 ms. Görsel: `docs/figures/e13_rescue.png`.
