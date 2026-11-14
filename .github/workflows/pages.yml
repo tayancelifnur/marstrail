@@ -21,6 +21,20 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      # Cesium'u siteye göm: yayındaki sayfa jsdelivr'e bağlı kalmasın. CDN'den worker dosyası ara sıra
+      # yüklenemiyor ve çizim duruyordu ("Failed to fetch dynamically imported module ...Workers/...").
+      # Git'e eklenmiyor (~büyük), sadece yayın sırasında indirilip web/cesium/ altına kopyalanıyor.
+      # Yerelde index.html yine CDN'i kullanır; sürüm index.html'deki ile aynı olmalı.
+      - name: Cesium'u yerel kopyala
+        run: |
+          VER=1.123.0
+          npm pack cesium@$VER --silent
+          tar -xzf cesium-$VER.tgz package/Build/Cesium
+          mv package/Build/Cesium web/cesium
+          rm -rf package cesium-$VER.tgz
+          sed -i "s#https://cdn.jsdelivr.net/npm/cesium@$VER/Build/Cesium/#cesium/#g" web/index.html
+          grep -c 'cesium/' web/index.html
+          du -sh web/cesium
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

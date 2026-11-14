@@ -260,8 +260,27 @@
     };
   }
 
+  // Pin/etiket yüksekliği: CLAMP_TO_GROUND yerine araziyi kendimiz örnekliyoruz. Cesium yere oturtulan
+  // etiketin her harfini ayrı ayrı oturtuyor; arazi karoları yüklenip netleşirken harfler farklı
+  // yüksekliklere düşüp yazı dağılıyordu ("A … yşe"). Aynı örnekleyici araziyi de ürettiği için
+  // nokta yüzeyle örtüşür. Yükseklik × abartı (verticalExaggerationRelativeHeight = 0).
+  let terrainSample = null;
+  const groundHeight = (lon, lat) => (terrainSample ? terrainSample(lon, lat) * TERRAIN_EXAGGERATION : 0);
+  const groundCart = (lon, lat) => Cesium.Cartesian3.fromDegrees(lon, lat, groundHeight(lon, lat), MARS);
+  // Sabit noktalar için: grid.json gelmeden eklenen pin de arazi gelince doğru yüksekliğe çıkar
+  function groundPosition(lon, lat) {
+    let cached = null;
+    return new Cesium.CallbackProperty(() => {
+      if (cached) return cached;
+      const c = groundCart(lon, lat);
+      if (terrainSample) cached = c;
+      return c;
+    }, false);
+  }
+
   function enableJezeroTerrain(g) {
     const sample = makeTerrainSampler(g);
+    terrainSample = sample;
     const { west, south, east, north } = g.bounds;
     const tiling = new Cesium.GeographicTilingScheme({ ellipsoid: MARS });
     const N = TERRAIN_TILE;
@@ -849,13 +868,12 @@
     // 3) Astronot simgesi (canlı yürüyüşte hareketli simge var, sabit olan çizilmez)
     if (!walk.active || walk.astro !== a) zoneEntities.push(
       viewer.entities.add({
-        position: Cesium.Cartesian3.fromDegrees(a.position.lon, a.position.lat, 0, MARS),
+        position: groundPosition(a.position.lon, a.position.lat),
         point: {
           pixelSize: 12,
           color: Cesium.Color.fromCssColorString("#ff7a2f"),
           outlineColor: Cesium.Color.WHITE,
           outlineWidth: 2,
-          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
           disableDepthTestDistance: Number.POSITIVE_INFINITY, // arazinin arkasında kaybolmasın
         },
         label: {
@@ -867,7 +885,6 @@
           pixelOffset: new Cesium.Cartesian2(10, 0),
           horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
           verticalOrigin: Cesium.VerticalOrigin.CENTER,
-          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
           disableDepthTestDistance: Number.POSITIVE_INFINITY,
         },
       })
@@ -1086,13 +1103,12 @@
       const place = LABEL_PLACE[p.id] || {};
       viewer.entities.add({
         id: "poi:" + p.id,
-        position: Cesium.Cartesian3.fromDegrees(lon, lat, 0, MARS),
+        position: groundPosition(lon, lat),
         point: {
           pixelSize: p.type === "habitat" ? 14 : 11,
           color: Cesium.Color.fromCssColorString(style.color),
           outlineColor: Cesium.Color.fromCssColorString("#16120f"),
           outlineWidth: 2,
-          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
           disableDepthTestDistance: Number.POSITIVE_INFINITY,
           // Küre görünümünde (1500 km'den uzak) pinler gizli: kalabalık yapmasın
           distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 1.5e6),
@@ -1105,7 +1121,6 @@
           pixelOffset: new Cesium.Cartesian2(...(place.off || [0, -16])),
           horizontalOrigin: Cesium.HorizontalOrigin[place.origin || "CENTER"],
           verticalOrigin: Cesium.VerticalOrigin[place.vOrigin || "BOTTOM"],
-          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
           disableDepthTestDistance: Number.POSITIVE_INFINITY,
           // Etiketler sadece yakında (varsayılan 40 km)
           distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, place.maxDist || 4.0e4),
@@ -1217,13 +1232,12 @@
     route.entities.splice(0).forEach((e) => viewer.entities.remove(e));
     route.pts.forEach((p, i) =>
       route.entities.push(viewer.entities.add({
-        position: Cesium.Cartesian3.fromDegrees(p[0], p[1], 0, MARS),
+        position: groundPosition(p[0], p[1]),
         point: {
           pixelSize: i === 0 ? 10 : 8,
           color: Cesium.Color.WHITE,
           outlineColor: Cesium.Color.fromCssColorString("#ff7a2f"),
           outlineWidth: 3,
-          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
           disableDepthTestDistance: Number.POSITIVE_INFINITY,
         },
       }))
@@ -1443,13 +1457,12 @@
   // Haritada işaret (nokta + etiket), arazinin önünde
   function planMarker(lon, lat, color, text, size) {
     return viewer.entities.add({
-      position: Cesium.Cartesian3.fromDegrees(lon, lat, 0, MARS),
+      position: groundPosition(lon, lat),
       point: {
         pixelSize: size || 11,
         color: Cesium.Color.fromCssColorString(color),
         outlineColor: Cesium.Color.BLACK,
         outlineWidth: 2,
-        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
       },
       label: text ? {
@@ -1461,7 +1474,6 @@
         pixelOffset: new Cesium.Cartesian2(0, 10),
         horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
         verticalOrigin: Cesium.VerticalOrigin.TOP,
-        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
       } : undefined,
     });
@@ -1731,13 +1743,12 @@
     if (selectedAstroId !== a.id) selectAstronaut(a.id, false);
     drawZones(); // sabit astronot simgesi gizlenir, yerine hareketli simge
     walk.walker = viewer.entities.add({
-      position: new Cesium.CallbackProperty(() => Cesium.Cartesian3.fromDegrees(walk.pos.lon, walk.pos.lat, 0, MARS), false),
+      position: new Cesium.CallbackProperty(() => groundCart(walk.pos.lon, walk.pos.lat), false),
       point: {
         pixelSize: 14,
         color: Cesium.Color.fromCssColorString("#ff7a2f"),
         outlineColor: Cesium.Color.WHITE,
         outlineWidth: 3,
-        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
       },
       label: {
@@ -1749,7 +1760,6 @@
         pixelOffset: new Cesium.Cartesian2(0, -14),
         horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
         verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
       },
     });
@@ -2165,27 +2175,27 @@
     rescue.droneEnt = viewer.entities.add({
       position: new Cesium.CallbackProperty(() => {
         const q = rescueDronePos();
-        return Cesium.Cartesian3.fromDegrees(q[0], q[1], 0, MARS);
+        return groundCart(q[0], q[1]);
       }, false),
       point: { pixelSize: 10, color: Cesium.Color.WHITE, outlineColor: Cesium.Color.fromCssColorString("#5dade2"), outlineWidth: 3,
-               heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY },
+               disableDepthTestDistance: Number.POSITIVE_INFINITY },
       // İHA etiketi noktanın üstünde, Ali'ninki altında: ikisi de üsten çıkıyor, yan yana olunca çakışıyordu
       label: { text: "İHA", font: "700 12px system-ui, sans-serif", fillColor: Cesium.Color.WHITE, ...LABEL_BG, pixelOffset: new Cesium.Cartesian2(0, -12),
-               horizontalOrigin: Cesium.HorizontalOrigin.CENTER, verticalOrigin: Cesium.VerticalOrigin.BOTTOM, heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+               horizontalOrigin: Cesium.HorizontalOrigin.CENTER, verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
                disableDepthTestDistance: Number.POSITIVE_INFINITY },
     });
     rescue.buddyEnt = viewer.entities.add({
       position: new Cesium.CallbackProperty(() => {
         const q = rescueBuddyPos();
-        return Cesium.Cartesian3.fromDegrees(q[0], q[1], 0, MARS);
+        return groundCart(q[0], q[1]);
       }, false),
       point: { pixelSize: 12, color: Cesium.Color.fromCssColorString("#00e5ff"), outlineColor: Cesium.Color.WHITE, outlineWidth: 2,
-               heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY },
+               disableDepthTestDistance: Number.POSITIVE_INFINITY },
       label: { text: rescue.rescuerName, font: "700 13px system-ui, sans-serif", fillColor: Cesium.Color.fromCssColorString("#00e5ff"),
                ...LABEL_BG,
                pixelOffset: new Cesium.Cartesian2(0, 12), horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
                verticalOrigin: Cesium.VerticalOrigin.TOP,
-               heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY },
+               disableDepthTestDistance: Number.POSITIVE_INFINITY },
     });
     rescue.entities.push(rescue.droneEnt, rescue.buddyEnt);
   }

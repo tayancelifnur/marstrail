@@ -281,3 +281,12 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Dosyalar:** `ml/train.py`, `ml/dataset_stats.py`, `ml/ETIKETLEME.md`, `docs/DATA_PIPELINE.md`, `docs/TESLIM.md`, `.gitignore`, `docs/figures/e6_dataset*`, `docs/figures/e6v1_*`
 - **Nasıl çalıştırılır:** `venv\Scripts\python ml\dataset_stats.py` ve `venv\Scripts\python ml\train.py` (teşhis: `--epochs 8 --patience 100 --diag --name <ad>` ile `--no-amp` / `--optimizer SGD`)
 - **Varsayımlar:** Ölçek artırması ±%25 (sınıflar fiziksel boyuta bağlı), döndürme yok, renk artırması yok. v1 modeli E10'da kullanılmayacak; ıraksamanın nedeni bulunup v2 eğitilecek.
+
+## G-ek · Etiketlerin dağılması, yayında Cesium yerel kopya, slayt görüntüleri · Cmt 14 Kas 2026, 22:45
+
+- **Sorun:** Bazı harita yazıları parçalanıyordu ("A … yşe", "Tel … siz g"). Neden: CLAMP_TO_GROUND etiketlerde Cesium her harfi ayrı ayrı araziye oturtuyor; karolar yüklenip netleşirken harfler farklı yüksekliklere düşüyor. Pinlerin arazi yüklenene kadar kayması da aynı nedenden.
+- **Ne yapıldı:** Pin, astronot, plan işaretleri, yürüyen astronot, İHA ve Ali artık araziyi üreten aynı örnekleyiciden (`makeTerrainSampler`, grid.json) yükseklik × 3 abartı ile konumlanıyor (`groundPosition`/`groundCart`); CLAMP_TO_GROUND kalmadı. Cesium 1.127 ve 1.135 denendi: 1.135'te clamp değişikliği pinleri rotadan kaydırıyor, etiket sorunu iki sürümde de var → 1.123'te kalındı.
+- Pages iş akışı Cesium'u npm'den indirip `web/cesium/` altına kopyalıyor, index.html'deki CDN yolu yayında yerel yola çevriliyor (git'e girmiyor). Yerel ağda npm/CDN ara sıra kopuyor (ECONNRESET); yayın jsdelivr'e bağlı kalmasın diye.
+- Slayt görüntüleri: `docs/figures/ui_1_plan_go.png`, `ui_2_plan_nogo.png`, `ui_3_walk.png`, `ui_4_rescue.png` (1920×1080), `ui_5_phone_plan.png`, `ui_6_phone_rescue.png` (390×844, 2×).
+- **Dosyalar:** `web/app.js`, `web/index.html`, `.github/workflows/pages.yml`, `docs/figures/ui_*.png`
+- **Kontrol:** Headless Chrome NO-GO plan (2 kez), yürüyüş → telsiz koptu → arama animasyonu, telefon yürüyüşü: etiketler bütün, pinler rotayla örtüşüyor.
