@@ -266,3 +266,10 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
   - Masaüstü acil durum kartında kaydırıcı küçülebiliyor, yatay kaydırma çubuğu çıkmıyor.
 - **Dosyalar:** `web/app.js`, `web/style.css`
 - **Kontrol:** Headless Chrome 390×844 (DPR 2) ve 1440×900: dört ekran temiz; acil durum kapat/aç tekrar çalışıyor; demo değerleri E13 ile aynı (İHA %50 11,6 dk, %90 21,6 dk).
+
+## G-ek · Demo'yu sıfırla + harita çizim hatasından toparlanma · Cmt 14 Kas 2026, 22:30
+
+- **Ne yapıldı:** Sol panelin sonuna "Demo" bölümü ve "↺ Demo'yu sıfırla" düğmesi: kayıtlı profilleri siler (localStorage), astronotları astronauts.json değerlerine, planı Delta önü 40 + Three Forks 30'a döndürür; yürüyüşü, acil durumu, rotayı ve pinleri temizler, Jezero'ya uçar.
+- Cesium çizim hatası (CDN'den worker dosyası yüklenemeyince çizim duruyordu): hata paneli kapanır, 1,5 sn sonra çizim yeniden başlar; 3 denemede düzelmezse "Sayfayı yenile" mesajı. 60 sn hatasız geçerse sayaç sıfırlanır.
+- **Dosyalar:** `web/index.html`, `web/app.js`
+- **Kontrol:** Plan + yürüyüş + telsiz koptu sonrası sıfırla → yürüyüş/acil durum/plan kapalı, duraklar varsayılan, kayıt silinmiş. Yapay hata: tek hata → çizim kendiliğinden devam; sürekli hata → 3 denemeden sonra yenile mesajı.

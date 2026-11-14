@@ -69,6 +69,36 @@
   const scene = viewer.scene;
   const globe = scene.globe;
 
+  // Çizim hatasında kendini toparla: CDN'den bir worker dosyası bazen yüklenemiyor
+  // ("Failed to fetch dynamically imported module ... createGroundPolylineGeometry.js") ve Cesium
+  // çizimi tamamen durduruyor. Hata panelini kapatıp 1,5 sn sonra çizimi yeniden başlatıyoruz;
+  // 3 denemede düzelmezse (geçici ağ hatası değil demektir) sayfayı yenileme önerisi çıkıyor.
+  // 60 sn hatasız geçerse sayaç sıfırlanır (ara sıra tek hata yenileme istemesin).
+  let renderFails = 0;
+  let renderFailReset = null;
+  scene.renderError.addEventListener((_, err) => {
+    console.error("Cesium çizim hatası:", err);
+    renderFails += 1;
+    clearTimeout(renderFailReset);
+    setTimeout(() => {
+      document.querySelectorAll(".cesium-widget-errorPanel").forEach((n) => n.remove());
+      if (renderFails <= 3) {
+        viewer.useDefaultRenderLoop = true;
+        renderFailReset = setTimeout(() => (renderFails = 0), 60000);
+      } else {
+        const box = document.getElementById("error");
+        box.replaceChildren("Harita çizimi durdu (internetten bir dosya yüklenemedi). ");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "primary";
+        btn.textContent = "Sayfayı yenile";
+        btn.addEventListener("click", () => location.reload());
+        box.append(btn);
+        box.hidden = false;
+      }
+    }, 1500);
+  });
+
   // Netlik: Cesium varsayılanda CSS pikselinde çizer; Windows %125–150 ölçekte yazı ve harita bulanık
   // görünüyordu. Ekranın gerçek pikselinde çiz (çok yüksek DPI'da GPU yorulmasın diye en fazla 2×).
   viewer.useBrowserRecommendedResolution = false;
@@ -2387,6 +2417,28 @@
     hideDetail();
     drawZones();
   }
+
+  // Demo'yu sıfırla: sunumdan önce tek tıkla temiz başlangıç (kayıtlı profil, plan, yürüyüş, acil durum, rota, pinler)
+  function resetDemo() {
+    if (rescue.active) closeRescue();
+    if (walk.active) endWalk("stop");
+    clearWalkEntities();
+    setDrawing(false);
+    clearRoute();
+    try { localStorage.removeItem(STORAGE_KEY); } catch { /* gizli pencere: zaten kayıt yok */ }
+    astronauts = JSON.parse(JSON.stringify(defaultAstronauts));
+    evaPlan.stops = [{ id: "delta_front", dwellMin: 40 }, { id: "three_forks", dwellMin: 30 }]; // evaPlan'daki demo planıyla aynı
+    $("planDepart").value = "window";
+    clearPlan();
+    renderPlanStops();
+    selectAstronaut(astronauts[0] && astronauts[0].id, false);
+    computeZones();
+    hideDetail();
+    closeDrawer();
+    flyToJezero();
+    showToast("info", "Demo", "Sıfırlandı: varsayılan profiller ve plan.");
+  }
+  $("resetDemoBtn").addEventListener("click", resetDemo);
 
   // Plan işaretlerinin yazılarını gizle/göster (çizgiler ve noktalar kalır)
   function setPlanLabels(show) {
