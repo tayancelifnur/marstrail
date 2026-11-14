@@ -346,7 +346,70 @@ Ayarlar yukarıdaki gibi, optimizer `auto` (Ultralytics 800 adımdan kısa eğit
   - Etiketler kutulardan türedi; kutuların hatası etiketlere de geçiyor.
 - Sayılar: [figures/e6_cls_dataset_stats.json](figures/e6_cls_dataset_stats.json).
 
-**Sonuçlar:** [koşular bitince ml/compare_runs.py tablosu buraya]
+### Ablation sonuçları
+
+Bütün değerler valid kümesinde: 30 karo, ya da D için o karolardan çıkan 120 alt karo. Kaynak dosyalar: `docs/figures/<koşu>_metrics.json` (Ultralytics'in kendi doğrulaması) ve [e6_merged_eval.json](figures/e6_merged_eval.json) (`ml/eval_merged.py`, adil karşılaştırma). Tablolar `ml/compare_runs.py` ile üretildi.
+
+**1) Her koşunun kendi doğrulaması** (Ultralytics val, sınıf sayısı koşudan koşuya farklı):
+
+| Deney | mAP50 | mAP50-95 | kaya mAP50 (R) | kaya_alani mAP50 | kum_dalgasi mAP50 (R) | Eğitim | Çıkarım | Epoch (en iyi) | NaN epoch |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| v1 (AdamW + fp16) | 0,162 | 0,112 | 0,169 (0,06) | 0,027 | 0,292 (0,30) | 3,2 dk | 5,2 ms | 81 (61) | 13 |
+| 0) m, 3 sınıf | 0,273 | 0,173 | 0,153 (0,20) | 0,154 | 0,512 (0,59) | 1,6 dk | 5,0 ms | 37 (17) | 0 |
+| A) s, 3 sınıf | 0,269 | 0,166 | 0,126 (0,14) | 0,197 | 0,483 (0,48) | 1,2 dk | 2,3 ms | 57 (37) | 0 |
+| B) m, 2 sınıf | 0,341 | 0,227 | 0,153 (0,18) | – | 0,528 (0,52) | 1,8 dk | 5,0 ms | 40 (20) | 0 |
+| C) s, 2 sınıf | 0,328 | 0,221 | 0,134 (0,08) | – | 0,522 (0,57) | 1,7 dk | 2,3 ms | 79 (59) | 0 |
+
+- **Kararlı ayar en büyük kazanç:** Aynı model ve veriyle v1 → 0) geçişinde mAP50 0,162'den 0,273'e çıktı, kum_dalgasi 0,29'dan 0,51'e. Hiçbir koşuda NaN yok.
+- **2 sınıflı koşuların genel mAP'i bu tabloda karşılaştırılamaz:** B/C'nin genel mAP'i 0,33–0,34 görünüyor, ama bunun sebebi en zor sınıf kaya_alani'nin ortalamadan çıkması. Kaya ve kum sınıflarının kendi değerleri neredeyse aynı. Bu yüzden 2. tabloya bakılır.
+
+**2) Adil karşılaştırma: herkes aynı 2 sınıflı görevde** (`eval_merged.py`). 3 sınıflı modellerin kaya_alani tahminleri kaya sayıldı; dört model de `dataset_2cls/valid` üzerinde aynı kodla ölçüldü:
+
+| Deney | mAP50 | mAP50-95 | kaya mAP50 | kum_dalgasi mAP50 |
+| --- | --- | --- | --- | --- |
+| 0) m, 3 sınıf | 0,322 | 0,225 | 0,147 | 0,496 |
+| A) s, 3 sınıf | 0,311 | 0,217 | 0,131 | 0,491 |
+| B) m, 2 sınıf | 0,323 | 0,229 | 0,145 | 0,501 |
+| C) s, 2 sınıf | **0,327** | **0,229** | 0,136 | **0,518** |
+
+Dört model arasındaki fark 0,016 mAP50, yani 30 karoluk val kümesinde gürültü düzeyinde. **Model boyutu (m ya da s) ve sınıf sayısı (2 ya da 3) sonucu belirgin biçimde değiştirmiyor.** Darboğaz veri: kaya mAP50'si her modelde ~0,14.
+
+**3) E10'daki kullanımın ölçüsü: 80 m'lik hücre sınıfı** (`eval_merged.py`, `cell_level`):
+- Tespitler, D'nin etiket kuralıyla aynı biçimde kum / kayalık / düz sınıfına çevrildi. Güven eşiği 0,25 (Ultralytics varsayılanı); val'e göre ayarlanmadı.
+- 2 sınıflı modellerde kenarı ≥ 10 m olan kaya kutusu kaya_alani sayıldı. Eşik ölçümden: etiketlerde kaya p90 = 9,4 m, kaya_alani p10 = 10,8 m.
+- Bu sayede beş model de aynı 120 alt karoda, aynı soruda karşılaştırılıyor:
+
+| Deney | Doğruluk | Dengeli doğruluk | düz P / R | kayalık P / R (n=14) | kum P / R |
+| --- | --- | --- | --- | --- | --- |
+| Hep "kum" (taban çizgisi) | 0,592 | 0,333 | – | – | – |
+| 0) m, 3 sınıf | 0,742 | 0,601 | 0,65 / 0,63 | 0,36 / 0,29 | 0,84 / 0,89 |
+| A) s, 3 sınıf | **0,833** | 0,643 | 0,70 / 0,80 | 0,50 / 0,14 | 0,92 / 0,99 |
+| B) m, 2 sınıf | 0,792 | 0,633 | 0,79 / 0,54 | 0,63 / 0,36 | 0,81 / 1,00 |
+| C) s, 2 sınıf | 0,808 | **0,657** | 0,71 / 0,63 | 0,63 / 0,36 | 0,86 / 0,99 |
+| D) s-cls, karo | 0,800 | 0,643 | 0,71 / 0,57 | 0,56 / 0,36 | 0,86 / 1,00 |
+
+- **Kum hücre ölçeğinde çözülmüş:** Bütün modellerde kum recall'u 0,89–1,00.
+- **Asıl zorluk kayalık:** En iyi modeller 14 kayalık hücreden yalnızca 5'ini buluyor; kaçanlar düz sanılıyor. Düz hücrelerin bir kısmı da kum sanılıyor (C'de 35'ten 10'u).
+- **D, tespit modellerini geçemedi:** Kutu yerine doğrudan sınıflandırma C ile aynı düzeyde kaldı (0,800 / 0,643). Üstelik en iyi epoch'u 2'ydi; 480 alt karoda hemen ezberliyor. Tespit modeli aynı sonucu verip hücre başına kaya sayısı ve kum kaplaması gibi sürekli bir yoğunluk da veriyor. D yalnızca 3 sınıf etiketi veriyor.
+
+### Model seçimi
+
+**Seçilen: C) YOLOv8s, 2 sınıf (`e6_s2`) → `ml/models/yolo_marstrail.pt`.** Seçim kaydı `ml/models/yolo_marstrail.json` dosyasında.
+
+Gerekçe:
+1. **E10'un sorusunda en iyisi:** Hücre düzeyinde dengeli doğruluk 0,657 ile en yüksek. Kayalık recall'u 0,36 ile en iyilerle eşit. Adil karşılaştırmada mAP50 0,327 ve kum_dalgasi mAP50 0,518 ile en yüksek. A'nın düz doğruluğu daha yüksek (0,833), ama kayalık hücrelerin 14'ünden yalnızca 2'sini buluyor. Astronot güvenliği için kayalığı kaçırmak, düzü yanlışlıkla kayalık saymaktan daha pahalı.
+2. **Eşitlikte küçük model:**
+   - Fark gürültü düzeyinde olduğu için daha basit model seçildi.
+   - yolov8s'in parametresi 11,1 M, yolov8m'in 25,9 M. Çıkarım 2,3 ms, m'nin yarısı.
+   - Eğitim eğrisi en düzgün olan da C: en iyi epoch 59. m modelleri epoch 17–20'de zirve yapıp ezberlemeye başladı; 150 karoda küçük model daha az aşırı öğreniyor.
+3. **2 sınıf haritanın ihtiyacıyla aynı:** E10'a giden bilgi "kayalık" ve "kum". kaya_alani'yi ayrı öğrenmek ölçülebilir bir fayda getirmedi (2. tablo); 2 sınıflı modelde de büyük kaya kutuları boyut eşiğiyle kaya alanı olarak ayrılabiliyor.
+
+**Sınırlar (sunumda söylenecek):**
+- Val kümesi küçük: 30 karo, 14 kayalık hücre. Farkların çoğu tek tek karolarla oynar.
+- Kaya tespiti zayıf: kaya mAP50 ~0,14.
+- Bu sonuç 2. parti etiketlerle (100 karo, ağırlıklı düz ve kayalık) yeniden doğrulanacak. Etiketler gelince aynı ablation ile en azından B ve C yeniden koşulacak; train/val bölmesi bitişik karo grupları korunarak yapılacak.
+
+Şekiller: [e6_s2_results.png](figures/e6_s2_results.png), [e6_s2_confusion_matrix_normalized.png](figures/e6_s2_confusion_matrix_normalized.png), [e6_s2_BoxPR_curve.png](figures/e6_s2_BoxPR_curve.png), [e6_s2_val_batch0_pred.jpg](figures/e6_s2_val_batch0_pred.jpg).
 
 ### E10'da modelin kullanımı (not)
 
@@ -382,4 +445,5 @@ Ayarlar yukarıdaki gibi, optimizer `auto` (Ultralytics 800 adımdan kısa eğit
 | D6 | SIM 3464 jeoloji | 349 MB · 181 dosya, 13 katman, 1304 poligon | 19 sistem dosyası, 12 katman, 1186 poligon; 2 kaynak hatası düzeltildi | 118 poligon, 10 birim → 1024² | Reprojeksiyon, rasterize, katsayı tablosu |
 | D7 | Perseverance ham görüntüleri | 7 Sol · 1795 görüntü kaydı | 1785: kamera, alt kare, renkli/gri ikiz, açı, doku eşiği, 1 insan kontrolü | 10 fotoğraf (800 px, ~580 KB) | Kural tabanlı eleme hunisi + kenar şiddeti eşiği |
 | D8 | HiRISE 25 cm mozaiği | 5,47 GB zip · 76.576 × 107.264 px | Zip'te ortogörüntü dışındaki her şey (DTM, güven haritaları); 2590 karonun 1444'ü NoData, 58'i dokusuz | 150 karo (640², 28 MB) → etiket: E5 | Karolama, birim tabanlı aday seçimi, en uzak nokta örneklemesi, %0,5–99,5 germe |
+| E6 | YOLO etiketleri + model | 150 karo (D8), Roboflow ön etiket + elle düzeltme · 574 kutu | Geçersiz etiket 0; 2 sınıf için kaya_alani → kaya birleştirildi | YOLOv8s 2 sınıf: mAP50 0,327 (adil karşılaştırma), hücre dengeli doğruluk 0,657 | Transfer öğrenme, kararlı ayar (SGD, fp32), 5 koşuluk ablation, hücre düzeyi doğrulama |
 | Füzyon | Geçilebilirlik + grid | D4 + D5 + D6 | – | 65.536 hücre (70 m), 150 geçilmez | Ağırlıklı toplam, Tobler, Dijkstra |

@@ -1,0 +1,48 @@
+{
+  "task": "detect",
+  "run": "e6_m2",
+  "model": "yolov8m.pt",
+  "classes": [
+    "kaya",
+    "kum_dalgasi"
+  ],
+  "optimizer": "SGD",
+  "lr0": 0.01,
+  "amp": false,
+  "epochs_requested": 100,
+  "imgsz": 640,
+  "batch": 16,
+  "patience": 20,
+  "all": {
+    "P": 0.396,
+    "R": 0.35,
+    "mAP50": 0.341,
+    "mAP50_95": 0.227
+  },
+  "per_class": {
+    "kaya": {
+      "P": 0.337,
+      "R": 0.178,
+      "mAP50": 0.153,
+      "mAP50_95": 0.047
+    },
+    "kum_dalgasi": {
+      "P": 0.456,
+      "R": 0.523,
+      "mAP50": 0.528,
+      "mAP50_95": 0.407
+    }
+  },
+  "speed_ms_per_img": {
+    "preprocess": 0.71,
+    "inference": 5.03,
+    "loss": 0.0,
+    "postprocess": 0.8
+  },
+  "params_M": 25.9,
+  "weights_mb": 52.0,
+  "epochs_run": 40,
+  "best_epoch": 20,
+  "train_minutes": 1.8,
+  "nan_val_epochs": []
+}

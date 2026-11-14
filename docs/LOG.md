@@ -290,3 +290,24 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - Slayt görüntüleri: `docs/figures/ui_1_plan_go.png`, `ui_2_plan_nogo.png`, `ui_3_walk.png`, `ui_4_rescue.png` (1920×1080), `ui_5_phone_plan.png`, `ui_6_phone_rescue.png` (390×844, 2×).
 - **Dosyalar:** `web/app.js`, `web/index.html`, `.github/workflows/pages.yml`, `docs/figures/ui_*.png`
 - **Kontrol:** Headless Chrome NO-GO plan (2 kez), yürüyüş → telsiz koptu → arama animasyonu, telefon yürüyüşü: etiketler bütün, pinler rotayla örtüşüyor.
+
+## E6 · Ablation ve model seçimi · Cmt 14 Kas 2026, 22:48
+
+- **Ne yapıldı:**
+  - v1 ıraksamasına karşı kararlı ayar: SGD lr0 0,01, fp32 ve her epoch NaN kontrolü.
+  - 5 koşuluk ablation: 0) m/3 sınıf, A) s/3, B) m/2 (kaya_alani → kaya), C) s/2, D) yolov8s-cls ile 600 alt karoda (80 m) kum/kayalık/düz sınıflandırma. D'de bölme karo bazında.
+  - Adil karşılaştırma (`ml/eval_merged.py`): hepsi aynı 2 sınıflı görevde, ayrıca D ile aynı 120 alt karoda hücre düzeyinde ölçüldü.
+  - Seçilen model C (`e6_s2`) → `ml/models/yolo_marstrail.pt`.
+  - Ek etiketleme için 100 karo hazırlandı (`ml/roboflow_upload_2.zip`).
+- **Sonuç:**
+  - Kararlı ayar tek başına mAP50'yi 0,162'den 0,273'e çıkardı.
+  - Adil karşılaştırmada dört tespit modeli 0,311–0,327 aralığında (gürültü düzeyi).
+  - C: mAP50 0,327, kum 0,518; hücre doğruluğu 0,808, dengeli doğruluğu 0,657 (en iyisi). Taban çizgisi 0,592.
+  - D: 0,800 / 0,643, tespiti geçemedi. Kayalık hücre recall'u en fazla 0,36: darboğaz veri.
+- **Dosyalar:** `ml/train.py`, `ml/train_cls.py`, `ml/make_cls_dataset.py`, `ml/eval_merged.py`, `ml/compare_runs.py`, `scripts/tile_batch2.py`, `ml/ETIKETLEME.md`, `docs/DATA_PIPELINE.md`, `docs/figures/e6_*`, `ml/tiles_manifest_2.csv`
+- **Nasıl çalıştırılır:** `ml\train.py --name e6_s2 --classes2 --model yolov8s.pt`, ardından `ml\eval_merged.py` ve `ml\compare_runs.py --select e6_s2`
+- **Varsayımlar:**
+  - Hücre sınıfı eşikleri: kum kaplaması ≥ 0,5; kaya_alani ≥ 0,1 ya da ≥ 2 kaya.
+  - 2 sınıflı modelde kenarı ≥ 10 m olan kaya kutusu kaya_alani sayıldı (kaya p90 9,4 m, kaya_alani p10 10,8 m).
+  - Güven eşiği 0,25, val'e göre ayarlanmadı.
+  - Eşitlikte küçük model seçildi.

@@ -1,0 +1,305 @@
+{
+  "e6v1": {
+    "run": "ml\\runs\\e6_yolov8m",
+    "model": "yolov8m.pt",
+    "epochs_requested": 100,
+    "imgsz": 640,
+    "batch": 16,
+    "patience": 20,
+    "all": {
+      "P": 0.253,
+      "R": 0.12,
+      "mAP50": 0.162,
+      "mAP50_95": 0.112
+    },
+    "per_class": {
+      "kaya": {
+        "P": 0.413,
+        "R": 0.063,
+        "mAP50": 0.169,
+        "mAP50_95": 0.072
+      },
+      "kaya_alani": {
+        "P": 0.0,
+        "R": 0.0,
+        "mAP50": 0.027,
+        "mAP50_95": 0.008
+      },
+      "kum_dalgasi": {
+        "P": 0.346,
+        "R": 0.295,
+        "mAP50": 0.292,
+        "mAP50_95": 0.257
+      }
+    },
+    "speed_ms_per_img": {
+      "preprocess": 0.94,
+      "inference": 5.21,
+      "loss": 0.0,
+      "postprocess": 0.95
+    },
+    "epochs_run": 81,
+    "best_epoch": 61
+  },
+  "e6_m3": {
+    "task": "detect",
+    "run": "e6_m3",
+    "model": "yolov8m.pt",
+    "classes": [
+      "kaya",
+      "kaya_alani",
+      "kum_dalgasi"
+    ],
+    "optimizer": "SGD",
+    "lr0": 0.01,
+    "amp": false,
+    "epochs_requested": 100,
+    "imgsz": 640,
+    "batch": 16,
+    "patience": 20,
+    "all": {
+      "P": 0.38,
+      "R": 0.321,
+      "mAP50": 0.273,
+      "mAP50_95": 0.173
+    },
+    "per_class": {
+      "kaya": {
+        "P": 0.365,
+        "R": 0.196,
+        "mAP50": 0.153,
+        "mAP50_95": 0.048
+      },
+      "kaya_alani": {
+        "P": 0.428,
+        "R": 0.176,
+        "mAP50": 0.154,
+        "mAP50_95": 0.067
+      },
+      "kum_dalgasi": {
+        "P": 0.348,
+        "R": 0.591,
+        "mAP50": 0.512,
+        "mAP50_95": 0.404
+      }
+    },
+    "speed_ms_per_img": {
+      "preprocess": 0.72,
+      "inference": 4.99,
+      "loss": 0.0,
+      "postprocess": 0.76
+    },
+    "params_M": 25.9,
+    "weights_mb": 52.0,
+    "epochs_run": 37,
+    "best_epoch": 17,
+    "train_minutes": 1.6,
+    "nan_val_epochs": []
+  },
+  "e6_s3": {
+    "task": "detect",
+    "run": "e6_s3",
+    "model": "yolov8s.pt",
+    "classes": [
+      "kaya",
+      "kaya_alani",
+      "kum_dalgasi"
+    ],
+    "optimizer": "SGD",
+    "lr0": 0.01,
+    "amp": false,
+    "epochs_requested": 100,
+    "imgsz": 640,
+    "batch": 16,
+    "patience": 20,
+    "all": {
+      "P": 0.348,
+      "R": 0.295,
+      "mAP50": 0.269,
+      "mAP50_95": 0.166
+    },
+    "per_class": {
+      "kaya": {
+        "P": 0.311,
+        "R": 0.143,
+        "mAP50": 0.126,
+        "mAP50_95": 0.046
+      },
+      "kaya_alani": {
+        "P": 0.272,
+        "R": 0.265,
+        "mAP50": 0.197,
+        "mAP50_95": 0.058
+      },
+      "kum_dalgasi": {
+        "P": 0.461,
+        "R": 0.477,
+        "mAP50": 0.483,
+        "mAP50_95": 0.395
+      }
+    },
+    "speed_ms_per_img": {
+      "preprocess": 0.82,
+      "inference": 2.29,
+      "loss": 0.0,
+      "postprocess": 0.72
+    },
+    "params_M": 11.1,
+    "weights_mb": 22.5,
+    "epochs_run": 57,
+    "best_epoch": 37,
+    "train_minutes": 1.2,
+    "nan_val_epochs": []
+  },
+  "e6_m2": {
+    "task": "detect",
+    "run": "e6_m2",
+    "model": "yolov8m.pt",
+    "classes": [
+      "kaya",
+      "kum_dalgasi"
+    ],
+    "optimizer": "SGD",
+    "lr0": 0.01,
+    "amp": false,
+    "epochs_requested": 100,
+    "imgsz": 640,
+    "batch": 16,
+    "patience": 20,
+    "all": {
+      "P": 0.396,
+      "R": 0.35,
+      "mAP50": 0.341,
+      "mAP50_95": 0.227
+    },
+    "per_class": {
+      "kaya": {
+        "P": 0.337,
+        "R": 0.178,
+        "mAP50": 0.153,
+        "mAP50_95": 0.047
+      },
+      "kum_dalgasi": {
+        "P": 0.456,
+        "R": 0.523,
+        "mAP50": 0.528,
+        "mAP50_95": 0.407
+      }
+    },
+    "speed_ms_per_img": {
+      "preprocess": 0.71,
+      "inference": 5.03,
+      "loss": 0.0,
+      "postprocess": 0.8
+    },
+    "params_M": 25.9,
+    "weights_mb": 52.0,
+    "epochs_run": 40,
+    "best_epoch": 20,
+    "train_minutes": 1.8,
+    "nan_val_epochs": []
+  },
+  "e6_s2": {
+    "task": "detect",
+    "run": "e6_s2",
+    "model": "yolov8s.pt",
+    "classes": [
+      "kaya",
+      "kum_dalgasi"
+    ],
+    "optimizer": "SGD",
+    "lr0": 0.01,
+    "amp": false,
+    "epochs_requested": 100,
+    "imgsz": 640,
+    "batch": 16,
+    "patience": 20,
+    "all": {
+      "P": 0.424,
+      "R": 0.325,
+      "mAP50": 0.328,
+      "mAP50_95": 0.221
+    },
+    "per_class": {
+      "kaya": {
+        "P": 0.329,
+        "R": 0.082,
+        "mAP50": 0.134,
+        "mAP50_95": 0.052
+      },
+      "kum_dalgasi": {
+        "P": 0.519,
+        "R": 0.568,
+        "mAP50": 0.522,
+        "mAP50_95": 0.391
+      }
+    },
+    "speed_ms_per_img": {
+      "preprocess": 0.77,
+      "inference": 2.34,
+      "loss": 0.0,
+      "postprocess": 0.69
+    },
+    "params_M": 11.1,
+    "weights_mb": 22.5,
+    "epochs_run": 79,
+    "best_epoch": 59,
+    "train_minutes": 1.7,
+    "nan_val_epochs": []
+  },
+  "e6_cls_s": {
+    "task": "classify",
+    "run": "e6_cls_s",
+    "model": "yolov8s-cls.pt",
+    "classes": [
+      "duz",
+      "kayalik",
+      "kum"
+    ],
+    "imgsz": 320,
+    "accuracy": 0.8,
+    "balanced_accuracy": 0.643,
+    "majority_baseline": 0.592,
+    "per_class": {
+      "duz": {
+        "P": 0.714,
+        "R": 0.571,
+        "n_val": 35
+      },
+      "kayalik": {
+        "P": 0.556,
+        "R": 0.357,
+        "n_val": 14
+      },
+      "kum": {
+        "P": 0.855,
+        "R": 1.0,
+        "n_val": 71
+      }
+    },
+    "confusion": {
+      "duz": {
+        "duz": 20,
+        "kayalik": 4,
+        "kum": 11
+      },
+      "kayalik": {
+        "duz": 8,
+        "kayalik": 5,
+        "kum": 1
+      },
+      "kum": {
+        "duz": 0,
+        "kayalik": 0,
+        "kum": 71
+      }
+    },
+    "speed_ms_per_img": {
+      "inference": 0.37
+    },
+    "epochs_run": 22,
+    "best_epoch": 2,
+    "train_minutes": 0.5,
+    "params_M": 5.1
+  }
+}

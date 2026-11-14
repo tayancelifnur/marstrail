@@ -1,0 +1,55 @@
+{
+  "task": "classify",
+  "run": "e6_cls_s",
+  "model": "yolov8s-cls.pt",
+  "classes": [
+    "duz",
+    "kayalik",
+    "kum"
+  ],
+  "imgsz": 320,
+  "accuracy": 0.8,
+  "balanced_accuracy": 0.643,
+  "majority_baseline": 0.592,
+  "per_class": {
+    "duz": {
+      "P": 0.714,
+      "R": 0.571,
+      "n_val": 35
+    },
+    "kayalik": {
+      "P": 0.556,
+      "R": 0.357,
+      "n_val": 14
+    },
+    "kum": {
+      "P": 0.855,
+      "R": 1.0,
+      "n_val": 71
+    }
+  },
+  "confusion": {
+    "duz": {
+      "duz": 20,
+      "kayalik": 4,
+      "kum": 11
+    },
+    "kayalik": {
+      "duz": 8,
+      "kayalik": 5,
+      "kum": 1
+    },
+    "kum": {
+      "duz": 0,
+      "kayalik": 0,
+      "kum": 71
+    }
+  },
+  "speed_ms_per_img": {
+    "inference": 0.37
+  },
+  "epochs_run": 22,
+  "best_epoch": 2,
+  "train_minutes": 0.5,
+  "params_M": 5.1
+}

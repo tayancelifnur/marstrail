@@ -1,0 +1,228 @@
+{
+  "e6_m3": {
+    "classes_trained": 3,
+    "per_class": {
+      "kaya": {
+        "P": 0.396,
+        "R": 0.068,
+        "mAP50": 0.147,
+        "mAP50_95": 0.05
+      },
+      "kum_dalgasi": {
+        "P": 0.557,
+        "R": 0.5,
+        "mAP50": 0.496,
+        "mAP50_95": 0.401
+      }
+    },
+    "all": {
+      "mAP50": 0.322,
+      "mAP50_95": 0.225
+    }
+  },
+  "e6_s3": {
+    "classes_trained": 3,
+    "per_class": {
+      "kaya": {
+        "P": 0.302,
+        "R": 0.11,
+        "mAP50": 0.131,
+        "mAP50_95": 0.041
+      },
+      "kum_dalgasi": {
+        "P": 0.73,
+        "R": 0.455,
+        "mAP50": 0.491,
+        "mAP50_95": 0.393
+      }
+    },
+    "all": {
+      "mAP50": 0.311,
+      "mAP50_95": 0.217
+    }
+  },
+  "e6_m2": {
+    "classes_trained": 2,
+    "per_class": {
+      "kaya": {
+        "P": 0.341,
+        "R": 0.085,
+        "mAP50": 0.145,
+        "mAP50_95": 0.045
+      },
+      "kum_dalgasi": {
+        "P": 0.726,
+        "R": 0.455,
+        "mAP50": 0.501,
+        "mAP50_95": 0.414
+      }
+    },
+    "all": {
+      "mAP50": 0.323,
+      "mAP50_95": 0.229
+    }
+  },
+  "e6_s2": {
+    "classes_trained": 2,
+    "per_class": {
+      "kaya": {
+        "P": 0.317,
+        "R": 0.11,
+        "mAP50": 0.136,
+        "mAP50_95": 0.048
+      },
+      "kum_dalgasi": {
+        "P": 0.484,
+        "R": 0.545,
+        "mAP50": 0.518,
+        "mAP50_95": 0.409
+      }
+    },
+    "all": {
+      "mAP50": 0.327,
+      "mAP50_95": 0.229
+    }
+  },
+  "cell_level": {
+    "e6_m3": {
+      "accuracy": 0.742,
+      "balanced_accuracy": 0.601,
+      "per_class": {
+        "duz": {
+          "P": 0.647,
+          "R": 0.629
+        },
+        "kayalik": {
+          "P": 0.364,
+          "R": 0.286
+        },
+        "kum": {
+          "P": 0.84,
+          "R": 0.887
+        }
+      },
+      "confusion": {
+        "duz": {
+          "duz": 22,
+          "kayalik": 4,
+          "kum": 9
+        },
+        "kayalik": {
+          "duz": 7,
+          "kayalik": 4,
+          "kum": 3
+        },
+        "kum": {
+          "duz": 5,
+          "kayalik": 3,
+          "kum": 63
+        }
+      }
+    },
+    "e6_s3": {
+      "accuracy": 0.833,
+      "balanced_accuracy": 0.643,
+      "per_class": {
+        "duz": {
+          "P": 0.7,
+          "R": 0.8
+        },
+        "kayalik": {
+          "P": 0.5,
+          "R": 0.143
+        },
+        "kum": {
+          "P": 0.921,
+          "R": 0.986
+        }
+      },
+      "confusion": {
+        "duz": {
+          "duz": 28,
+          "kayalik": 2,
+          "kum": 5
+        },
+        "kayalik": {
+          "duz": 11,
+          "kayalik": 2,
+          "kum": 1
+        },
+        "kum": {
+          "duz": 1,
+          "kayalik": 0,
+          "kum": 70
+        }
+      }
+    },
+    "e6_m2": {
+      "accuracy": 0.792,
+      "balanced_accuracy": 0.633,
+      "per_class": {
+        "duz": {
+          "P": 0.792,
+          "R": 0.543
+        },
+        "kayalik": {
+          "P": 0.625,
+          "R": 0.357
+        },
+        "kum": {
+          "P": 0.807,
+          "R": 1.0
+        }
+      },
+      "confusion": {
+        "duz": {
+          "duz": 19,
+          "kayalik": 3,
+          "kum": 13
+        },
+        "kayalik": {
+          "duz": 5,
+          "kayalik": 5,
+          "kum": 4
+        },
+        "kum": {
+          "duz": 0,
+          "kayalik": 0,
+          "kum": 71
+        }
+      }
+    },
+    "e6_s2": {
+      "accuracy": 0.808,
+      "balanced_accuracy": 0.657,
+      "per_class": {
+        "duz": {
+          "P": 0.71,
+          "R": 0.629
+        },
+        "kayalik": {
+          "P": 0.625,
+          "R": 0.357
+        },
+        "kum": {
+          "P": 0.864,
+          "R": 0.986
+        }
+      },
+      "confusion": {
+        "duz": {
+          "duz": 22,
+          "kayalik": 3,
+          "kum": 10
+        },
+        "kayalik": {
+          "duz": 8,
+          "kayalik": 5,
+          "kum": 1
+        },
+        "kum": {
+          "duz": 1,
+          "kayalik": 0,
+          "kum": 70
+        }
+      }
+    }
+  }
+}
