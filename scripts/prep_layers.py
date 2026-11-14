@@ -162,10 +162,31 @@ def build(n, crs, slope_tif):
     slope_risk = np.clip(slope / SLOPE_MAX_DEG, 0, 1)
     rock_f = np.where(np.isnan(rock), 0.3, rock)
     th_f = np.where(np.isnan(th_norm), 0.5, th_norm)
-    score = np.clip(0.4 * slope_risk + 0.25 * sand + 0.15 * rock_f + 0.2 * (1 - th_f), 0, 1)
+    fuse = lambda s, r: np.clip(0.4 * slope_risk + 0.25 * s + 0.15 * r + 0.2 * (1 - th_f), 0, 1)  # noqa: E731
+    score_base = fuse(sand, rock_f)
+
+    # E10: YOLO yoğunlukları (ml/infer.py → data/processed/ml_density_{n}.npz). Yalnızca HiRISE'ın kapsadığı
+    # hücrelerde (kapsama ≥ %50) kum ve kaya terimleri jeoloji ile YOLO'nun EŞİT ağırlıklı ortalaması olur:
+    #   kum  = 0,5·eolyen_birim(0/1) + 0,5·kum_ml      kaya = 0,5·jeoloji_kaya_vekili + 0,5·kaya_ml
+    # Neden ortalama, yerine koyma değil: jeoloji 1:75.000 ölçekli poligon (birim içindeki düz alanı görmez),
+    # YOLO 25 cm'de bakıyor ama mAP50 0,33 (E6). İkisini kalibre edecek yer-gerçeği yok; eşit ağırlık en az
+    # varsayımlı seçim. Formüldeki 0,25 ve 0,15 ağırlıkları değişmez: ML yeni bir terim değil, aynı terimlerin
+    # daha ince ölçekli ikinci kaynağı. Kapsam dışında skor E3'teki gibi kalır.
+    ml = {}
+    mp = PROC / f"ml_density_{n}.npz"
+    if mp.exists():
+        z = np.load(mp)
+        kum_ml, kaya_ml = z["kum_ml"], z["kaya_ml"]
+        has = ~np.isnan(kum_ml)
+        sand_c = np.where(has, 0.5 * sand + 0.5 * np.nan_to_num(kum_ml), sand)
+        rock_c = np.where(has, 0.5 * rock_f + 0.5 * np.nan_to_num(kaya_ml), rock_f)
+        ml = dict(kum_ml=kum_ml, kaya_ml=kaya_ml, ml_has=has, sand_c=sand_c, rock_c=rock_c, ml_model=str(z["model"]))
+        score = fuse(sand_c, rock_c)
+    else:
+        score = score_base
     nodata = np.isnan(elev) | np.isnan(slope)
     return dict(elev=elev, slope=slope, ti=ti, thermal=th_norm, ti_range=(lo, hi), geo=gidx, geo_names=names,
-                walk=walk, rock=rock, sand=sand, score=score, nodata=nodata)
+                walk=walk, rock=rock, sand=sand, score=score, score_base=score_base, nodata=nodata, **ml)
 
 
 # ---------------------------------------------------------------------------
@@ -223,6 +244,17 @@ def make_pngs(L):
     tr = ramp(L["score"], GREEN_RED, mask=m)
     tr[(L["slope"] > SLOPE_MAX_DEG) | (L["score"] > SCORE_MAX)] = (40, 0, 0, 220)  # geçilmez: koyu
     save_png("traversability.png", tr)
+    if "kum_ml" in L:
+        # YOLO katmanı: kum sarı-turuncu, kaya kırmızı; baskın olanın rengi, saydamlık yoğunlukla.
+        # Düşük yoğunluk (< 0,15) tamamen saydam: haritayı gürültüyle doldurmasın. Kapsam dışı saydam.
+        k, r = np.nan_to_num(L["kum_ml"]), np.nan_to_num(L["kaya_ml"])
+        hz = np.zeros(k.shape + (4,), dtype=np.uint8)
+        rock_dom = r >= k
+        hz[..., :3] = np.where(rock_dom[..., None], np.array([231, 40, 40], np.uint8), np.array([245, 166, 35], np.uint8))
+        a = np.maximum(k, r)
+        hz[..., 3] = np.where(a < 0.15, 0, 60 + a * 170).astype(np.uint8)
+        hz[~L["ml_has"]] = 0
+        save_png("hazard_ml.png", hz)
 
 
 def make_layers_json(L):
@@ -248,8 +280,17 @@ def make_layers_json(L):
         {"id": "traversability", "name": "Birleşik geçilebilirlik", "file": "layers/traversability.png", "default_opacity": 0.6,
          "legend": [{"color": "#2ecc71", "label": "Kolay"}, {"color": "#f1c40f", "label": "Orta"},
                     {"color": "#e74c3c", "label": "Zor"}, {"color": "#280000", "label": f"Geçilmez (eğim >{SLOPE_MAX_DEG:.0f}° ya da skor >{SCORE_MAX})"}],
-         "source": "0,4·eğim + 0,25·kum (eolyen birim) + 0,15·kaya (jeoloji vekili; YOLO E10'da) + 0,2·(1−termal)", **common},
+         "source": ("0,4·eğim + 0,25·kum + 0,15·kaya + 0,2·(1−termal). Kum: eolyen birim; kaya: jeoloji vekili. "
+                    "HiRISE kapsamında kum ve kaya, jeoloji ile YOLO'nun ortalaması" if "kum_ml" in L else
+                    "0,4·eğim + 0,25·kum (eolyen birim) + 0,15·kaya (jeoloji vekili) + 0,2·(1−termal)"), **common},
     ]
+    if "kum_ml" in L:
+        layers.append(
+            {"id": "hazard_ml", "name": "YOLO: kaya ve kum dalgası (HiRISE 25 cm)", "file": "layers/hazard_ml.png", "default_opacity": 0.7,
+             "legend": [{"color": "#f5a623", "label": "Kum dalgası kaplaması"}, {"color": "#e72828", "label": "Kaya yoğunluğu"},
+                        {"color": "#00000000", "label": "Saydam: düşük yoğunluk ya da HiRISE kapsamı dışında"}],
+             "source": f"Kendi YOLOv8 modelimiz ({L['ml_model']}), HiRISE 25 cm ortomozaik (USGS/JPL-Caltech/Univ. of Arizona); 70 m hücre yoğunluğu",
+             **common})
     with open(OUT / "layers.json", "w", encoding="utf-8") as f:
         json.dump(layers, f, ensure_ascii=False, indent=2)
     print(f"  web/data/layers.json ({len(layers)} katman)")
@@ -280,8 +321,12 @@ def make_grid(G):
         "score": np.round(np.nan_to_num(G["score"], nan=1.0), 2).ravel().tolist(),
         # Eolyen kum birimi (0/1, D6): eva.js Go/No-Go "rotada kum tuzağı var mı?" kontrolü için.
         # Hücrenin yarısından fazlası eolyen birimse 1 (256² ızgarada en yakın komşu rasterizasyonu).
-        "sand": (np.nan_to_num(G["sand"]) >= 0.5).astype(int).ravel().tolist(),
+        # E10: HiRISE kapsamında kum terimi jeoloji + YOLO ortalaması (sand_c); ≥ 0,5 ise kum tuzağı.
+        "sand": (np.nan_to_num(G.get("sand_c", G["sand"])) >= 0.5).astype(int).ravel().tolist(),
     }
+    if "kum_ml" in G:
+        grid["source"] += f" + YOLO ({G['ml_model']}, HiRISE kapsamında kum/kaya terimlerine eşit ağırlıkla)"
+        grid["units"]["sand"] = "0/1 kum tuzağı: eolyen birim, HiRISE kapsamında YOLO kum dalgasıyla ortalanmış ≥ 0,5"
     with open(OUT / "grid.json", "w", encoding="utf-8") as f:
         json.dump(grid, f, separators=(",", ":"))
     print(f"  web/data/grid.json  ({(OUT / 'grid.json').stat().st_size / 1024:.0f} KB), hücre {cell_m:.1f} m, "
@@ -305,8 +350,8 @@ def main():
     np.savez_compressed(PROC / "layers_1024.npz", **{k: v for k, v in L.items() if isinstance(v, np.ndarray)})
     np.savez_compressed(PROC / "grid_256.npz", cost=cost, blocked=blocked,
                         **{k: v for k, v in G.items() if isinstance(v, np.ndarray)})
-    stale = LAYERS_DIR / "hazard_ml.png"  # E1 sahte YOLO katmanı; gerçeği E10'da
-    if stale.exists():
+    stale = LAYERS_DIR / "hazard_ml.png"  # E1 sahte YOLO katmanı; ML yoğunluğu yoksa silinir (gerçeği ml/infer.py'den)
+    if "kum_ml" not in L and stale.exists():
         stale.unlink()
     print("Bitti.")
 

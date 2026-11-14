@@ -431,6 +431,95 @@ Gerekçe:
   - Kum: eolyen ≥ %60.
 - **Çıktı:** `ml/roboflow_upload_2.zip` (18 MB), `ml/tiles_manifest_2.csv`. Görsel: [figures/e6_batch2_selection.png](figures/e6_batch2_selection.png). Sayılar: [figures/e6_batch2_stats.json](figures/e6_batch2_stats.json).
 
+## E10 · YOLO çıkarımı, füzyon ve D2 doğrulaması (ml/infer.py, scripts/prep_layers.py, scripts/validate.py)
+
+- **Neden:** Model bu adımda haritaya giriyor. E6'daki mAP modelin etiketlere ne kadar benzediğini ölçüyordu. Burada ürünün kendisi ölçülüyor: YOLO eklenince skor, gerçek bir gezginin seçtiği rotayı daha iyi açıklıyor mu?
+- **Model:** `e6_s2` (YOLOv8s, 2 sınıf). Model değişince yalnız `ml/models/yolo_marstrail.pt` değişir ve üç betik tekrar çalıştırılır; bütün sayılar bu dosyalardan yeniden üretilir.
+
+### Çıkarım
+
+- **Karolar:** E5 ızgarasında NoData içermeyen bütün karolar: 1088 temiz + 58 dokusuz = **1146 karo** (1146 × 160 m × 160 m ≈ 29 km²). Tam çözünürlükte NoData yüzünden atılan karo 0.
+- **Ön işleme:** E5 ile aynı germe (60–219). Gri görüntü 3 kanala kopyalanıyor.
+  - Fark: eğitim karoları Roboflow'dan JPG olarak geldi, çıkarım kayıpsız diziyle yapılıyor. Küçük bir alan kayması var; ölçülmedi.
+- **Süre:** RTX 5090'da 13,5 sn çıkarım, toplam 17 sn.
+- **Tespitler (güven ≥ 0,25):** 1551 kaya, 625 kaya alanı, 1986 kum dalgası. 1146 karonun 1078'inde en az bir tespit var.
+  - Kaya alanı = kenarı ≥ 10 m olan kaya kutusu. Eşik ölçümden: etiketlerde kaya p90 9,4 m, kaya_alani p10 10,8 m.
+- **Dokusuz karolar:** 58 karonun 41'inde tespit var. Karo başına medyan 1 (dokulu karolarda 2). Çoğu karo boyu kum kutusu.
+  - Görsel kontrol ([e10_plain_examples.png](figures/e10_plain_examples.png)): E5'teki "dokusuz" ölçüsü 1/16 ön görünümde alınmıştı. Tam çözünürlükte bu karoların çoğunda ince kum dalgacıkları ya da koyu, düz kum örtüsü görünüyor.
+  - Yani bunlar büyük olasılıkla yanlış pozitif değil. Yine de yer-gerçeği yok.
+
+### Hücre yoğunluğu (256² grid, 70 m hücre; 1024² katman için de aynısı)
+
+- **Örnekleme:** Her karo 2,5 m aralıklı 64 × 64 noktayla örneklendi. Noktalar coğrafi grid hücresine taşındı; kutu birleşimi kullanıldı, üst üste binen kutular iki kez sayılmadı.
+- **Formüller** (E6'daki hücre kuralıyla aynı ölçek):
+  - `kum_ml = kum_dalgası kutularının hücrede kapladığı oran`. E6'da "kum hücresi" eşiği 0,5.
+  - `kaya_ml = clip(max(kaya_alanı_oranı / 0,2 , kaya_sayısı_ha / 6,25), 0, 1)`. E6'nın kayalık eşikleri (kaya alanı ≥ 0,1 ya da 80 m'de ≥ 2 kaya = 3,1/ha) tam 0,5'e denk geliyor.
+- **Kapsama:** HiRISE karoları hücrenin %50'sinden azını kaplıyorsa ML değeri yok sayılıyor (NaN). Bu kurala göre **5666 hücrede** ML var; bunların 2953'ünde kum_ml ≥ 0,5, 599'unda kaya_ml ≥ 0,5.
+- **Görsel:** [e10_density.png](figures/e10_density.png). Kum, ortadaki eolyen bandı (77,31–77,34°D) izliyor; kapsamdaki beyaz şeritler HiRISE görüntü şeritleri arasındaki boşluklar.
+
+### Füzyon (prep_layers.py)
+
+- **Formül:**
+  - Ağırlıklar değişmedi: `skor = 0,4·eğim + 0,25·kum + 0,15·kaya + 0,2·(1−termal)`.
+  - YOLO kapsamındaki hücrelerde: `kum = 0,5·eolyen_birim + 0,5·kum_ml`, `kaya = 0,5·jeoloji_vekili + 0,5·kaya_ml`. Kapsam dışında E3 aynen kalıyor.
+- **Neden ortalama:**
+  - Jeoloji 1:75.000 ölçekli poligon; birim içindeki düz alanı göremez.
+  - YOLO 25 cm'de bakıyor ama mAP50'si 0,33.
+  - İkisini kalibre edecek yer-gerçeği yok; eşit ağırlık en az varsayım gerektiren seçim.
+  - YOLO yeni bir terim değil; aynı iki terimin daha ince ölçekli ikinci kaynağı. Füzyonun tek girdisi değil.
+- **Etkisi:**
+  - HiRISE kapsamında skor ortalama +0,013 değişti; ortalama mutlak değişim 0,034.
+  - Geçilmez hücre sayısı 150'de kaldı; YOLO hiçbir hücreyi 0,8 eşiğinin üstüne itmedi.
+  - grid.json'daki `sand` alanı (Go/No-Go kum tuzağı) artık birleşik kum terimi ≥ 0,5 olan hücreler.
+- **Uygulamaya etkisi:** Üs, delta önü ve Three Forks kapsam dışında. E8, E11 ve E13 testleri yeni grid ile geçti; demo sayıları aynı. Yalnız üsten Cheyava Falls'a tek yön süre 278 dk'dan 279 dk'ya çıktı.
+- **Yeni katman:** `hazard_ml.png` ve layers.json'da `hazard_ml`: turuncu kum, kırmızı kaya; düşük yoğunluk (< 0,15) ve kapsam dışı saydam. `traversability.png` güncellendi.
+
+### Doğrulama: Perseverance'ın gerçek rotası (D2)
+
+- **Mantık:** Rover ekibi rotayı tehlikeden kaçınarak seçti. Skor araziyi doğru okuyorsa rotanın geçtiği hücreler rota dışındakilerden daha düşük skorlu olmalı.
+- **Ölçü:** `AUC = P(rota hücresinin skoru < rota dışı hücrenin skoru)`. 0,5 hiç ayırt etmemek demek.
+- **Rasterleştirme:** D2 çizgisi 10 m'de bir örneklendi; **397 rota hücresi** çıktı, 52'si HiRISE kapsamında.
+
+| Bölge | | Rota medyanı | Rota dışı medyanı | AUC (rota daha kolay) | Rotanın geçilebilir oranı |
+| --- | --- | --- | --- | --- | --- |
+| Tüm alan (397 rota hücresi) | YOLO'suz | 0,216 | 0,224 | 0,562 | %100 |
+| | YOLO'lu | 0,217 | 0,224 | 0,569 | %100 |
+| HiRISE kapsamı (52 rota hücresi) | YOLO'suz | 0,397 | 0,395 | **0,498** | %100 |
+| | YOLO'lu | 0,360 | 0,404 | **0,626** | %100 |
+
+- **Bootstrap** (rota hücreleri 1000 kez yeniden örneklendi):
+  - HiRISE kapsamında AUC önce [0,427 – 0,569], sonra [0,571 – 0,678].
+  - **Fark [+0,099 – +0,156]**; 1000 örneğin hiçbirinde fark ≤ 0 değil.
+  - Komşu rota hücreleri birbirine benzediği için gerçek belirsizlik bundan biraz daha geniş; aralık alt sınır olarak okunmalı.
+- **Doğrudan test, YOLO yoğunlukları (HiRISE kapsamı):**
+
+| | Rota | Rota dışı | AUC |
+| --- | --- | --- | --- |
+| kum_ml ≥ 0,5 olan hücre | %3,8 | %52,6 | **0,781** [0,746 – 0,818] |
+| kaya_ml ≥ 0,5 olan hücre | %5,8 | %10,6 | 0,508 |
+
+- **Yorum:**
+  - HiRISE kapsamında jeoloji, termal ve eğimle kurulan skor rotayı rota dışından **hiç ayırt edemiyordu** (0,498).
+  - YOLO eklenince ayırt etmeye başladı (0,626). Rover, YOLO'nun kum dediği hücrelerden belirgin biçimde kaçınmış: rotanın %3,8'i, çevrenin %52,6'sı kum. Kendi modelimizin ölçülebilir katkısı bu.
+  - Kaya yoğunluğu rotayı ayırmıyor (0,508). Bu, E6'daki zayıf kaya tespitiyle tutarlı (kaya mAP50 ~0,14). Bir başka olasılık: rover ekibi metre ölçeğindeki kayaları rota üstünde hiç önemsemiyor olabilir.
+  - Tüm alanda etki küçük (0,562 → 0,569), çünkü rotanın yalnızca 52/397 hücresi HiRISE kapsamında.
+  - Kartın sorusu: rotanın %100'ü bizim grid'imizde geçilebilir, YOLO'dan önce de sonra da.
+- **Sınırlar:**
+  - 52 hücre az ve hepsi kapsamın kuzey kenarında.
+  - Rover bir astronot değil: tekerlek kuma insandan daha duyarlı. Rota bilim hedeflerine de gidiyor.
+  - Rotanın "kolay" arazi olması bir varsayım.
+- **Görsel ve sayılar:** [e10_validation.png](figures/e10_validation.png), [e10_validation.json](figures/e10_validation.json).
+
+### Etiket denetimi (model, etiketlenmiş 150 karoda)
+
+- **Yöntem:** Model, Elif'in etiketlediği görüntülerin aynısında güven ≥ 0,5 ile çalıştırıldı. Aynı gruptaki (kaya + kaya alanı | kum) bir etiketle IoU < 0,1 olan ve merkezi hiçbir etiket kutusunun içine düşmeyen tespitler "olası kaçırılan etiket" sayıldı.
+- **Sonuç:** **40 tespit, 24 karoda.** 33'ü train, 7'si valid. Gruplara göre: 13 kaya, 16 kaya alanı, 11 kum.
+- **Görsel kontrol** ([e10_audit_examples.png](figures/e10_audit_examples.png), en güvenli 8 örnek):
+  - Gerçek eksik etiket gibi görünenler: jz_r066_c015 ve jz_r065_c013'teki koyu kaya ya da çukurlar, jz_r036_c017'deki küçük kaya, jz_r031_c009'daki kaya kümesi.
+  - Model hatası gibi görünenler: jz_r029_c021'de kırıklı parlak kaya "kum" sanılmış, jz_r047_c026'da pürüzlü yüzey "kum" sanılmış.
+- **Liste:** `ml/audit_missed_labels.csv`. 2. partiyle birlikte Roboflow'da gözden geçirilecek.
+- **Sayılar:** [e10_infer_stats.json](figures/e10_infer_stats.json).
+
 ---
 
 ## Özet tablo (sunumdaki veri hattı slaytı)
@@ -445,5 +534,6 @@ Gerekçe:
 | D6 | SIM 3464 jeoloji | 349 MB · 181 dosya, 13 katman, 1304 poligon | 19 sistem dosyası, 12 katman, 1186 poligon; 2 kaynak hatası düzeltildi | 118 poligon, 10 birim → 1024² | Reprojeksiyon, rasterize, katsayı tablosu |
 | D7 | Perseverance ham görüntüleri | 7 Sol · 1795 görüntü kaydı | 1785: kamera, alt kare, renkli/gri ikiz, açı, doku eşiği, 1 insan kontrolü | 10 fotoğraf (800 px, ~580 KB) | Kural tabanlı eleme hunisi + kenar şiddeti eşiği |
 | D8 | HiRISE 25 cm mozaiği | 5,47 GB zip · 76.576 × 107.264 px | Zip'te ortogörüntü dışındaki her şey (DTM, güven haritaları); 2590 karonun 1444'ü NoData, 58'i dokusuz | 150 karo (640², 28 MB) → etiket: E5 | Karolama, birim tabanlı aday seçimi, en uzak nokta örneklemesi, %0,5–99,5 germe |
+| E10 | YOLO çıkarımı + doğrulama | 1146 karo (1088 temiz + 58 dokusuz), 4162 tespit (güven ≥ 0,25) | Güven < 0,25; HiRISE kapsamı < %50 olan hücreler | 5666 hücrede kum_ml ve kaya_ml → füzyon; hazard_ml.png | Hücre yoğunluğu, jeoloji ile eşit ağırlık, D2 rotasıyla AUC (HiRISE: 0,498 → 0,626) |
 | E6 | YOLO etiketleri + model | 150 karo (D8), Roboflow ön etiket + elle düzeltme · 574 kutu | Geçersiz etiket 0; 2 sınıf için kaya_alani → kaya birleştirildi | YOLOv8s 2 sınıf: mAP50 0,327 (adil karşılaştırma), hücre dengeli doğruluk 0,657 | Transfer öğrenme, kararlı ayar (SGD, fp32), 5 koşuluk ablation, hücre düzeyi doğrulama |
 | Füzyon | Geçilebilirlik + grid | D4 + D5 + D6 | – | 65.536 hücre (70 m), 150 geçilmez | Ağırlıklı toplam, Tobler, Dijkstra |

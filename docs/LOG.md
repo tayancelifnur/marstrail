@@ -318,3 +318,22 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Ne yapıldı:** Işık yönü = Güneş altı noktanın tersi; enlem = δs, boylam = Jezero − (LTST − 12) × 15° (marstime.js, Mars24). 30 sn'de bir güncelleniyor. marstime.js yoksa eski KB/30° yedek. Cesium Güneş/Ay diskleri gizli. Zoom: en yakın 100 m, en uzak 30.000 km.
 - **Dosyalar:** `web/app.js`, `web/index.html` (script yorumları düzeltildi)
 - **Kontrol:** Jezero'da Güneş yüksekliği uygulamadan 67,04°, formülden (sin h = sin φ sin δ + cos φ cos δ cos H) 67,02°; isDay ile tutarlı. LTST 13:28 → Güneş altı boylam 55,2°D (Jezero'nun 22° batısı). Fare tekerleğiyle: dışarı 30.000 km'de, içeri 100 m'de duruyor.
+
+## E10 · YOLO çıkarımı, füzyon ve D2 doğrulaması · Cmt 14 Kas 2026, 23:03
+
+- **Ne yapıldı:**
+  - `ml/infer.py`: E5 ızgarasındaki 1146 karoya çıkarım (1088 temiz + 58 dokusuz, 17 sn). 70 m hücre başına kum_ml ve kaya_ml yoğunlukları; 150 etiketli karoda etiket denetimi.
+  - `prep_layers.py`: HiRISE kapsamında kum ve kaya terimleri jeoloji ile YOLO'nun ortalaması. Yeni `hazard_ml.png`; `traversability.png`, `grid.json` ve `layers.json` güncellendi.
+  - `scripts/validate.py`: Perseverance rotasıyla (D2) önce/sonra karşılaştırması.
+- **Sonuç:**
+  - HiRISE kapsamında rota/rota dışı AUC 0,498 → 0,626 (fark %95 [+0,099, +0,156]).
+  - Rover, YOLO'nun kum dediği hücreleri belirgin biçimde az kullanmış: rotada %3,8, çevrede %52,6 (AUC 0,781). Kaya rotayı ayırmıyor (0,508).
+  - Rotanın %100'ü geçilebilir. Geçilmez hücre sayısı 150'de kaldı.
+  - Denetim: 24 karoda 40 olası kaçırılan etiket.
+- **Dosyalar:** `ml/infer.py`, `scripts/prep_layers.py`, `scripts/validate.py`, `web/data/grid.json`, `web/data/layers.json`, `web/data/layers/{traversability,hazard_ml}.png`, `ml/audit_missed_labels.csv`, `ml/ETIKETLEME.md`, `docs/DATA_PIPELINE.md`, `docs/figures/e10_*`
+- **Nasıl çalıştırılır:** `venv\Scripts\python ml\infer.py`, sonra `scripts\prep_layers.py`, sonra `scripts\validate.py`. Model değişince yalnızca bu üçü tekrar çalıştırılır.
+- **Varsayımlar:**
+  - Formüller: `kum_ml` = kutu kaplama oranı; `kaya_ml = clip(max(alan/0,2, kaya_ha/6,25))`. E6 hücre eşikleri 0,5'e denk geliyor.
+  - Güven eşiği 0,25. Hücrenin en az %50'si kapsanmalı.
+  - Jeoloji ve YOLO'ya eşit ağırlık (kalibrasyon verisi yok).
+  - Kontroller: E8, E11 ve E13 testleri yeni grid ile geçti.

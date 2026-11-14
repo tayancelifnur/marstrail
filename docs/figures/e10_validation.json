@@ -1,0 +1,99 @@
+{
+  "route_cells_total": 397,
+  "route_cells_in_hirise": 52,
+  "tum_alan": {
+    "once_yolo_yok": {
+      "route_cells": 397,
+      "other_cells": 65139,
+      "median_route": 0.216,
+      "median_other": 0.224,
+      "mean_route": 0.233,
+      "mean_other": 0.259,
+      "auc_route_lower": 0.562,
+      "route_passable_pct": 100.0,
+      "other_passable_pct": 99.8
+    },
+    "sonra_yolo": {
+      "route_cells": 397,
+      "other_cells": 65139,
+      "median_route": 0.217,
+      "median_other": 0.224,
+      "mean_route": 0.228,
+      "mean_other": 0.26,
+      "auc_route_lower": 0.569,
+      "route_passable_pct": 100.0,
+      "other_passable_pct": 99.8
+    }
+  },
+  "hirise_kapsami": {
+    "once_yolo_yok": {
+      "route_cells": 52,
+      "other_cells": 5614,
+      "median_route": 0.397,
+      "median_other": 0.395,
+      "mean_route": 0.392,
+      "mean_other": 0.384,
+      "auc_route_lower": 0.498,
+      "route_passable_pct": 100.0,
+      "other_passable_pct": 99.8
+    },
+    "sonra_yolo": {
+      "route_cells": 52,
+      "other_cells": 5614,
+      "median_route": 0.36,
+      "median_other": 0.404,
+      "mean_route": 0.356,
+      "mean_other": 0.398,
+      "auc_route_lower": 0.626,
+      "route_passable_pct": 100.0,
+      "other_passable_pct": 99.8
+    }
+  },
+  "yolo_dogrudan": {
+    "kum_ml": {
+      "median_route": 0.0,
+      "median_other": 0.579,
+      "mean_route": 0.107,
+      "mean_other": 0.534,
+      "pct_route_ge_0_5": 3.8,
+      "pct_other_ge_0_5": 52.6,
+      "auc_route_lower": 0.781
+    },
+    "kaya_ml": {
+      "median_route": 0.0,
+      "median_other": 0.0,
+      "mean_route": 0.088,
+      "mean_other": 0.124,
+      "pct_route_ge_0_5": 5.8,
+      "pct_other_ge_0_5": 10.6,
+      "auc_route_lower": 0.508
+    }
+  },
+  "bootstrap_95": {
+    "auc_once": [
+      0.427,
+      0.569
+    ],
+    "auc_sonra": [
+      0.571,
+      0.678
+    ],
+    "fark": [
+      0.099,
+      0.156
+    ],
+    "kum_auc": [
+      0.746,
+      0.818
+    ],
+    "p_fark_le_0": 0.0
+  },
+  "blocked_cells": {
+    "once": 150,
+    "sonra": 150
+  },
+  "score_change_in_hirise": {
+    "mean_delta": 0.013,
+    "abs_mean_delta": 0.034
+  }
+}

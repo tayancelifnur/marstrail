@@ -1,0 +1,40 @@
+{
+  "model": "e6_s2",
+  "classes": [
+    "kaya",
+    "kum_dalgasi"
+  ],
+  "tiles_inferred": 1146,
+  "tiles_plain": 58,
+  "tiles_dropped_fullres_nodata": 0,
+  "detections_conf_ge_0_25": {
+    "kaya": 1551,
+    "kaya_alani": 625,
+    "kum": 1986
+  },
+  "tiles_with_any_detection": 1078,
+  "plain_tiles_with_detection": 41,
+  "grid_cells_with_ml": 5666,
+  "grid_cells_kum_ge_0_5": 2953,
+  "grid_cells_kaya_ge_0_5": 599,
+  "kum_ml_mean": 0.53,
+  "kaya_ml_mean": 0.124,
+  "audit": {
+    "conf_min": 0.5,
+    "unmatched": 40,
+    "by_split": {
+      "train": 33,
+      "valid": 7
+    },
+    "by_group": {
+      "kaya": 13,
+      "kaya_alani": 16,
+      "kum": 11
+    },
+    "tiles": 24
+  },
+  "seconds": {
+    "inference": 13.5,
+    "total": 16.9
+  }
+}

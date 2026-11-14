@@ -68,6 +68,13 @@ Karoların hiçbiri eski 150 karoyla ya da onlara bitişik bir karoyla aynı de�
    - Train/valid oranı 80/20 kalabilir. Bölmeyi zaten kendimiz yeniden yapacağız: bitişik karolar aynı tarafa gidecek ki sızıntı olmasın.
 5. **Export:** YOLOv8 formatında indir ve `C:\Users\ASUS\marstrail\ml\dataset_v2\` klasörüne aç. **`ml\dataset\` klasörünün üzerine yazma**, v1 ablation koşuları ona bağlı.
 
+## Etiket denetimi (E10)
+
+Model, etiketlediğin 150 karoda yüksek güvenle (≥ 0,5) 40 tespit buldu; bunlar senin hiçbir etiketinle eşleşmiyor ve 24 karoya dağılıyor. Liste: `ml/audit_missed_labels.csv`. Her satırda karo, bölüm (train/valid), sınıf, güven ve piksel kutusu var. Örnekler: `docs/figures/e10_audit_examples.png`.
+
+- 2. partiyi etiketlerken bu karolara da Roboflow'da bak. Model haklıysa etiketi ekle; haksızsa (ör. kırıklı parlak kayayı kum sanmışsa) dokunma.
+- Gerçek eksik gibi görünenler: jz_r066_c015, jz_r065_c013, jz_r036_c017, jz_r031_c009.
+
 ## Takılırsan
 
 Kartın B planı: **80 karo + tek sınıf (`kum_dalgasi`)**. Kum karoları hem daha hızlı etiketlenir hem demoda (Opportunity hikâyesi) daha önemli.

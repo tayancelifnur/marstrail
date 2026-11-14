@@ -150,7 +150,34 @@
         "label": "Geçilmez (eğim >25° ya da skor >0.8)"
       }
     ],
-    "source": "0,4·eğim + 0,25·kum (eolyen birim) + 0,15·kaya (jeoloji vekili; YOLO E10'da) + 0,2·(1−termal)",
+    "source": "0,4·eğim + 0,25·kum + 0,15·kaya + 0,2·(1−termal). Kum: eolyen birim; kaya: jeoloji vekili. HiRISE kapsamında kum ve kaya, jeoloji ile YOLO'nun ortalaması",
+    "bbox": [
+      77.28,
+      18.293,
+      77.6,
+      18.597
+    ]
+  },
+  {
+    "id": "hazard_ml",
+    "name": "YOLO: kaya ve kum dalgası (HiRISE 25 cm)",
+    "file": "layers/hazard_ml.png",
+    "default_opacity": 0.7,
+    "legend": [
+      {
+        "color": "#f5a623",
+        "label": "Kum dalgası kaplaması"
+      },
+      {
+        "color": "#e72828",
+        "label": "Kaya yoğunluğu"
+      },
+      {
+        "color": "#00000000",
+        "label": "Saydam: düşük yoğunluk ya da HiRISE kapsamı dışında"
+      }
+    ],
+    "source": "Kendi YOLOv8 modelimiz (e6_s2), HiRISE 25 cm ortomozaik (USGS/JPL-Caltech/Univ. of Arizona); 70 m hücre yoğunluğu",
     "bbox": [
       77.28,
       18.293,
