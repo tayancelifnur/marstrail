@@ -157,7 +157,7 @@ Bu projede **Claude Code** (Anthropic, Claude Opus 5.5) kodlama asistanı olarak
   - Arayüz tasarımı.
   - Her çıktının kontrolü: haritaların gözle doğrulanması, sayıların scriptten üretilmesi.
   - Sunum.
-- **Arayüz tarafında YZ kullanımı:** [Gözde doldurur]
+- **Arayüz tarafında YZ kullanımı:** Arayüz kodu (`web/index.html`, `web/app.js`, `web/style.css`) Claude Code ile yazıldı. Gözde görev kartlarını verdi, sonuçları tarayıcıda denedi, sorunları bildirdi (ör. Jezero'nun bulanık görünmesi, küreye geri dönülememesi) ve hangi iyileştirmelerin yapılacağına karar verdi (3B arazi, ışık ve atmosfer). Her kart, Claude Code'un headless tarayıcıda aldığı ekran görüntüleriyle de kontrol edildi. [Gözde: kendi yaptığın tasarım kararlarını buraya ekle/düzelt]
 - **Doğrulama:** YZ'nin ürettiği her veri adımının sayıları elle yazılmadı, scriptle ölçüldü ([figures/pipeline_stats.json](figures/pipeline_stats.json)). Önce/sonra görselleri insan tarafından kontrol edildi. Formüllerdeki katsayılar varsayım olarak açıkça işaretli.
 - **Model eğitimi:** YOLO modeli kendi etiketlediğimiz HiRISE karolarıyla, kendi bilgisayarımızda eğitildi. Hazır bir tehlike modeli kullanılmadı.
 

@@ -85,3 +85,48 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
   - D7 kaydı Sol 652 13:10:16 (gerçek 13:10:20). Ingenuity Uçuş 1 LMST 12:33 ✔. 2025-01-12 uzaklığı 0,642 AU ✔.
   - Üs → Three Forks 79 dk, dönüş 75 dk.
   - Nabız 150'de yeşil alan 73 → 35 km². Hesap 14–31 ms.
+
+## G1 · Mars küresi · Cmt 14 Kas 2026, bitiş 14:58 (commit 67b8106)
+
+- **Ne yapıldı:** CesiumJS 1.123 (CDN) ile Mars elipsoidi (IAU 2000: 3396,19 / 3376,20 km), Mars Trek WMTS taban katmanı (Viking renkli mozaik / MOLA renkli gölgeli kabartma, seçilebilir), otomatik dönüş (tutunca/zoom yapınca durur).
+- **Dosyalar:** `web/index.html`, `web/app.js`, `web/style.css`
+- **Çalıştır:** `python -m http.server 8000 --directory web` → `http://localhost:8000`
+- **Varsayımlar:** Cesium ion token'ı alınmadı; ion görüntüsü/arazisi kullanılmadığı için gerekmiyor. Mars Trek küresel karoları seviye 0'da 2×1, en yüksek seviye 7 (denendi).
+
+## G2 · Jezero uçuşu + katman menüsü · Cmt 14 Kas 2026, bitiş 15:38 (commit 8761652)
+
+- **Ne yapıldı:** "Jezero'ya git" butonu (`flyTo`), `layers.json`'daki PNG'ler bbox ile haritada; her katman için aç/kapa, opaklık kaydırıcısı, lejant ve kaynak satırı.
+- **Dosyalar:** `web/index.html`, `web/app.js`, `web/style.css`
+- **Not:** Katmanlar `layers.json`'dan okunuyor; E3'te gerçek katmanlar gelince kod değişmeden çalıştı.
+
+## G3 · Arayüz iskeleti + üst bar · Cmt 14 Kas 2026, bitiş 15:42 (commit a848e92)
+
+- **Ne yapıldı:** Üst bar (Jezero saati, Sol, UTC, TR saati, Dünya gecikmesi, gün batımına kalan, hava, habitat ağı). Sol panel (astronotlar, harita, katmanlar), sağ detay kartı, koyu tema + turuncu vurgu, 768 px altında alttan açılan çekmece.
+- **Dosyalar:** `web/index.html`, `web/app.js`, `web/style.css`
+- **Varsayımlar:** Hava `conditions.json`'dan, senaryo Sol'üne göre. Mars saati ilk sürümde sabitti; E8 gelince bağlandı (aşağıda).
+
+## G-ek · Jezero netliği ve görsel iyileştirme · Cmt 14 Kas 2026, 16:02 ve 16:55 (commit 4705b47, 52fbb8a)
+
+- **Ne yapıldı:**
+  - Küresel mozaik Jezero'da ~300 m/piksel kalıyordu. Mars Trek'in bölgesel mozaikleri eklendi: CTX 6 m (seviye ≤13) ve HiRISE 25 cm (seviye 15–17; yamalı göründüğü için sadece yakında).
+  - "Küreye dön" butonu.
+  - Jezero 3B: `grid.json` yükseklikleri `CustomHeightmapTerrainProvider` ile arazi oldu. Kenar ortalamasına göre göreli, kenarın %8'inde sıfıra yumuşatma, 3× dikey abartı.
+  - Güneş ışığı (Jezero'ya göre azimut 315°, yükseklik 30°; hillshade ile aynı yön), ton kaydırılmış Mars atmosferi, siyah-beyaz CTX üstüne %38 turuncu örtü.
+  - Jezero'ya 45° eğik uçuş; dikey ekranda 72°.
+- **Dosyalar:** `web/index.html`, `web/app.js`
+- **Varsayımlar:** Abartı, güneş yönü, örtü rengi ve atmosfer tonu sunum için göz kararı; bilimsel değer değil. Çalışma alanı dışı düz (küresel yükseklik verisi yok).
+
+## G4 · Astronot profili · Cmt 14 Kas 2026, bitiş 17:12 (commit 5b8511b)
+
+- **Ne yapıldı:** Astronot kartına tıklayınca form: ad, kilo, giysi, O₂, batarya, su, nabız, yük, radyasyon. "Güncelle" localStorage'a (`marstrail.astronauts.v1`) kaydediyor, "Varsayılana dön" `astronauts.json`'a döndürüyor. Kartta O₂ çubuğu ve bölge etiketi yeri. Değişince `marstrail:astronaut` olayı yayılıyor (G6 bölgeleri bunu dinleyecek).
+- **Dosyalar:** `web/app.js`, `web/style.css`
+- **Uyarı eşikleri (varsayım):** O₂ < kapasitenin %25'i (yeşil bölge payı), nabız ≥ 150 (Apollo 14), batarya/su < %20, yük > 30 kg (Tobler'de hız %30'dan fazla düşer), radyasyon > 1 mSv (~1,5 sol; RAD ~0,64 mSv/gün).
+- **Kontrol:** Headless Chrome'da değerler değiştirildi, sayfa yenilendi, değerler duruyor.
+
+## G-ek · Eksikler · Cmt 14 Kas 2026, 17:25
+
+- **Ne yapıldı:**
+  - Üst bar E8'e bağlandı: `marstime.js` ile gerçek Jezero LMST, Dünya–Mars gecikmesi ve gün batımına kalan süre. Sol, senaryo Sol'ü (sayfa açılışında 34, `MarsTime.scenario`); Perseverance'ın gerçek Sol'ü ipucu olarak.
+  - Mobil düzeltme: detay kartı üst barın altına kayıyordu, artık alttan açılıyor.
+- **Dosyalar:** `web/index.html`, `web/app.js`, `web/style.css`
+- **Kontrol:** 390×844 telefon görünümünde çekmece aç/kapa, astronot formu ve Jezero uçuşu ekran görüntüsüyle denendi. Gerçek telefonda henüz denenmedi.

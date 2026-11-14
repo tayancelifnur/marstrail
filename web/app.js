@@ -280,6 +280,8 @@
   // Çalışma alanı layers.json bbox'ından gelir; yüklenene kadar varsayılan kullanılır.
   let studyBbox = [77.36, 18.38, 77.51, 18.52]; // [batı, güney, doğu, kuzey]
 
+  const portrait = () => window.innerHeight > window.innerWidth;
+
   function flyToJezero() {
     setAutoRotate(false);
     document.getElementById("leftPanel").classList.remove("open");
@@ -292,7 +294,10 @@
       Cesium.Cartesian3.fromDegrees(e, n, 0, MARS)
     );
     viewer.camera.flyToBoundingSphere(new Cesium.BoundingSphere(center, diagM / 2), {
-      offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-45), diagM * 1.4),
+      // Dikey (telefon) ekranda ufuk daha çok görünüyor; açıyı dikleştir ve biraz uzaklaş
+      offset: portrait()
+        ? new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-72), diagM * 1.7)
+        : new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-45), diagM * 1.4),
       duration: 4,
     });
   }
@@ -420,15 +425,18 @@
   initLayers();
 
   // --- G3: Üst bar ---
-  // Mars saati şimdilik SABİT (senaryo: Sol 34). E8'de Elif'in web/marstime.js'i gelince
-  // marsClock() içi onunla değiştirilecek. Dünya saatleri gerçek.
+  // Mars saati ve gecikme gerçek: Elif'in web/marstime.js'i (E8, Mars24 + Kepler).
+  // Sol numarası senaryo Sol'ü: sayfa açıldığında Sol 34 (PLAN.md §2), gerçek sol geçtikçe artar.
+  // Perseverance'ın gerçek Sol'ü üzerine gelince ipucu olarak görünür.
   const SCENARIO_SOL = 34;
+  const scenarioStart = new Date();
   function marsClock() {
-    return {
-      sol: SCENARIO_SOL,
-      lmst: "14:20",      // Jezero yerel saati (sabit, E8'de hesaplanacak)
-      delayMin: 12.5,     // Dünya–Mars tek yön ışık gecikmesi, dk (sabit, E8'de hesaplanacak)
-    };
+    if (window.MarsTime) {
+      const t = MarsTime.scenario(SCENARIO_SOL, scenarioStart, new Date());
+      return { sol: t.sol, m2020Sol: t.m2020Sol, lmst: t.lmst, delayMin: t.delayMin, minutesToSunset: t.minutesToSunset };
+    }
+    // marstime.js yüklenemezse yedek sabit değerler
+    return { sol: SCENARIO_SOL, lmst: "14:20", delayMin: 12.5, minutesToSunset: null };
   }
 
   let conditions = [];
@@ -454,14 +462,18 @@
 
     $("tbMarsTime").textContent = mc.lmst + " LMST";
     $("tbSol").textContent = mc.sol;
+    if (mc.m2020Sol != null) $("tbSol").title = "Senaryo Sol'ü · Perseverance bugün Sol " + mc.m2020Sol;
     $("tbUtc").textContent = fmtTime(now, "UTC");
     $("tbTr").textContent = fmtTime(now, "Europe/Istanbul");
     $("tbDelay").textContent = mc.delayMin.toLocaleString("tr-TR", { maximumFractionDigits: 1 }) + " dk uzakta";
 
+    // Gün batımına kalan: marstime.js'ten (Dünya dakikası); yoksa conditions.json'daki saatten
     const c = todaysConditions(mc.sol);
-    if (c) {
-      const left = toMin(c.sunset_lmst) - toMin(mc.lmst);
+    const left = mc.minutesToSunset != null ? mc.minutesToSunset : c ? toMin(c.sunset_lmst) - toMin(mc.lmst) : null;
+    if (left != null) {
       $("tbSunset").textContent = left > 0 ? Math.floor(left / 60) + " sa " + (left % 60) + " dk" : "gün battı";
+    }
+    if (c) {
       $("tbWeather").textContent =
         Math.round(c.temp_min_c) + "…" + Math.round(c.temp_max_c) + " °C · toz τ " + c.dust_tau.toFixed(2);
     }

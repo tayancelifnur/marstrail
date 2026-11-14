@@ -391,6 +391,8 @@ button.icon:hover { color: var(--text); }
   }
 
   #detailPanel {
+    top: auto;      /* masaüstündeki #detailPanel kuralını ez: alttan açılan kart */
+    bottom: 0;
     max-height: 60vh;
     z-index: 6;
     background: var(--panel-solid);
