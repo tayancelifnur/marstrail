@@ -766,6 +766,7 @@
 
   function drawZones() {
     if (!zonesReady) return;
+    if (typeof rescue !== "undefined" && rescue.active) return; // G8: acil durumda ısı haritası okunsun
     const a = astronauts.find((x) => x.id === selectedAstroId);
     clearZoneDrawing();
     if (!a || !a._z) return;
@@ -1928,7 +1929,7 @@
 
   function walkSummary(reason, end) {
     const p = evaPlan.result;
-    const title = { done: "Yürüyüş tamamlandı", return: "Erken dönüşle üste varıldı", o2: "O₂ BİTTİ", stop: "Yürüyüş durduruldu" }[reason];
+    const title = { done: "Yürüyüş tamamlandı", return: "Erken dönüşle üste varıldı", o2: "O₂ BİTTİ", stop: "Yürüyüş durduruldu", lost: "Telsiz koptu" }[reason];
     const ok = reason === "done" || reason === "return";
     const avgHr = walk.hrN ? Math.round(walk.hrSum / walk.hrN) : walk.hr;
     const parts = [
@@ -1952,6 +1953,11 @@
     parts.push(el("h4", null, "Olay kaydı"));
     parts.push(el("ul", { class: "walk-log" }, walk.alerts.map((x) => el("li", { class: x.level }, el("time", null, fmtT(x.t)), el("span", null, x.text)))));
     const again = el("button", { type: "button", class: "primary" }, "Tekrar oynat");
+    if (reason === "o2") {
+      const sos = el("button", { type: "button", class: "danger" }, "📡 Hayatta Kal");
+      sos.addEventListener("click", radioLost);
+      parts.push(el("div", { class: "controls card-actions" }, sos));
+    }
     again.addEventListener("click", () => { clearWalkEntities(); startWalk(); });
     const clear = el("button", { type: "button" }, "Pinleri temizle");
     clear.addEventListener("click", clearWalkEntities);
@@ -1982,6 +1988,388 @@
     walk.nextZone = Math.min(walk.nextZone, walk.t + 1); // nabız değişince bölgeler 1 sim. dk içinde güncellensin
   });
   window.addEventListener("marstrail:plan", () => { $("walkBtn").disabled = walk.active || !evaPlan.result; });
+
+  // =====================================================================
+  // --- G8: Hayatta Kal (telsiz koptu) ---
+  // =====================================================================
+  // Hesap Elif'in web/rescue.js'inde (E13): olasılıklı arama alanı, İHA zikzak rotası, Ali'nin kurtarma rotası.
+  // Burada: tetikleme (yürüyüşten ya da demo), haritaya çizim, acil durum kartı ve arama animasyonu.
+  const RESCUE_DEMO = { tLoss: 60, hr: 150, elapsed: 20 }; // E13 test senaryosu: deltaya yürürken kopma, panik (Apollo 14 nabzı)
+  const DRONE_SPEED_MS = 10;      // rescue.js DRONE.speedMs ile aynı (animasyon konumu için)
+  const DISPATCH_MIN = 10;        // rescue.js: Ali'nin giyinip çıkması (dk); İHA hemen kalkar (varsayım)
+  const rescue = {
+    active: false, input: null, result: null, elapsed: 20, entities: [], layer: null, chart: null,
+    anim: { on: false, t: 0, speed: 60, last: 0, raf: 0, flags: {} },
+    lostName: "", rescuerName: "",
+  };
+
+  function showToast(level, label, text) {
+    const box = el("div", { class: "toast " + level }, el("b", null, label), " ", text);
+    $("walkToasts").prepend(box);
+    setTimeout(() => box.classList.add("fade"), 6000);
+    setTimeout(() => box.remove(), 6800);
+  }
+
+  // Tetikleme. Yürüyüş sürüyorsa son konum/O₂/nabız oradan; yoksa plan (ya da demo planı) üstünde T+60
+  function radioLost() {
+    if (rescue.active) return;
+    let lostAstro, last, lost, route, label;
+    if (walk.active) {
+      lostAstro = walk.astro;
+      last = { lon: walk.pos.lon, lat: walk.pos.lat };
+      lost = { o2LeftMin: walk.o2, heart_rate: walk.hr, load_kg: currentLoad() };
+      route = walk.plan.coords;
+      label = "Yürüyüşte " + fmtT(walk.t);
+      endWalk("lost");
+    } else {
+      if (!evaPlan.result) runPlan(false);
+      const p = evaPlan.result;
+      if (!p) return;
+      lostAstro = astronauts.find((x) => x.id === p.astronautId);
+      const tLoss = Math.min(RESCUE_DEMO.tLoss, p.totals.minutes);
+      const pos = Eva.positionAt(p, tLoss);
+      last = { lon: pos.lon, lat: pos.lat };
+      lost = { o2LeftMin: pos.o2Left, heart_rate: RESCUE_DEMO.hr, load_kg: Number(lostAstro.load_kg) };
+      route = p.coords;
+      label = "Demo: plan " + fmtT(tLoss) + ", nabız " + RESCUE_DEMO.hr;
+    }
+    const rescuer = astronauts.find((x) => x.id !== lostAstro.id);
+    const r = { ...rescuer };
+    ["o2_min", "heart_rate", "load_kg"].forEach((k) => (r[k] = Number(r[k])));
+    rescue.input = { last, lost, route, rescuer: r, label };
+    rescue.lostName = lostAstro.name;
+    rescue.rescuerName = rescuer.name;
+    rescue.elapsed = RESCUE_DEMO.elapsed;
+    rescue.active = true;
+    rescue.anim.on = false;
+    setLink(false);
+    document.body.classList.add("emergency");
+    clearZoneDrawing(); // ısı haritası okunsun diye O₂ bölgeleri acil durumda gizli
+    computeRescue();
+    showToast("danger", "ACİL", rescue.lostName + " ile telsiz bağlantısı koptu. Arama başlatıldı.");
+    // Kamerayı son konum + üs + Ali'nin rotasına yaklaştır
+    const pts = [last, Walkback.BASE].map((q) => Cesium.Cartesian3.fromDegrees(q.lon, q.lat, 0, MARS));
+    const sphere = Cesium.BoundingSphere.fromPoints(pts);
+    sphere.radius = Math.max(sphere.radius, 1500);
+    viewer.camera.flyToBoundingSphere(sphere, {
+      offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(portrait() ? -70 : -55), sphere.radius * 4.5),
+      duration: 2,
+    });
+  }
+
+  function computeRescue() {
+    const i = rescue.input;
+    try {
+      rescue.result = Rescue.respond({
+        last: i.last, elapsedMin: rescue.elapsed, lost: i.lost, rescuer: i.rescuer, route: i.route,
+      });
+    } catch (err) {
+      console.error(err);
+      showToast("danger", "Hata", "Arama alanı hesaplanamadı: " + err.message);
+      return;
+    }
+    drawRescue();
+    showDetail(rescueCard());
+  }
+
+  function clearRescueDrawing() {
+    if (rescue.layer) viewer.imageryLayers.remove(rescue.layer, true);
+    rescue.layer = null;
+    rescue.entities.splice(0).forEach((e) => viewer.entities.remove(e));
+  }
+
+  function rescueLine(coords, color, width, dashed) {
+    return viewer.entities.add({
+      polyline: {
+        positions: Cesium.Cartesian3.fromDegreesArray(coords.flatMap((c) => [c[0], c[1]]), MARS),
+        width,
+        material: dashed
+          ? new Cesium.PolylineDashMaterialProperty({ color: Cesium.Color.fromCssColorString(color), dashLength: 12 })
+          : Cesium.Color.fromCssColorString(color),
+        clampToGround: true,
+      },
+    });
+  }
+
+  function drawRescue() {
+    const { area, drone, buddy } = rescue.result;
+    const b = Walkback.grid.b;
+    const old = rescue.layer, oldEnt = rescue.entities.splice(0);
+    rescue.layer = viewer.imageryLayers.addImageryProvider(new Cesium.SingleTileImageryProvider({
+      url: area.canvas(0.75).toDataURL(),
+      rectangle: Cesium.Rectangle.fromDegrees(b.west, b.south, b.east, b.north),
+      tileWidth: Walkback.grid.w, tileHeight: Walkback.grid.h,
+    }));
+    // Eski çizimi yenisi yüklenince kaldır (kaydırıcıyla sürüklerken titremesin)
+    setTimeout(() => {
+      if (old) viewer.imageryLayers.remove(old, true);
+      oldEnt.forEach((e) => viewer.entities.remove(e));
+    }, ZONE_SWAP_MS);
+    area.outlines.p90.forEach((l) => rescue.entities.push(rescueLine(l, "#ff9800", 2)));
+    area.outlines.p50.forEach((l) => rescue.entities.push(rescueLine(l, "#ff1744", 3)));
+    if (drone) rescue.entities.push(rescueLine(drone.waypoints, "#e0e0ff", 1.5));
+    if (buddy && buddy.ok) {
+      rescue.entities.push(rescueLine(buddy.to, "#00e5ff", 4));
+      rescue.entities.push(rescueLine(buddy.back, "#00e5ff", 3, true));
+    }
+    rescue.entities.push(planMarker(rescue.input.last.lon, rescue.input.last.lat, "#ff1744", "Son konum · " + rescue.lostName, 13));
+    // Hareketli İHA ve Ali (animasyonda konumları değişir)
+    rescue.droneEnt = viewer.entities.add({
+      position: new Cesium.CallbackProperty(() => {
+        const q = rescueDronePos();
+        return Cesium.Cartesian3.fromDegrees(q[0], q[1], 0, MARS);
+      }, false),
+      point: { pixelSize: 10, color: Cesium.Color.WHITE, outlineColor: Cesium.Color.fromCssColorString("#5dade2"), outlineWidth: 3,
+               heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY },
+      label: { text: "İHA", font: "700 12px system-ui, sans-serif", fillColor: Cesium.Color.WHITE, outlineColor: Cesium.Color.BLACK,
+               outlineWidth: 3, style: Cesium.LabelStyle.FILL_AND_OUTLINE, pixelOffset: new Cesium.Cartesian2(10, 0),
+               horizontalOrigin: Cesium.HorizontalOrigin.LEFT, heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+               disableDepthTestDistance: Number.POSITIVE_INFINITY },
+    });
+    rescue.buddyEnt = viewer.entities.add({
+      position: new Cesium.CallbackProperty(() => {
+        const q = rescueBuddyPos();
+        return Cesium.Cartesian3.fromDegrees(q[0], q[1], 0, MARS);
+      }, false),
+      point: { pixelSize: 12, color: Cesium.Color.fromCssColorString("#00e5ff"), outlineColor: Cesium.Color.WHITE, outlineWidth: 2,
+               heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY },
+      label: { text: rescue.rescuerName, font: "700 13px system-ui, sans-serif", fillColor: Cesium.Color.fromCssColorString("#00e5ff"),
+               outlineColor: Cesium.Color.BLACK, outlineWidth: 3, style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+               pixelOffset: new Cesium.Cartesian2(10, 0), horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+               heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY },
+    });
+    rescue.entities.push(rescue.droneEnt, rescue.buddyEnt);
+  }
+
+  // Bir çizgi boyunca, uzunluğun f (0–1) kesrindeki nokta (düz yaklaşım: kısa mesafede yeterli)
+  function alongLine(coords, f) {
+    if (!coords || !coords.length) return [Walkback.BASE.lon, Walkback.BASE.lat];
+    const k = Math.cos((coords[0][1] * Math.PI) / 180);
+    const seg = [];
+    let total = 0;
+    for (let i = 1; i < coords.length; i++) {
+      const d = Math.hypot((coords[i][0] - coords[i - 1][0]) * k, coords[i][1] - coords[i - 1][1]);
+      seg.push(d);
+      total += d;
+    }
+    let want = Math.max(0, Math.min(1, f)) * total;
+    for (let i = 0; i < seg.length; i++) {
+      if (want <= seg[i] || i === seg.length - 1) {
+        const g = seg[i] ? Math.min(1, want / seg[i]) : 0;
+        return [coords[i][0] + (coords[i + 1][0] - coords[i][0]) * g, coords[i][1] + (coords[i + 1][1] - coords[i][1]) * g];
+      }
+      want -= seg[i];
+    }
+    return coords[coords.length - 1];
+  }
+
+  // İHA: 10 m/s sabit hızla zikzak (rescue.js droneRoute ile aynı varsayım); toplam süre drone.minutes
+  function rescueDronePos() {
+    const d = rescue.result && rescue.result.drone;
+    if (!d) return [Walkback.BASE.lon, Walkback.BASE.lat];
+    return alongLine(d.waypoints, rescue.anim.t / d.minutes);
+  }
+
+  // Ali: 10 dk giyinme, sonra gidiş rotası (toMin), sonra birlikte dönüş (backMin); rota boyunca eşit hız varsayımı
+  function rescueBuddyPos() {
+    const b = rescue.result && rescue.result.buddy;
+    if (!b || !b.ok) return [Walkback.BASE.lon, Walkback.BASE.lat];
+    const t = rescue.anim.t - DISPATCH_MIN;
+    if (t <= 0) return b.to[0];
+    if (t <= b.toMin) return alongLine(b.to, t / b.toMin);
+    return alongLine(b.back, (t - b.toMin) / b.backMin);
+  }
+
+  // Kaybolan astronotun O₂'si: kopma anındaki değer − (fark edilene kadar geçen + arama süresi) × çarpan
+  const rescueLostO2 = () => {
+    const i = rescue.input;
+    return i.lost.o2LeftMin - (rescue.elapsed + rescue.anim.t) * Walkback.o2Multiplier(i.lost.heart_rate);
+  };
+
+  // İHA kapsama eğrisinden (rescue.js) o andaki taranan olasılık
+  function rescueCoverage(tMin) {
+    const c = rescue.result.drone && rescue.result.drone.coverage;
+    if (!c || !c.length) return 0;
+    let p = 0;
+    for (const q of c) if (q.t <= tMin) p = q.p;
+    return p;
+  }
+
+  function rescueCard() {
+    const { area, drone, buddy } = rescue.result;
+    const i = rescue.input;
+    const ok = buddy && buddy.survivable;
+    const fmt1 = (v) => (v == null ? "–" : v.toLocaleString("tr-TR", { maximumFractionDigits: 1 }));
+    const slider = el("input", { type: "range", min: "0", max: "120", step: "5", value: String(rescue.elapsed), "aria-label": "Fark edilene kadar geçen süre" });
+    const sliderVal = el("b", null, rescue.elapsed + " dk");
+    slider.addEventListener("input", () => (sliderVal.textContent = slider.value + " dk"));
+    slider.addEventListener("change", () => {
+      rescue.elapsed = Number(slider.value);
+      stopRescueAnim();
+      computeRescue();
+    });
+    const play = el("button", { type: "button", class: "primary", id: "rescuePlay" }, rescue.anim.on ? "Duraklat" : "▶ Aramayı oynat");
+    play.addEventListener("click", toggleRescueAnim);
+    const close = el("button", { type: "button" }, "Acil durumu kapat");
+    close.addEventListener("click", closeRescue);
+    const canvas = el("canvas", { "aria-label": "İHA kapsama eğrisi" });
+
+    const parts = [
+      el("span", { class: "chip", style: "--chip:#ff1744" }, "Hayatta Kal"),
+      el("h3", null, "ACİL: " + rescue.lostName + " ile telsiz koptu"),
+      el("div", { class: "verdict-row" },
+        el("span", { class: "verdict " + (ok ? "go" : "nogo") }, ok ? "KURTARILABİLİR" : "MÜMKÜN DEĞİL"),
+        el("span", { class: "small muted" }, ok ? rescue.rescuerName + " yeşil/sarı bölgede kalarak ulaşabiliyor." : "O₂ yetmiyor ya da " + rescue.rescuerName + " dönemez: daha erken fark etmek şart.")),
+      el("label", { class: "wh-row rescue-slider" }, el("span", { class: "rs-label" }, "Geç fark etme"), slider, sliderVal),
+      el("div", { class: "rescue-live" },
+        el("span", null, el("small", null, "Arama süresi"), el("b", { id: "rsT" }, "T+0 dk")),
+        el("span", null, el("small", null, rescue.lostName + " O₂"), el("b", { id: "rsO2" }, Math.round(rescueLostO2()) + " dk")),
+        el("span", null, el("small", null, "İHA taradı"), el("b", { id: "rsCov" }, "%0"))),
+      el("div", { class: "controls card-actions" }, play, close),
+      el("h4", null, "Arama alanı"),
+      kvList([
+        ["Son konum", i.label],
+        ["Kopma anında", "O₂ " + Math.round(i.lost.o2LeftMin) + " dk, nabız " + i.lost.heart_rate + " (×" + area.multiplier.toFixed(2) + ")"],
+        ["Yürüyebileceği süre", Math.round(area.budgetMin) + " dk (O₂ sınırı " + Math.round(area.o2BudgetMin) + " dk)"],
+        ["Ulaşılabilir alan", fmt1(area.areaKm2) + " km²"],
+        ["En olası %50 / %90", fmt1(area.area50Km2) + " / " + fmt1(area.area90Km2) + " km² (kırmızı / turuncu çizgi)"],
+      ]),
+    ];
+    if (drone) {
+      parts.push(el("h4", null, "İHA zikzak taraması"));
+      parts.push(kvList([
+        ["Şerit", drone.swathM + " m geniş, " + drone.spacingM + " m aralık, " + drone.lanes + " şerit"],
+        ["Rota", fmt1(drone.lengthM / 1000) + " km, " + fmt1(drone.minutes) + " dk (" + drone.sorties + " batarya)"],
+        ["Olasılığın %50'si", fmt1(drone.t50) + " dk'da taranır"],
+        ["Olasılığın %90'ı", fmt1(drone.t90) + " dk'da taranır"],
+      ]));
+      parts.push(el("div", { class: "chart-box" }, canvas));
+    }
+    if (buddy) {
+      parts.push(el("h4", null, rescue.rescuerName + " kurtarmaya gidiyor"));
+      if (buddy.ok) {
+        parts.push(el("div", { class: "zone-line" }, zoneBadge(buddy.status),
+          el("span", { class: "muted small" }, buddy.toMin + " dk gidiş + " + buddy.backMin + " dk birlikte dönüş · " + fmt1(buddy.distanceM / 1000) + " km")));
+      }
+      parts.push(el("ul", { class: "rescue-msgs" }, buddy.messages.map((m) => el("li", null, m))));
+    }
+    parts.push(el("p", { class: "muted small" },
+      "Alan: son konumdan min(geçen süre, O₂/çarpan) içinde yürünebilen hücreler, olasılık ∝ 1/(1+süre), plan rotasına ≤150 m ise ×2. " +
+      "İHA: 100 m irtifa, 60° görüş → 115 m şerit, %20 örtüşme, 10 m/s. Ali: 10 dk hazırlık, birlikte dönüş %20 yavaş, 60 dk yedek O₂. Katsayılar varsayım (rescue.js)."));
+    const card = el("div", { class: "card rescue-card" }, parts);
+    if (drone) setTimeout(() => drawCoverage(canvas, drone), 0);
+    return card;
+  }
+
+  function drawCoverage(canvas, drone) {
+    if (rescue.chart) { rescue.chart.destroy(); rescue.chart = null; }
+    if (typeof Chart === "undefined" || !canvas.isConnected) return;
+    const css = getComputedStyle(document.documentElement);
+    const ink = css.getPropertyValue("--muted").trim() || "#b39c90";
+    const grid = "rgba(179,156,144,0.15)";
+    rescue.chart = new Chart(canvas, {
+      type: "line",
+      data: {
+        datasets: [{
+          data: [{ x: 0, y: 0 }, ...drone.coverage.map((c) => ({ x: c.t, y: Math.round(c.p * 100) }))],
+          borderColor: "#e0e0ff", borderWidth: 2, backgroundColor: "rgba(224,224,255,0.12)", fill: "start",
+          pointRadius: 0, pointHoverRadius: 4, stepped: false, tension: 0,
+        }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: false, parsing: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: { displayColors: false, callbacks: {
+            title: (it) => it[0].parsed.x.toLocaleString("tr-TR", { maximumFractionDigits: 1 }) + " dk",
+            label: (it) => "olasılığın %" + it.parsed.y + "'i tarandı",
+          } },
+        },
+        scales: {
+          x: { type: "linear", ticks: { color: ink, callback: (v) => v + " dk", maxTicksLimit: 6 }, grid: { color: grid } },
+          y: { min: 0, max: 100, ticks: { color: ink, callback: (v) => "%" + v, maxTicksLimit: 5 }, grid: { color: grid } },
+        },
+      },
+    });
+  }
+
+  function toggleRescueAnim() {
+    const a = rescue.anim;
+    if (!rescue.active) return;
+    if (a.on) return stopRescueAnim();
+    if (a.t >= rescueEndMin()) { a.t = 0; a.flags = {}; }
+    a.on = true;
+    a.last = performance.now();
+    const b = $("rescuePlay");
+    if (b) b.textContent = "Duraklat";
+    a.raf = requestAnimationFrame(rescueFrame);
+  }
+
+  function stopRescueAnim() {
+    rescue.anim.on = false;
+    cancelAnimationFrame(rescue.anim.raf);
+    const b = $("rescuePlay");
+    if (b) b.textContent = "▶ Aramayı oynat";
+  }
+
+  // Animasyon, İHA ve Ali'nin ikisi de bitene kadar sürer
+  function rescueEndMin() {
+    const { drone, buddy } = rescue.result;
+    return Math.max(drone ? drone.minutes : 0, buddy && buddy.ok ? DISPATCH_MIN + buddy.toMin + buddy.backMin : 0);
+  }
+
+  function rescueFrame(now) {
+    const a = rescue.anim;
+    if (!a.on || !rescue.active) return;
+    const dt = (Math.min(250, now - a.last) / 60000) * a.speed;
+    a.last = now;
+    a.t += dt;
+    const { drone, buddy } = rescue.result, f = a.flags;
+    const o2 = rescueLostO2();
+    const cov = drone ? rescueCoverage(a.t) : 0;
+    if ($("rsT")) {
+      $("rsT").textContent = fmtT(a.t);
+      $("rsO2").textContent = Math.max(0, Math.round(o2)) + " dk";
+      $("rsO2").className = o2 <= 0 ? "bad" : o2 < 60 ? "mid" : "";
+      $("rsCov").textContent = "%" + Math.round(cov * 100);
+    }
+    const lab = fmtT(a.t);
+    if (drone && !f.d50 && drone.t50 != null && a.t >= drone.t50) { f.d50 = true; showToast("info", lab, "İHA en olası %50 alanı taradı."); }
+    if (drone && !f.d90 && a.t >= drone.t90) { f.d90 = true; showToast("info", lab, "İHA olasılığın %90'ını taradı."); }
+    if (!f.go && a.t >= DISPATCH_MIN) { f.go = true; showToast("info", lab, rescue.rescuerName + " üsten çıktı."); }
+    if (buddy && buddy.ok && !f.arr && a.t >= DISPATCH_MIN + buddy.toMin) {
+      f.arr = true;
+      showToast(o2 > 0 ? "ok" : "danger", lab, rescue.rescuerName + " " + rescue.lostName + "'ye ulaştı" + (o2 > 0 ? " (O₂ " + Math.round(o2) + " dk)." : " ama O₂ çoktan bitmişti."));
+      if (o2 > 0 && buddy.spareNeeded) showToast("warn", lab, "Yedek O₂ tüpü bağlandı (+60 dk).");
+    }
+    if (!f.o2 && o2 <= 0 && !(buddy && buddy.spareNeeded && f.arr)) { f.o2 = true; showToast("danger", lab, rescue.lostName + "'nin O₂'si bitti."); }
+    if (a.t >= rescueEndMin()) {
+      a.t = rescueEndMin();
+      stopRescueAnim();
+      if (buddy && buddy.ok) showToast(buddy.survivable ? "ok" : "danger", fmtT(a.t), buddy.survivable
+        ? "Üste varıldı: " + rescue.lostName + " güvende (" + Math.round(buddy.lostO2AtBase + (buddy.spareNeeded ? 60 : 0)) + " dk O₂)."
+        : "Kurtarma başarısız: " + rescue.lostName + " üste canlı ulaşamadı.");
+      return;
+    }
+    a.raf = requestAnimationFrame(rescueFrame);
+  }
+
+  function closeRescue() {
+    stopRescueAnim();
+    rescue.anim.t = 0;
+    rescue.anim.flags = {};
+    rescue.active = false;
+    clearRescueDrawing();
+    if (rescue.chart) { rescue.chart.destroy(); rescue.chart = null; }
+    document.body.classList.remove("emergency");
+    setLink(true);
+    hideDetail();
+    drawZones();
+  }
+
+  $("radioLostBtn").addEventListener("click", radioLost);
+  $("walkLost").addEventListener("click", radioLost);
 
   // --- Harita tıklamaları: rota modunda nokta ekle, değilse pin kartı aç ---
   const clickHandler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
@@ -2053,5 +2441,6 @@
     selectAstronaut, renderAstronauts, saveAll, emitAstronautChange, PROFILE_FIELDS,
     get plan() { return evaPlan.result; }, runPlan, addPlanStop, clearPlan,
     walk, startWalk, returnNow, endWalk,
+    rescue, radioLost, closeRescue, toggleRescueAnim,
   };
 })();

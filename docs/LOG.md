@@ -231,3 +231,13 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Dosyalar:** `web/index.html`, `web/app.js`, `web/style.css`
 - **Formül:** O₂(t+dt) = O₂(t) − dt × (1 + (nabız−90)/100), canlı nabızla. Konum plan hızında (nabız tüketimi değiştirir, hızı değil). Bölge: üsse dönüş × yorgunluk ≤ O₂/çarpan/1,25 yeşil, ≤ O₂/çarpan sarı, değilse kırmızı. Yürüyüş simülasyon: profil kaydedilmez, bitince eski değerler geri gelir.
 - **Kontrol (headless Chrome):** Demo planı ×900 baştan sona: 245 dk, dönüşte 247 dk O₂ (plan 249) → "Yürüyüş tamamlandı". O₂ 220 + nabız 150: T+23 telsiz koptu, T+63 dönüş noktasına 5 dk + sarı bölge, T+67 dönüş noktası, T+71 kırmızı bölge; T+75 "Üsse dön" geç kaldı → T+140 "O₂ BİTTİ / ACİL". 390×844 telefon görünümü denendi.
+
+## G8 · Hayatta Kal paneli · Cmt 14 Kas 2026, 20:05
+
+- **Ne yapıldı:** Elif'in `rescue.js`'i (E13) arayüze bağlandı. "📡 Telsiz koptu" butonu: yürüyüş paneli (son konum, O₂, nabız, yük canlı yürüyüşten) ve sol panel (demo: plan T+60, nabız 150). O₂ biterse yürüyüş özetinde "Hayatta Kal" butonu.
+  - Haritada olasılık ısı haritası, en olası %50 (kırmızı) ve %90 (turuncu) alan sınırları, son konum, İHA zikzak rotası, Ali'nin gidiş (düz) ve birlikte dönüş (kesikli) rotası. Acil durumda O₂ bölgeleri gizli, üst bar kırmızı, "Habitat ağı: kopuk".
+  - Acil durum kartı: KURTARILABİLİR / MÜMKÜN DEĞİL, "geç fark etme" kaydırıcısı (0–120 dk, alan canlı büyür), arama alanı, İHA şerit/süre/%50–%90, Chart.js kapsama eğrisi, Ali'nin O₂ kontrolü ve mesajları.
+  - "▶ Aramayı oynat": İHA ve Ali haritada hareket ediyor; arama süresi, Ayşe'nin akan O₂'si, İHA'nın taradığı olasılık; uyarılar (%50/%90 tarandı, Ali çıktı/ulaştı, yedek tüp, O₂ bitti, üste varış).
+- **Dosyalar:** `web/index.html`, `web/app.js`, `web/style.css`
+- **Varsayımlar:** İHA hemen kalkar, 10 m/s sabit hız; Ali 10 dk hazırlanır, rota boyunca eşit hızda yürür (animasyon için). Kayıp astronotun O₂'si = kopmadaki − (geçen + arama süresi) × çarpan.
+- **Kontrol (headless Chrome):** Demo: alan 1,07 km² (%50 0,25, %90 0,79), İHA 11 şerit 24,2 dk, %50 11,6 dk, %90 21,6 dk; Ali 116/480 YEŞİL, Ayşe üste 168 dk ile → KURTARILABİLİR (E13 testiyle aynı). Hesap 47 ms. Yürüyüşte T+46'da kopma → alan ve rotalar o konumdan.

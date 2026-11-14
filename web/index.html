@@ -93,6 +93,15 @@
         <div id="planSummary"></div>
       </section>
 
+      <!-- G8: Hayatta Kal (hesap Elif'in rescue.js'i, E13) -->
+      <section>
+        <h2>Hayatta Kal</h2>
+        <div class="controls">
+          <button id="radioLostBtn" type="button" class="danger">📡 Telsiz koptu</button>
+        </div>
+        <p class="muted small">Yürüyüş yoksa demo: plandaki astronot çıkıştan 60 dk sonra, nabız 150 iken kayboluyor.</p>
+      </section>
+
       <section>
         <h2>Tarihi olaylar</h2>
         <div id="storyList"><p class="muted">Yükleniyor…</p></div>
@@ -145,6 +154,7 @@
       <button id="walkReturn" type="button" class="danger">Üsse dön</button>
       <button id="walkStop" type="button">Bitir</button>
     </div>
+    <div class="wh-row"><button id="walkLost" type="button" class="danger">📡 Telsiz koptu</button></div>
   </div>
   <div id="walkToasts" aria-live="polite"></div>
 
@@ -152,7 +162,8 @@
 
   <script src="marstime.js"></script>  <!-- Elif, E8: Mars saati + gecikme -->
   <script src="walkback.js"></script>  <!-- Elif, E8: O₂ bölgeleri + güvenli rota -->
-  <script src="eva.js"></script>       <!-- Elif, E11: EVA planlayıcı (bacaklar, dönüş noktası, Go/No-Go) -->
+  <script src="eva.js"></script>
+  <script src="rescue.js"></script>    <!-- Elif, E13: arama alanı, İHA rotası, arkadaş kurtarma -->       <!-- Elif, E11: EVA planlayıcı (bacaklar, dönüş noktası, Go/No-Go) -->
   <script src="app.js"></script>
 </body>
 </html>
