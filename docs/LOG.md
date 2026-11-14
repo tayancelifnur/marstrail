@@ -68,3 +68,20 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Varsayımlar:** Kaya alt sınırı ~8 px (2 m). Normalizasyon %0,5–99,5 (60 → 0, 219 → 255), alan genelinde tek germe.
 - **Dikkat (E10):** HiRISE mozaiği çalışma alanının sadece GB çeyreğini kapsıyor (~%23). Demo noktalarının hepsi kapsam dışında.
 - **Kalan:** Etiketleme (en az 120 karo) → Roboflow'dan YOLOv8 dışa aktarımı → `ml/dataset/`.
+
+## E8 · Mars saati ve O₂ bölgeleri · Cmt 14 Kas 2026
+
+- **Ne yapıldı:**
+  - `web/marstime.js`: Mars24; LMST, LTST, Perseverance Sol'ü, Ls, gün doğumu/batımı, gün batımına kalan Dünya dakikası. Kepler elemanlarıyla Dünya–Mars uzaklığı ve ışık gecikmesi.
+  - `web/walkback.js`: grid üzerinde 8 komşulu Dijkstra (gidiş ve ters kenarlı dönüş). `zones()` yeşil/sarı/kırmızı sınıf, canvas ve sınır çizgileri döndürüyor. `path()` güvenli rota, `timeHome()` üsse dönüş süresi.
+  - `web/tests/e8.html`: test sayfası.
+- **Çalıştır:** `venv\Scripts\python -m http.server 8765 --directory web` → `http://localhost:8765/tests/e8.html`
+- **Formüller:**
+  - Kenar süresi = d / [6·exp(−3,5·|tanθ+0,05|)·0,6·(1−yük/100)] · (1 + 2·skor). Kenar eğimi > 25° ise geçilmez.
+  - O₂ çarpanı = 1 + (nabız − 90)/100. Kullanılabilir süre = O₂ / çarpan.
+  - Yeşil: gidiş + dönüş ≤ kullanılabilir/1,25. Sarı: ≤ kullanılabilir.
+  - `grid.json`'a `score` eklendi.
+- **Kontrol (Edge headless):**
+  - D7 kaydı Sol 652 13:10:16 (gerçek 13:10:20). Ingenuity Uçuş 1 LMST 12:33 ✔. 2025-01-12 uzaklığı 0,642 AU ✔.
+  - Üs → Three Forks 79 dk, dönüş 75 dk.
+  - Nabız 150'de yeşil alan 73 → 35 km². Hesap 14–31 ms.

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>E8 testi – MarsTime ve Walkback</title>
+<style>
+  body { background: #111; color: #ddd; font: 13px/1.4 monospace; margin: 12px; }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; }
+  figure { margin: 0; } figcaption { color: #fc0; }
+  .map { position: relative; width: 512px; height: 512px; }
+  .map img, .map canvas { position: absolute; left: 0; top: 0; width: 512px; height: 512px; image-rendering: pixelated; }
+  .ok { color: #2ecc71; } .bad { color: #e74c3c; }
+</style>
+</head>
+<body>
+<pre id="out">çalışıyor...</pre>
+<div class="row" id="maps"></div>
+<script src="../marstime.js"></script>
+<script src="../walkback.js"></script>
+<script>
+/* Kullanım: proje kökünden  python -m http.server 8765 --directory web  →  http://localhost:8765/tests/e8.html
+   Tarayıcı konsolunda da aynı çağrılar çalışır (MarsTime.now(), Walkback.zones(...)). */
+const out = [];
+const log = (s, ok) => out.push(ok === undefined ? s : `<span class="${ok ? "ok" : "bad"}">${ok ? "✔" : "✘"}</span> ${s}`);
+
+// ---- MarsTime: gerçek kayıtlarla doğrulama ----
+const t1 = MarsTime.at(new Date("2022-12-20T16:07:19.466Z"), { lonE: 77.4078, latN: 18.4526 });
+log(`D7 kaydı 2022-12-20T16:07:19Z → Sol ${t1.sol}, LMST ${t1.lmstFull} (beklenen Sol 652, 13:10:20)`,
+    t1.sol === 652 && Math.abs(t1.lmstHours - (13 + 10 / 60 + 20 / 3600)) < 2 / 60);
+const t2 = MarsTime.at(new Date("2021-04-19T07:34:00Z"), { lonE: 77.45102, latN: 18.44486 });
+log(`Ingenuity Uçuş 1 2021-04-19T07:34Z → Sol ${t2.sol}, LMST ${t2.lmst} (beklenen Sol 58, ~12:33)`,
+    t2.sol === 58 && Math.abs(t2.lmstHours - 12.55) < 5 / 60);
+const t3 = MarsTime.at(new Date("2025-01-12T12:00:00Z"));
+log(`2025-01-12 en yakın geçiş → ${t3.earthMarsAU.toFixed(3)} AU, gecikme ${t3.delayMin.toFixed(2)} dk (beklenen ~0,642 AU, ~5,3 dk)`,
+    Math.abs(t3.earthMarsAU - 0.642) < 0.01);
+const now = MarsTime.now();
+log(`ŞİMDİ ${now.utc} → Sol ${now.sol}, Jezero ${now.lmst} LMST (LTST ${now.ltst}), Ls ${now.ls.toFixed(1)}°, ` +
+    `gün doğumu ${now.sunriseLMST} / batımı ${now.sunsetLMST} LMST, gün batımına ${now.minutesToSunset} dk, ` +
+    `uzaklık ${(now.earthMarsKm / 1e6).toFixed(1)} M km, gecikme ${now.delayMin.toFixed(1)} dk`);
+
+// ---- Walkback ----
+const BASE = Walkback.BASE;
+const TF = { lon: 77.40776, lat: 18.45263 }, DF = { lon: 77.40519, lat: 18.44941 }, CF = { lon: 77.30519, lat: 18.49748 };
+Walkback.load("../data/grid.json").then(() => {
+  const r1 = Walkback.path(BASE, TF, { loadKg: 6 });
+  const r2 = Walkback.path(TF, BASE, { loadKg: 6 });
+  log(`Rota üs → Three Forks: ${r1.minutes.toFixed(0)} dk, ${(r1.distanceM / 1000).toFixed(2)} km; dönüş ${r2.minutes.toFixed(0)} dk (yönlü eğim: farklı olmalı)`,
+      r1.ok && r2.ok && Math.abs(r1.minutes - r2.minutes) > 0.5);
+  const cases = [
+    { title: "Ayşe: O₂ 480 dk, nabız 85, yük 6 kg", args: [BASE, 480, 85, 6] },
+    { title: "Aynı, nabız 150 (Apollo 14)", args: [BASE, 480, 150, 6] },
+    { title: "Three Forks'ta, O₂ 200 dk, nabız 110, yük 12 kg", args: [TF, 200, 110, 12] },
+  ];
+  const res = cases.map((c) => ({ c, z: Walkback.zones(...c.args) }));
+  for (const { c, z } of res) {
+    log(`${c.title}: çarpan ×${z.multiplier.toFixed(2)}, kullanılabilir ${z.availableMin.toFixed(0)} dk, ` +
+        `yeşil ${z.stats.greenKm2} km², sarı ${z.stats.yellowKm2} km², şu an ${z.here.toUpperCase()}, ` +
+        `üsse ${z.homeMin.toFixed(0)} dk, ${z.ms.toFixed(0)} ms, sınır çizgisi ${z.outlines.green.length}+${z.outlines.yellow.length}`, z.ms < 300);
+  }
+  log(`Nabız 150'de yeşil alan küçülüyor: ${res[0].z.stats.greenKm2} → ${res[1].z.stats.greenKm2} km²`,
+      res[1].z.stats.greenKm2 < res[0].z.stats.greenKm2);
+  const tcf = Walkback.timeHome(CF, { loadKg: 6 });
+  log(`Cheyava Falls'tan üsse ${tcf.toFixed(0)} dk → 480 dk O₂ ile ${Walkback.zones(BASE, 480, 85, 6).classes[Walkback.cellOf(CF)] === 3 ? "KIRMIZI" : "?"}`,
+      Walkback.zones(BASE, 480, 85, 6).classes[Walkback.cellOf(CF)] === 3);
+
+  const maps = document.getElementById("maps");
+  const g = Walkback.grid;
+  const px = (p) => [((p.lon - g.b.west) / (g.b.east - g.b.west)) * 512, ((g.b.north - p.lat) / (g.b.north - g.b.south)) * 512];
+  for (const { c, z } of res) {
+    const fig = document.createElement("figure");
+    fig.innerHTML = `<figcaption>${c.title}</figcaption><div class="map"><img src="../data/layers/hillshade.png"></div>`;
+    const m = fig.querySelector(".map");
+    m.append(z.canvas(0.45));
+    const ov = document.createElement("canvas"); ov.width = ov.height = 512; m.append(ov);
+    const ctx = ov.getContext("2d");
+    ctx.lineWidth = 1.5;
+    for (const [lines, col] of [[z.outlines.yellow, "#f1c40f"], [z.outlines.green, "#2ecc71"]]) {
+      ctx.strokeStyle = col;
+      for (const line of lines) { ctx.beginPath(); line.forEach(([lo, la], k) => { const [x, y] = px({ lon: lo, lat: la }); k ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke(); }
+    }
+    ctx.strokeStyle = "#0ff"; ctx.lineWidth = 2; ctx.beginPath();
+    r1.coords.forEach(([lo, la], k) => { const [x, y] = px({ lon: lo, lat: la }); k ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke();
+    for (const [p, t] of [[BASE, "Üs"], [TF, "3F"], [DF, "Delta"], [CF, "CF"], [c.args[0], "●"]]) {
+      const [x, y] = px(p); ctx.fillStyle = "#fff"; ctx.fillText(t, x + 4, y - 4); ctx.fillRect(x - 2, y - 2, 4, 4);
+    }
+    maps.append(fig);
+  }
+  document.getElementById("out").innerHTML = out.join("\n");
+  document.title = "E8 OK";
+}).catch((e) => { document.getElementById("out").textContent = out.join("\n") + "\nHATA: " + e; });
+</script>
+</body>
+</html>

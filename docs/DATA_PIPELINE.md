@@ -138,6 +138,7 @@ Ham NASA/USGS verisinden tarayıcıdaki haritaya kadar her adım: ne aldık, ney
 | Cheyava Falls | 305 dk |
 
 - **Görsel:** [figures/fusion.png](figures/fusion.png). Dört terim ve skor yan yana.
+- **grid.json'a `score` eklendi (E8):** `walkback.js` kenar süresini yönlü eğimle (komşu hücrelerin yükseklik farkı) yeniden hesaplıyor; yokuş yukarı ve aşağı farklı sürüyor. Eğimden bağımsız arazi cezası için hücre skoru ayrıca gerekiyor. Görsel: [figures/e8_zones.png](figures/e8_zones.png) (O₂ bölgeleri; nabız 85 ve 150).
 - **YOLO (E10):** Gelince "kaya" terimi jeoloji vekili yerine model tespit yoğunluğundan gelecek.
 
 ## E7 · Nokta kartları: D1 + D3 + D7 (scripts/build_regions.py)
