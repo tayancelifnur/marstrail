@@ -2071,7 +2071,7 @@
       kvList([
         ["Süre", fmtMin(end.t) + (p ? " (plan " + fmtMin(p.totals.minutes) + ")" : "")],
         ["Yürünen mesafe", (walk.distM / 1000).toLocaleString("tr-TR", { maximumFractionDigits: 2 }) + " km"],
-        ["O₂", walk.saved.o2_min + " → " + Math.max(0, end.o2) + " dk" + (p && ok ? " (plan " + p.totals.o2LeftMin + " dk)" : "")],
+        ["O₂", walk.saved.o2_min + " → " + Math.max(0, end.o2) + " dk" + (p && ok ? " (plan " + (p.totals.o2LeftMin < 0 ? Math.abs(p.totals.o2LeftMin) + " dk EKSİK" : p.totals.o2LeftMin + " dk") + ")" : "")],
         ["Nabız", "ort. " + avgHr + ", en yüksek " + walk.hrMax + " atım/dk"],
         ["Uyarı sayısı", walk.alerts.filter((x) => x.level === "warn" || x.level === "danger").length],
       ]),

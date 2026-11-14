@@ -379,3 +379,10 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
   - Uzun planda batarya/su "Dönüşte %-38" görünüyordu → "%0 (yolda biter)" (plan kartı ve Go/No-Go satırları).
 - **Elif'e not:** eva.js `batteryPct`/`waterPct` sıfırın altına iniyor; Go/No-Go metninde kaynağın hangi dakikada bittiği yazsa daha iyi olur.
 - **Dosyalar:** `web/app.js`
+
+## G7 (gözden geçirme) · Canlı yürüyüş · Paz 15 Kas 2026, 01:20
+
+- **Kontrol (kartın satırı):** Demo planı ×900 baştan sona: 4 sa 3 dk (plan 4 sa 3 dk), O₂ 480 → 249 (plan 249), GÜVENDE; Duraklat süreyi durduruyor, not pini özet kartında. Kartın uyarıları demo rotasında tetiklenmediği için Cheyava Falls planı (NO-GO, 704 m kum) oynatıldı: kum alanına yaklaşma/giriş, dönüş noktasına 5 dk, dönüş noktası, sarı ve kırmızı bölge, O₂ %25 altı, telsiz kopma/geri gelme hepsi çıktı; bölge YEŞİL → SARI → KIRMIZI; O₂ bitti → ACİL + "Hayatta Kal" düğmesi. Dönüş noktasından 5 dk önce "Üsse dön" → üsse 47 dk O₂ ile varış, GÜVENDE.
+- **Düzeltildi:** Özet kartında yetmeyen planın O₂'si "plan -148 dk" görünüyordu → "plan 148 dk EKSİK".
+- **Not:** ×900'de olaylar 1–3 sim. dk gecikebiliyor (kare başına adım büyük); demo hızında (×60/×300) fark yok. Demo için ×300 önerilir (4 saatlik plan ~48 sn).
+- **Dosyalar:** `web/app.js`
