@@ -12,6 +12,7 @@
     window.CESIUM_BASE_URL = "https://cdn.jsdelivr.net/npm/cesium@1.123.0/Build/Cesium/";
   </script>
   <script src="https://cdn.jsdelivr.net/npm/cesium@1.123.0/Build/Cesium/Cesium.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
   <div id="globe"></div>
@@ -59,6 +60,20 @@
       </section>
 
       <section>
+        <h2>Rota</h2>
+        <div class="controls">
+          <button id="routeBtn" type="button">Rota çiz</button>
+          <button id="routeClearBtn" type="button" disabled>Rotayı sil</button>
+        </div>
+        <p id="routeHint" class="muted small" hidden>Haritaya tıkla: nokta ekle · Çift tıkla ya da <b>Bitir</b>: rotayı tamamla · Esc: iptal</p>
+      </section>
+
+      <section>
+        <h2>Tarihi olaylar</h2>
+        <div id="storyList"><p class="muted">Yükleniyor…</p></div>
+      </section>
+
+      <section>
         <h2>O₂ bölgeleri <span class="muted small">· her zaman açık</span></h2>
         <ul class="legend">
           <li><i style="background:#2ecc71"></i><span>Yeşil: git, çalış, %25 payla dön</span></li>
@@ -80,6 +95,13 @@
     <button id="detailClose" type="button" class="icon" aria-label="Kapat">×</button>
     <div id="detailBody"></div>
   </aside>
+
+  <!-- Rota çizerken harita üstünde (mobilde çekmece kapalıyken de erişilsin) -->
+  <div id="routeFab" hidden>
+    <span>Rota çiziliyor · haritaya tıkla</span>
+    <button id="routeFabDone" type="button" class="primary">Bitir</button>
+    <button id="routeFabCancel" type="button">İptal</button>
+  </div>
 
   <div id="error" hidden></div>
 

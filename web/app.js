@@ -813,7 +813,8 @@
           outlineColor: Cesium.Color.BLACK,
           outlineWidth: 3,
           style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-          pixelOffset: new Cesium.Cartesian2(0, -20),
+          pixelOffset: new Cesium.Cartesian2(0, -12),
+          verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
           heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
           disableDepthTestDistance: Number.POSITIVE_INFINITY,
         },
@@ -849,6 +850,496 @@
   // Profil "Güncelle" ya da "Varsayılana dön" → bölgeleri anında yeniden hesapla
   window.addEventListener("marstrail:astronaut", computeZones);
 
+  // =====================================================================
+  // --- G5: Nokta pinleri ve kartları (Elif'in E7 verisi) ---
+  // =====================================================================
+  const POI_STYLE = {
+    habitat: { color: "#ff7a2f", label: "Habitat" },
+    science: { color: "#5dade2", label: "Bilim hedefi" },
+    hazard: { color: "#e74c3c", label: "Tehlike" },
+    history: { color: "#bb8fce", label: "Tarihi nokta" },
+  };
+  // Birbirine çok yakın pinlerin etiketleri çakışıyor (üs–uçuş alanı 20 m, delta–Three Forks ~400 m).
+  // Etiketin yönünü elle ayırıyoruz: [x, y] piksel kaydırma, yatay hiza ve görünme mesafesi (m).
+  const LABEL_PLACE = {
+    base: { off: [0, 18], origin: "CENTER", vOrigin: "TOP" },          // üs etiketi altta (Ayşe üstte)
+    airfield: { off: [12, 0], origin: "LEFT", maxDist: 3000 },          // sadece çok yakında
+    delta_front: { off: [-12, 0], origin: "RIGHT" },                    // sola
+    three_forks: { off: [12, -2], origin: "LEFT" },                     // sağa
+    sand_field: { off: [0, 16], origin: "CENTER", vOrigin: "TOP" },     // alta
+    rochette: { off: [0, 16], origin: "CENTER", vOrigin: "TOP" },       // alta (üs etiketiyle çakışmasın)
+  };
+  let regions = [];
+  let stories = [];
+  const poiById = {};
+
+  const fmtDateTR = (s) => {
+    // "2005", "2021-02-18" ya da "2022-12-21/2023-01-28" gibi tarihleri okunur yaz
+    if (!s) return "";
+    if (/^\d{4}$/.test(s)) return s;
+    return s
+      .split("/")
+      .map((d) => {
+        const t = new Date(d + "T00:00:00Z");
+        return isNaN(t) ? d : t.toLocaleDateString("tr-TR", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+      })
+      .join(" – ");
+  };
+
+  function link(href, text) {
+    const a = el("a", { href, target: "_blank", rel: "noopener" }, text);
+    return a;
+  }
+
+  function regionCard(r, poi) {
+    const style = POI_STYLE[(poi && poi.type) || r.poi_type] || POI_STYLE.science;
+    const parts = [
+      el("span", { class: "chip", style: "--chip:" + style.color }, style.label),
+      el("h3", null, r.name),
+    ];
+    if (r.science_value) {
+      parts.push(el("p", { class: "stars", title: "Bilim değeri " + r.science_value + "/5" },
+        "★".repeat(r.science_value) + "☆".repeat(5 - r.science_value), el("span", { class: "muted small" }, " bilim değeri")));
+    }
+    if (r.summary) parts.push(el("p", null, r.summary));
+
+    // Perseverance Sol'ü + fotoğraf: "Oraya vardığında bunu göreceksin"
+    if (r.sol != null) {
+      parts.push(el("p", { class: "sol-line" }, "Perseverance buraya ", el("b", null, "Sol " + r.sol), "'de geldi."));
+    }
+    const photos = r.photos || [];
+    if (photos.length) {
+      const fig = el("figure", { class: "photo" });
+      const img = el("img", { alt: photos[0].caption || r.name, loading: "lazy" });
+      const cap = el("figcaption", { class: "muted small" });
+      const show = (p) => {
+        img.src = "data/" + p.url;
+        cap.replaceChildren(
+          el("span", null, "Oraya vardığında bunu göreceksin · " + (p.caption || "")),
+          el("br"),
+          el("span", null, (p.credit || "NASA/JPL-Caltech") + " · "),
+          p.page ? link(p.page, "kaynak") : ""
+        );
+      };
+      show(photos[0]);
+      fig.append(img, cap);
+      if (photos.length > 1) {
+        const tabs = el("div", { class: "photo-tabs" });
+        photos.forEach((p, i) => {
+          const b = el("button", { type: "button", class: i === 0 ? "on" : "" }, p.camera || "Foto " + (i + 1));
+          b.addEventListener("click", () => {
+            show(p);
+            tabs.querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
+          });
+          tabs.append(b);
+        });
+        fig.append(tabs);
+      }
+      parts.push(fig);
+    }
+
+    // Tarihçe zaman çizgisi
+    if ((r.history || []).length) {
+      parts.push(el("h4", null, "Tarihçe"));
+      parts.push(
+        el("ol", { class: "timeline" },
+          r.history.map((h) =>
+            el("li", null,
+              el("time", null, fmtDateTR(h.date)),
+              el("span", null, h.event, " "),
+              h.source ? link(h.source, "↗") : ""
+            )
+          )
+        )
+      );
+    }
+
+    // Arazi (Elif'in grid'inden): yürüyüş için anlamı
+    const t = r.terrain;
+    if (t) {
+      const pct = (v) => "%" + Math.round(v * 100);
+      parts.push(el("h4", null, "Arazi"));
+      parts.push(kvList([
+        ["Yükseklik", t.elevation_m + " m"],
+        ["Eğim", t.slope_deg + "° (300 m içinde en fazla " + t.max_slope_300m_deg + "°)"],
+        ["Kum (300 m)", pct(t.sand_pct_300m)],
+        ["Jeoloji", t.geology_unit],
+        ["Geçilebilirlik skoru", t.traversability_score + " (0 kolay – 1 zor)"],
+      ]));
+    }
+    if ((r.hazards || []).length) parts.push(el("p", { class: "warn-line" }, "⚠ " + r.hazards.join(", ")));
+    if ((r.missions || []).length) parts.push(el("p", { class: "muted small" }, "Görevler: " + r.missions.join(", ")));
+
+    return el("div", { class: "card" }, parts);
+  }
+
+  function storyCard(s) {
+    return el("div", { class: "story" },
+      el("h4", null, s.title),
+      el("p", { class: "muted small" }, fmtDateTR(s.date) + " · " + s.location_text),
+      el("p", null, s.body),
+      el("p", { class: "lesson" }, "MarsTrail'deki karşılığı: " + s.lesson),
+      s.source ? link(s.source, "Kaynak ↗") : ""
+    );
+  }
+
+  function hazardCard(props) {
+    const style = POI_STYLE.hazard;
+    const parts = [
+      el("span", { class: "chip", style: "--chip:" + style.color }, style.label),
+      el("h3", null, props.name),
+    ];
+    if (props.note) parts.push(el("p", null, props.note));
+    if (props.area_km2) parts.push(el("p", { class: "muted small" }, "Alan: " + props.area_km2.toLocaleString("tr-TR") + " km² · " + (props.source || "")));
+    const ss = (props.story_ids || []).map((id) => stories.find((s) => s.id === id)).filter(Boolean);
+    if (ss.length) {
+      parts.push(el("h4", null, "Bu kum türü neye benziyor?"));
+      ss.forEach((s) => parts.push(storyCard(s)));
+    }
+    return el("div", { class: "card" }, parts);
+  }
+
+  function openPoi(id) {
+    const f = poiById[id];
+    if (!f) return;
+    const p = f.properties;
+    const r = regions.find((x) => x.id === (p.region_id || p.id));
+    showDetail(r ? regionCard(r, p) : hazardCard(p));
+  }
+
+  function addPoiEntities(geo) {
+    geo.features.forEach((f) => {
+      const p = f.properties;
+      poiById[p.id] = f;
+      const [lon, lat] = f.geometry.coordinates;
+      const style = POI_STYLE[p.type] || POI_STYLE.science;
+      const place = LABEL_PLACE[p.id] || {};
+      viewer.entities.add({
+        id: "poi:" + p.id,
+        position: Cesium.Cartesian3.fromDegrees(lon, lat, 0, MARS),
+        point: {
+          pixelSize: p.type === "habitat" ? 14 : 11,
+          color: Cesium.Color.fromCssColorString(style.color),
+          outlineColor: Cesium.Color.fromCssColorString("#16120f"),
+          outlineWidth: 2,
+          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          // Küre görünümünde (1500 km'den uzak) pinler gizli: kalabalık yapmasın
+          distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 1.5e6),
+        },
+        label: {
+          text: p.name.split(" (")[0],
+          font: "500 12px system-ui, sans-serif",
+          fillColor: Cesium.Color.WHITE,
+          outlineColor: Cesium.Color.BLACK,
+          outlineWidth: 3,
+          style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+          pixelOffset: new Cesium.Cartesian2(...(place.off || [0, -16])),
+          horizontalOrigin: Cesium.HorizontalOrigin[place.origin || "CENTER"],
+          verticalOrigin: Cesium.VerticalOrigin[place.vOrigin || "BOTTOM"],
+          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          // Etiketler sadece yakında (varsayılan 40 km)
+          distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, place.maxDist || 4.0e4),
+        },
+      });
+    });
+  }
+
+  function renderStories() {
+    const box = document.getElementById("storyList");
+    box.replaceChildren(
+      ...stories.map((s) => {
+        const b = el("button", { type: "button", class: "story-btn" },
+          el("b", null, s.title), el("span", { class: "muted small" }, fmtDateTR(s.date)));
+        b.addEventListener("click", () => showDetail(el("div", { class: "card" }, storyCard(s))));
+        return b;
+      })
+    );
+  }
+
+  Promise.all([loadJSON("data/regions.json"), loadJSON("data/poi.geojson"), loadJSON("data/stories.json")])
+    .then(([r, geo, s]) => {
+      regions = r;
+      stories = s;
+      addPoiEntities(geo);
+      renderStories();
+    })
+    .catch((err) => {
+      console.error("Nokta verileri okunamadı:", err);
+      document.getElementById("storyList").innerHTML = '<p class="muted">Nokta verileri okunamadı.</p>';
+    });
+
+  // =====================================================================
+  // --- G5: Rota çizme + istatistik + yükseklik profili ---
+  // =====================================================================
+  // Süre, PLAN.md §5'teki Tobler formülüyle (Elif'in walkback.js'iyle aynı varsayımlar):
+  //   v = 6·exp(−3,5·|tanθ + 0,05|) km/sa × 0,6 (Mars + giysi) × (1 − yük/100)
+  // Burası düz çizgi boyunca "çizdiğin rota"nın süresi; güvenli rota (Dijkstra) planlayıcıda (G6/E11).
+  const ROUTE_STEP_M = 25;      // profil örnek aralığı (grid hücresi ~44 m'nin yarısı)
+  const route = { drawing: false, pts: [], entities: [], line: null, chart: null };
+
+  function gridElevation(lon, lat) {
+    const g = window.Walkback && Walkback.grid;
+    if (!g) return null;
+    const { w, h, b, elev } = g;
+    const u = (lon - b.west) / (b.east - b.west), v = (b.north - lat) / (b.north - b.south);
+    if (u < 0 || u > 1 || v < 0 || v > 1) return null; // çalışma alanı dışı
+    const x = u * (w - 1), y = v * (h - 1);
+    const x0 = Math.floor(x), y0 = Math.floor(y), x1 = Math.min(x0 + 1, w - 1), y1 = Math.min(y0 + 1, h - 1);
+    const fx = x - x0, fy = y - y0;
+    return elev[y0 * w + x0] * (1 - fx) * (1 - fy) + elev[y0 * w + x1] * fx * (1 - fy) +
+      elev[y1 * w + x0] * (1 - fx) * fy + elev[y1 * w + x1] * fx * fy;
+  }
+
+  function toblerKmh(slope, loadKg) {
+    return 6 * Math.exp(-3.5 * Math.abs(slope + 0.05)) * 0.6 * (1 - loadKg / 100);
+  }
+
+  // Rotayı ROUTE_STEP_M aralıkla örnekle → mesafe, yükseklik, süre
+  function analyzeRoute(pts, loadKg) {
+    const samples = []; // {d, lon, lat, elev}
+    let total = 0;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const a = Cesium.Cartographic.fromDegrees(pts[i][0], pts[i][1]);
+      const b = Cesium.Cartographic.fromDegrees(pts[i + 1][0], pts[i + 1][1]);
+      const geo = new Cesium.EllipsoidGeodesic(a, b, MARS);
+      const len = geo.surfaceDistance;
+      const n = Math.max(1, Math.ceil(len / ROUTE_STEP_M));
+      for (let k = i === 0 ? 0 : 1; k <= n; k++) {
+        const c = geo.interpolateUsingFraction(k / n);
+        const lon = Cesium.Math.toDegrees(c.longitude), lat = Cesium.Math.toDegrees(c.latitude);
+        samples.push({ d: total + (len * k) / n, lon, lat, elev: gridElevation(lon, lat) });
+      }
+      total += len;
+    }
+    let minutes = 0, up = 0, down = 0, outside = false;
+    for (let i = 1; i < samples.length; i++) {
+      const s0 = samples[i - 1], s1 = samples[i];
+      const dd = s1.d - s0.d;
+      if (s0.elev == null || s1.elev == null) {
+        outside = true;
+        minutes += (dd / 1000 / toblerKmh(0, loadKg)) * 60; // alan dışı: düz kabul
+        continue;
+      }
+      const dh = s1.elev - s0.elev;
+      if (dh > 0) up += dh; else down -= dh;
+      minutes += (dd / 1000 / toblerKmh(dh / dd, loadKg)) * 60;
+    }
+    return { samples, distanceM: total, minutes, up, down, outside };
+  }
+
+  function pickLonLat(screenPos) {
+    const ray = viewer.camera.getPickRay(screenPos);
+    const cart = ray && scene.globe.pick(ray, scene);
+    if (!cart) return null;
+    const c = Cesium.Cartographic.fromCartesian(cart, MARS);
+    return [Cesium.Math.toDegrees(c.longitude), Cesium.Math.toDegrees(c.latitude)];
+  }
+
+  function clearRoute() {
+    route.entities.splice(0).forEach((e) => viewer.entities.remove(e));
+    route.pts = [];
+    if (route.chart) { route.chart.destroy(); route.chart = null; }
+    document.getElementById("routeClearBtn").disabled = true;
+  }
+
+  function redrawRoute() {
+    route.entities.splice(0).forEach((e) => viewer.entities.remove(e));
+    route.pts.forEach((p, i) =>
+      route.entities.push(viewer.entities.add({
+        position: Cesium.Cartesian3.fromDegrees(p[0], p[1], 0, MARS),
+        point: {
+          pixelSize: i === 0 ? 10 : 8,
+          color: Cesium.Color.WHITE,
+          outlineColor: Cesium.Color.fromCssColorString("#ff7a2f"),
+          outlineWidth: 3,
+          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        },
+      }))
+    );
+    if (route.pts.length > 1) {
+      route.entities.push(viewer.entities.add({
+        polyline: {
+          positions: Cesium.Cartesian3.fromDegreesArray(route.pts.flat(), MARS),
+          width: 4,
+          material: route.drawing
+            ? new Cesium.PolylineDashMaterialProperty({ color: Cesium.Color.fromCssColorString("#ff7a2f"), dashLength: 12 })
+            : Cesium.Color.fromCssColorString("#ff7a2f"),
+          clampToGround: true,
+        },
+      }));
+    }
+    document.getElementById("routeClearBtn").disabled = route.pts.length === 0;
+  }
+
+  function setDrawing(on) {
+    route.drawing = on;
+    const btn = document.getElementById("routeBtn");
+    btn.textContent = on ? "Bitir" : "Rota çiz";
+    btn.classList.toggle("primary", on);
+    document.getElementById("routeHint").hidden = !on;
+    document.getElementById("routeFab").hidden = !on;
+    viewer.canvas.style.cursor = on ? "crosshair" : "";
+    if (on) {
+      clearRoute();
+      setAutoRotate(false);
+    }
+  }
+
+  function finishRoute() {
+    setDrawing(false);
+    redrawRoute();
+    if (route.pts.length < 2) {
+      clearRoute();
+      return;
+    }
+    showRouteCard();
+  }
+
+  function showRouteCard() {
+    const a = astronauts.find((x) => x.id === selectedAstroId);
+    const loadKg = a ? Number(a.load_kg) : 0;
+    const r = analyzeRoute(route.pts, loadKg);
+    const fmt = (v, d = 0) => v.toLocaleString("tr-TR", { maximumFractionDigits: d });
+
+    // O₂: astronotun nabız çarpanıyla tüketim (walkback ile aynı formül)
+    const mult = window.Walkback ? Walkback.o2Multiplier(a ? Number(a.heart_rate) : 90) : 1;
+    const o2Used = r.minutes * mult;
+    // Rotanın bittiği yerin bölgesi (seçili astronotun O₂ bölgelerinden)
+    let endZone = null;
+    if (a && a._z && window.Walkback) {
+      const last = route.pts[route.pts.length - 1];
+      const i = Walkback.cellOf({ lon: last[0], lat: last[1] });
+      endZone = i >= 0 ? { 1: "green", 2: "yellow", 3: "red", 4: "red" }[a._z.classes[i]] : null;
+    }
+
+    const canvas = el("canvas", { "aria-label": "Yükseklik profili" });
+    const parts = [
+      el("span", { class: "chip", style: "--chip:#ff7a2f" }, "Rota"),
+      el("h3", null, "Çizilen rota"),
+      kvList([
+        ["Mesafe", fmt(r.distanceM / 1000, 2) + " km"],
+        ["Süre (tek yön)", fmt(r.minutes) + " dk" + (a ? " · " + a.name + ", yük " + fmt(loadKg, 1) + " kg" : "")],
+        ["O₂ ihtiyacı", fmt(o2Used) + " dk (nabız ×" + mult.toFixed(2) + ")"],
+        ["Tırmanış / iniş", "+" + fmt(r.up) + " m / −" + fmt(r.down) + " m"],
+      ]),
+    ];
+    if (endZone) {
+      parts.push(el("div", { class: "zone-line" }, zoneBadge(endZone),
+        el("span", { class: "muted small" }, "Rotanın sonu " + a.name + " için " + { green: "YEŞİL", yellow: "SARI", red: "KIRMIZI" }[endZone] + " bölgede")));
+    }
+    if (r.outside) parts.push(el("p", { class: "warn-line" }, "⚠ Rotanın bir kısmı çalışma alanı dışında; orada arazi düz kabul edildi."));
+    parts.push(el("h4", null, "Yükseklik profili (m)"));
+    parts.push(el("div", { class: "chart-box" }, canvas));
+    parts.push(el("p", { class: "muted small" }, "Süre: Tobler formülü × 0,6 (Mars + giysi) × (1 − yük/100). Düz çizgi boyunca; güvenli rota planlayıcıda."));
+    showDetail(el("div", { class: "card" }, parts));
+    drawProfile(canvas, r.samples);
+  }
+
+  function drawProfile(canvas, samples) {
+    if (route.chart) { route.chart.destroy(); route.chart = null; }
+    if (typeof Chart === "undefined") return;
+    const css = getComputedStyle(document.documentElement);
+    const ink = css.getPropertyValue("--muted").trim() || "#b39c90";
+    const grid = "rgba(179,156,144,0.15)"; // sönük ızgara
+    const accent = css.getPropertyValue("--accent").trim() || "#ff7a2f";
+    const pts = samples.filter((s) => s.elev != null).map((s) => ({ x: s.d / 1000, y: Math.round(s.elev) }));
+    route.chart = new Chart(canvas, {
+      type: "line",
+      data: {
+        datasets: [{
+          data: pts,
+          borderColor: accent,
+          borderWidth: 2,
+          backgroundColor: accent + "26", // ~%15 dolgu
+          fill: "start",
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          pointHoverBackgroundColor: accent,
+          pointHoverBorderColor: "#16120f",
+          pointHoverBorderWidth: 2,
+          tension: 0.2,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: false,
+        parsing: false,
+        interaction: { mode: "index", intersect: false }, // imleç: en yakın mesafedeki değer
+        plugins: {
+          legend: { display: false }, // tek seri: başlık adlandırıyor
+          tooltip: {
+            displayColors: false,
+            callbacks: {
+              title: (it) => it[0].parsed.x.toLocaleString("tr-TR", { maximumFractionDigits: 2 }) + " km",
+              label: (it) => it.parsed.y.toLocaleString("tr-TR") + " m",
+            },
+          },
+        },
+        scales: {
+          x: { type: "linear", ticks: { color: ink, callback: (v) => v + " km", maxTicksLimit: 6 }, grid: { color: grid } },
+          y: { ticks: { color: ink, maxTicksLimit: 5 }, grid: { color: grid } },
+        },
+      },
+    });
+  }
+
+  // --- Harita tıklamaları: rota modunda nokta ekle, değilse pin kartı aç ---
+  const clickHandler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
+  // Cesium'un varsayılan çift tıkla "varlığı takip et" davranışını kapat (rotayı bitirmek için kullanıyoruz)
+  viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
+
+  clickHandler.setInputAction((ev) => {
+    if (route.drawing) {
+      const ll = pickLonLat(ev.position);
+      if (!ll) return;
+      const last = route.pts[route.pts.length - 1];
+      // Çift tıklama önce iki tek tıklama üretir: aynı yere ikinci noktayı ekleme
+      if (last && Math.abs(last[0] - ll[0]) < 1e-5 && Math.abs(last[1] - ll[1]) < 1e-5) return;
+      route.pts.push(ll);
+      redrawRoute();
+      return;
+    }
+    const picked = scene.pick(ev.position);
+    const id = picked && picked.id && typeof picked.id.id === "string" ? picked.id.id : "";
+    if (id.startsWith("poi:")) openPoi(id.slice(4));
+  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+  clickHandler.setInputAction(() => {
+    if (route.drawing) finishRoute();
+  }, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
+
+  document.getElementById("routeBtn").addEventListener("click", () => {
+    if (route.drawing) finishRoute();
+    else {
+      setDrawing(true);
+      closeDrawer();
+    }
+  });
+  document.getElementById("routeClearBtn").addEventListener("click", () => {
+    setDrawing(false);
+    clearRoute();
+    hideDetail();
+  });
+  document.getElementById("routeFabDone").addEventListener("click", finishRoute);
+  document.getElementById("routeFabCancel").addEventListener("click", () => {
+    setDrawing(false);
+    clearRoute();
+  });
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && route.drawing) {
+      setDrawing(false);
+      clearRoute();
+    }
+  });
+  // Profil değişince (yük, nabız) açık rota kartının sayıları da güncellensin
+  window.addEventListener("marstrail:astronaut", () => {
+    if (!route.drawing && route.pts.length > 1 && !detailPanel.hidden && detailBody.querySelector(".chart-box")) showRouteCard();
+  });
+
   // --- G3: Mobil çekmece ---
   const leftPanel = document.getElementById("leftPanel");
   function closeDrawer() {
@@ -859,7 +1350,8 @@
   // Sonraki kartlar için dışarı aç
   window.MarsTrail = {
     viewer, MARS, JEZERO, setBaseLayer, setAutoRotate, flyToJezero, flyHome, overlays, loadJSON,
-    showDetail, hideDetail, el, kvList, setLink, updateTopBar,
+    showDetail, hideDetail, el, kvList, setLink, updateTopBar, openPoi, analyzeRoute,
+    get route() { return route; }, finishRoute, setDrawing, computeZones,
     get astronauts() { return astronauts; },
     get selectedAstronaut() { return astronauts.find((x) => x.id === selectedAstroId); },
     selectAstronaut, renderAstronauts, saveAll, emitAstronautChange, PROFILE_FIELDS,

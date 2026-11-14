@@ -143,3 +143,15 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Varsayımlar:** Bölge dolgusu %40 saydam. `grid.json` terrain için bir kez indiriliyor, Walkback'e aynı nesne veriliyor.
 - **Kontrol (headless Chrome):** O₂ 480 dk, nabız 85 → yeşil 73,2 km², hesap ~45 ms. O₂ 84 dk, nabız 120 → kullanılabilir 65 dk (×1,30), yeşil 2,4 km², sarı 1,3 km².
 - **Kalan (G6 2. kısım):** Planlayıcı paneli, dönüş noktası, Go/No-Go (E11 bekleniyor).
+
+## G5 · Nokta kartları + rota çizme · Cmt 14 Kas 2026, 18:10
+
+- **Ne yapıldı:**
+  - `poi.geojson`'daki 8 nokta haritada renkli pin (habitat turuncu, bilim mavi, tehlike kırmızı, tarihi mor); küreden bakınca gizli, Jezero'da görünür. Yakın pinlerin etiketleri elle ayrıldı.
+  - Pine tıklayınca kart: tür, bilim değeri (yıldız), özet, "Perseverance buraya Sol X'te geldi", o Sol'ün fotoğrafı (Navcam / Mastcam-Z sekmeli, kaynak linki), tarihçe zaman çizgisi, arazi (yükseklik, eğim, kum, jeoloji, geçilebilirlik), tehlikeler, görevler.
+  - Kum alanı pini Opportunity ve Spirit hikâye kartlarını açıyor. Sol panelde "Tarihi olaylar": Apollo 14, Opportunity, Spirit.
+  - "Rota çiz": tıkla nokta ekle, çift tıkla / Bitir ile tamamla, Esc / İptal. Harita üstünde yüzen Bitir/İptal (mobilde çekmece kapalıyken).
+  - Rota kartı: mesafe, tek yön süre, O₂ ihtiyacı (nabız çarpanıyla), tırmanış/iniş, rotanın sonunun seçili astronot için bölgesi, Chart.js yükseklik profili (imleçli). Profil güncellenince kart yeniden hesaplanıyor.
+- **Dosyalar:** `web/index.html`, `web/app.js`, `web/style.css`
+- **Formüller:** Süre = Σ mesafe / [6·exp(−3,5·|tanθ+0,05|)·0,6·(1−yük/100)], 25 m adımla, yükseklik `grid.json`'dan. O₂ ihtiyacı = süre × (1 + (nabız−90)/100). Rota düz çizgi; güvenli rota (Dijkstra) planlayıcıda.
+- **Kontrol (headless Chrome, gerçek fare tıklamaları):** 4 noktalı rota çift tıklamayla bitti: 8,86 km, 218 dk, +370/−95 m, sonu KIRMIZI bölgede. Delta önü kartında Sol 415 fotoğrafı ve tarihçe görünüyor.
