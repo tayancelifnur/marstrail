@@ -49,6 +49,10 @@ def main():
     ap.add_argument("--batch", type=int, default=16)   # yolov8m @640, batch 16 ≈ 10–12 GB VRAM; RTX 5090 Laptop (24 GB) rahat
     ap.add_argument("--imgsz", type=int, default=640)  # karolar zaten 640×640 (0,25 m/px → 160 m); yeniden örnekleme yok
     ap.add_argument("--name", default="e6_yolov8m")
+    ap.add_argument("--optimizer", default="auto")
+    ap.add_argument("--lr0", type=float, default=0.01)
+    ap.add_argument("--no-amp", action="store_true")
+    ap.add_argument("--diag", action="store_true", help="sadece eğit; docs/figures ve ml/models'e yazma")
     args = ap.parse_args()
 
     data = clean_data_yaml()
@@ -60,6 +64,7 @@ def main():
         device=0, workers=4,              # Windows'ta çok sayıda dataloader işçisi yavaş başlıyor; 4 yeterli
         project=str(ROOT / "ml" / "runs"), name=args.name, exist_ok=True,
         seed=0, deterministic=True,       # sunumdaki sayılar tekrar üretilebilsin
+        optimizer=args.optimizer, lr0=args.lr0, amp=not args.no_amp,
         cache="ram",                      # 150 karo × 640² küçük; diskten okuma darboğazı olmasın
         # --- Artırma (augmentation) seçimleri: Roboflow'da artırma YOK, hepsi burada ---
         hsv_h=0.0, hsv_s=0.0,             # görüntü gri (HiRISE pankromatik); renk tonu/doygunluk anlamsız
@@ -74,6 +79,8 @@ def main():
     )
 
     run = ROOT / "ml" / "runs" / args.name
+    if args.diag:  # kısa teşhis koşusu: model/şekil/metrik dışa aktarılmaz
+        return
     best = run / "weights" / "best.pt"
     (ROOT / "ml" / "models").mkdir(exist_ok=True)
     shutil.copy2(best, ROOT / "ml" / "models" / "yolo_marstrail.pt")
@@ -102,6 +109,10 @@ def main():
     k = "metrics/mAP50-95(B)"
     best_row = max(rows, key=lambda r: float(r[k]))
     res["epochs_run"] = len(rows)
+    # v1'de ısınma sırasında ıraksama oldu (val kaybı NaN). Tekrarlanırsa sayıyı kaydet ve uyar.
+    res["nan_val_epochs"] = [int(float(r["epoch"])) for r in rows if r.get("val/box_loss", "") == "nan"]
+    if res["nan_val_epochs"]:
+        print(f"UYARI: doğrulama kaybı şu epoch'larda NaN: {res['nan_val_epochs']}")
     res["best_epoch"] = int(float(best_row["epoch"]))
     (FIG / "e6_metrics.json").write_text(json.dumps(res, ensure_ascii=False, indent=2), encoding="utf-8")
 

@@ -1,0 +1,42 @@
+{
+  "run": "ml\\runs\\e6_yolov8m",
+  "model": "yolov8m.pt",
+  "epochs_requested": 100,
+  "imgsz": 640,
+  "batch": 16,
+  "patience": 20,
+  "all": {
+    "P": 0.253,
+    "R": 0.12,
+    "mAP50": 0.162,
+    "mAP50_95": 0.112
+  },
+  "per_class": {
+    "kaya": {
+      "P": 0.413,
+      "R": 0.063,
+      "mAP50": 0.169,
+      "mAP50_95": 0.072
+    },
+    "kaya_alani": {
+      "P": 0.0,
+      "R": 0.0,
+      "mAP50": 0.027,
+      "mAP50_95": 0.008
+    },
+    "kum_dalgasi": {
+      "P": 0.346,
+      "R": 0.295,
+      "mAP50": 0.292,
+      "mAP50_95": 0.257
+    }
+  },
+  "speed_ms_per_img": {
+    "preprocess": 0.94,
+    "inference": 5.21,
+    "loss": 0.0,
+    "postprocess": 0.95
+  },
+  "epochs_run": 81,
+  "best_epoch": 61
+}

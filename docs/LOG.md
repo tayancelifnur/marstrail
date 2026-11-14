@@ -273,3 +273,11 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - Cesium çizim hatası (CDN'den worker dosyası yüklenemeyince çizim duruyordu): hata paneli kapanır, 1,5 sn sonra çizim yeniden başlar; 3 denemede düzelmezse "Sayfayı yenile" mesajı. 60 sn hatasız geçerse sayaç sıfırlanır.
 - **Dosyalar:** `web/index.html`, `web/app.js`
 - **Kontrol:** Plan + yürüyüş + telsiz koptu sonrası sıfırla → yürüyüş/acil durum/plan kapalı, duraklar varsayılan, kayıt silinmiş. Yapay hata: tek hata → çizim kendiliğinden devam; sürekli hata → 3 denemeden sonra yenile mesajı.
+
+## E6 (1. kısım) · YOLOv8m eğitimi, 1. deneme · Cmt 14 Kas 2026, 22:17
+
+- **Ne yapıldı:** Roboflow v1-150karo dışa aktarımı ölçüldü (`ml/dataset_stats.py`): 120 train / 30 valid, kutular: kaya 255, kaya_alani 82, kum_dalgasi 237; geçersiz satır 0. `ml/train.py`: data.yaml'ın mutlak yollu temiz kopyası, YOLOv8m 640 px, 100 epoch, patience 20, batch 16, seed 0, gri görüntüye uygun artırma. Etiket tanımı ve sınırlamalar ETIKETLEME.md ve DATA_PIPELINE.md'ye, Roboflow Auto Label YZ beyanına yazıldı.
+- **Sonuç (v1):** mAP50 0,162 (kaya 0,169 · kaya_alani 0,027 · kum_dalgasi 0,292), 81 epoch, en iyi epoch 61. Eğitim epoch 3'te ıraksadı (cls_loss 4 → 17, val kaybı epoch 3–15 NaN). Confusion matrix 0,001 güven eşiğiyle çizildiği için iyimser; 0,25 eşiğinde val görselinde tahmin yok. Ayrıntı DATA_PIPELINE.md E6.
+- **Dosyalar:** `ml/train.py`, `ml/dataset_stats.py`, `ml/ETIKETLEME.md`, `docs/DATA_PIPELINE.md`, `docs/TESLIM.md`, `.gitignore`, `docs/figures/e6_dataset*`, `docs/figures/e6v1_*`
+- **Nasıl çalıştırılır:** `venv\Scripts\python ml\dataset_stats.py` ve `venv\Scripts\python ml\train.py` (teşhis: `--epochs 8 --patience 100 --diag --name <ad>` ile `--no-amp` / `--optimizer SGD`)
+- **Varsayımlar:** Ölçek artırması ±%25 (sınıflar fiziksel boyuta bağlı), döndürme yok, renk artırması yok. v1 modeli E10'da kullanılmayacak; ıraksamanın nedeni bulunup v2 eğitilecek.

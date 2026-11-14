@@ -288,8 +288,34 @@ Ham NASA/USGS verisinden tarayıcıdaki haritaya kadar her adım: ne aldık, ney
 - **Normalizasyon:** Piksel germesi E5'te yapıldı (60–219 → 0–255). Roboflow karoları JPG'ye çevirdi (kayıplı sıkıştırma; 2 m'lik kaya ~8 piksel, etkisi küçük ama not edildi). Ultralytics girişte 0–1'e böler.
 - **Artırma (sadece eğitimde, Roboflow'da yok):** yatay+dikey çevirme (yukarıdan çekimde "yukarı" yok), parlaklık ±%30 (güneş açısı ve mozaik şeritleri arası ton farkı), renk tonu/doygunluk 0 (görüntü gri), döndürme 0 (ince kum sırtlarında kutuyu şişirir), ölçek ±%25 (sınıflar fiziksel boyuta bağlı; varsayılan ±%50 kaya ile kaya_alani'yi karıştırır), mozaik (son 10 epoch kapalı). Gerekçeler `ml/train.py` yorumlarında.
 - **Öğrenme yöntemi:** YOLOv8m, COCO ön-eğitimli ağırlıktan transfer öğrenme. 640 px, 100 epoch, erken durdurma 20 epoch, batch 16, seed 0. RTX 5090 Laptop, CUDA 12.8.
-- **Sonuç:** [eğitim bitince doldurulacak: sınıf bazında P, R, mAP50, mAP50-95]
 - **Görseller:** [figures/e6_dataset.png](figures/e6_dataset.png) (sınıf sayıları ve kutu boyu dağılımı). Sayılar: [figures/e6_dataset_stats.json](figures/e6_dataset_stats.json).
+
+### 1. eğitim (v1): ısınmada ıraksadı
+
+Ayarlar yukarıdaki gibi, optimizer `auto` (Ultralytics 800 adımdan kısa eğitimde AdamW seçiyor, lr 0,0014), AMP (fp16) açık. 81 epoch koştu (erken durdu), en iyi epoch 61, süre 3 dk 10 sn. Değerler en iyi ağırlıkla, valid kümesinde (30 karo):
+
+| Sınıf | P | R | mAP50 | mAP50-95 |
+| --- | --- | --- | --- | --- |
+| `kaya` | 0,413 | 0,063 | 0,169 | 0,072 |
+| `kaya_alani` | 0,000 | 0,000 | 0,027 | 0,008 |
+| `kum_dalgasi` | 0,346 | 0,295 | 0,292 | 0,257 |
+| **Hepsi** | 0,253 | 0,120 | **0,162** | 0,112 |
+
+**Eğri yorumu (results.png):**
+- Epoch 1–2 normal: val mAP50 0,07.
+- **Epoch 3–4'te eğitim patladı.** cls_loss 4,1 → 16,7 ve box_loss 1,7 → 3,5. Doğrulama kayıpları epoch 3–15 arasında NaN, metrikler epoch 4–11 arasında sıfır. Model önceden öğrendiklerini kaybetti ve epoch 12'den sonra neredeyse sıfırdan yeniden öğrendi.
+- Sonrasında eğitim kayıpları düzenli düşüyor ama val mAP 0,05 ile 0,19 arasında sıçrıyor. 30 karoluk val kümesi küçük; 2–3 karonun doğru ya da yanlış olması eğriyi oynatıyor.
+- Train kaybı düşerken val kaybı epoch 50–57'de yeniden yükseliyor. Bu, aşırı öğrenmenin başladığını gösteriyor.
+
+**Confusion matrix yorumu:** Köşegen iyi görünüyor (kaya 0,61, kaya_alani 0,71, kum_dalgasi 0,77) ama yanıltıcı. Ultralytics bu matrisi doğrulamanın güven eşiğiyle (0,001) çiziyor, yani çok düşük güvenli tahminler de sayılıyor. 0,25 eşiğindeki örnek tahmin görselinde (`e6v1_val_batch0_pred.jpg`) 16 karoda hiç kutu yok. Model doğru yeri buluyor ama emin değil.
+
+- **Karışma:** Gerçek kayaların %18'i `kaya_alani` diye tahmin ediliyor. İki sınıf aynı dokunun iki ölçeği, bu beklenen bir karışma.
+- **Yanlış pozitifler:** Arka planda (etiketsiz yerlerde) çıkan yanlış tahminlerin %56'sı `kum_dalgasi`, %33'ü `kaya_alani`. Bölge ölçekli iki sınıfın kutu sınırı belirsiz olduğu için model "kum alanı" kutusunu farklı boyutta çizince eşleşmiyor ve yanlış pozitif sayılıyor.
+- **Sınıf başına:** `kum_dalgasi` en iyi sınıf (mAP50 0,29). `kaya` küçük nesne olduğu için recall çok düşük (0,06). `kaya_alani` öğrenilemedi (17 val kutusu, mAP50 0,03).
+
+**Sonuç:** Bu modelle E10'a geçilmez. Asıl sorun epoch 3'teki ıraksama: en iyi epoch'a kadar geçen sürenin 12 epoch'u kurtarma ile geçti. Ayarlar düzeltilip yeniden eğitilecek (aşağıda, v2).
+
+Şekiller: [e6v1_results.png](figures/e6v1_results.png), [e6v1_confusion_matrix_normalized.png](figures/e6v1_confusion_matrix_normalized.png), [e6v1_BoxPR_curve.png](figures/e6v1_BoxPR_curve.png). Sayılar: [e6v1_metrics.json](figures/e6v1_metrics.json).
 
 ---
 
