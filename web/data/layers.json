@@ -1,5 +1,28 @@
 [
   {
+    "id": "hillshade",
+    "name": "Arazi gölgesi (CTX DEM)",
+    "file": "layers/hillshade.png",
+    "default_opacity": 0.5,
+    "legend": [
+      {
+        "color": "#ffffff",
+        "label": "Güneye bakan yamaç (ışık KB'dan)"
+      },
+      {
+        "color": "#000000",
+        "label": "Gölgede kalan yamaç"
+      }
+    ],
+    "source": "CTX DEM 20 m, USGS Astrogeology / JPL (Mars 2020)",
+    "bbox": [
+      77.28,
+      18.365,
+      77.48,
+      18.555
+    ]
+  },
+  {
     "id": "slope",
     "name": "Eğim",
     "file": "layers/slope.png",
@@ -11,21 +34,20 @@
       },
       {
         "color": "#f1c40f",
-        "label": "12°"
+        "label": "12,5°"
       },
       {
         "color": "#e74c3c",
         "label": "≥25° (geçilmez)"
       }
     ],
-    "source": "CTX DEM 20 m (USGS) – şimdilik sahte",
+    "source": "CTX DEM 20 m (USGS) → eğim, 20 m'de hesaplanıp ortalandı",
     "bbox": [
-      77.36,
-      18.38,
-      77.51,
-      18.52
-    ],
-    "dummy": true
+      77.28,
+      18.365,
+      77.48,
+      18.555
+    ]
   },
   {
     "id": "thermal",
@@ -35,21 +57,20 @@
     "legend": [
       {
         "color": "#e67e22",
-        "label": "Düşük – gevşek kum/toz"
+        "label": "Düşük (~162 TIU) – gevşek kum/toz"
       },
       {
         "color": "#34495e",
-        "label": "Yüksek – sert kaya"
+        "label": "Yüksek (~329 TIU) – sert kaya"
       }
     ],
-    "source": "THEMIS, Jezero mozaiği – şimdilik sahte",
+    "source": "THEMIS termal eylemsizlik, Jezero mozaiği (Zenodo 4931348), 100 m",
     "bbox": [
-      77.36,
-      18.38,
-      77.51,
-      18.52
-    ],
-    "dummy": true
+      77.28,
+      18.365,
+      77.48,
+      18.555
+    ]
   },
   {
     "id": "geology",
@@ -58,54 +79,45 @@
     "default_opacity": 0.5,
     "legend": [
       {
-        "color": "#b58962",
-        "label": "Krater tabanı (yürünebilirlik 0.9)"
+        "color": "#78aff5",
+        "label": "Jezero fan 2 unit (yürünebilirlik 0.7)"
       },
       {
-        "color": "#5d9cec",
-        "label": "Delta (yürünebilirlik 0.7)"
+        "color": "#c4a078",
+        "label": "Jezero floor unit (yürünebilirlik 0.85)"
       },
       {
-        "color": "#785e4a",
-        "label": "Krater kenarı (yürünebilirlik 0.4)"
+        "color": "#aa785a",
+        "label": "Lower etched unit (yürünebilirlik 0.75)"
+      },
+      {
+        "color": "#966950",
+        "label": "Upper etched unit (yürünebilirlik 0.75)"
+      },
+      {
+        "color": "#8c826e",
+        "label": "Nili Planum 1 unit (yürünebilirlik 0.7)"
       },
       {
         "color": "#f0c878",
-        "label": "Eolyen birim (kum) (yürünebilirlik 0.3)"
+        "label": "Eolian bedform unit (yürünebilirlik 0.3)"
       },
       {
-        "color": "#9b59b6",
-        "label": "Kayalık birim (yürünebilirlik 0.6)"
-      }
-    ],
-    "source": "USGS SIM 3464 – şimdilik sahte",
-    "bbox": [
-      77.36,
-      18.38,
-      77.51,
-      18.52
-    ],
-    "dummy": true
-  },
-  {
-    "id": "hazard_ml",
-    "name": "YOLO: kaya ve kum dalgası",
-    "file": "layers/hazard_ml.png",
-    "default_opacity": 0.8,
-    "legend": [
+        "color": "#b9b9af",
+        "label": "Smooth unit, undivided (yürünebilirlik 0.9)"
+      },
       {
-        "color": "#ff2828",
-        "label": "Yüksek kaya/kum yoğunluğu"
+        "color": "#785e4a",
+        "label": "Crater rim unit (yürünebilirlik 0.4)"
       }
     ],
-    "source": "Kendi YOLOv8 modelimiz (HiRISE) – şimdilik sahte",
+    "source": "USGS SIM 3464, Jezero Krateri ve Nili Planum jeolojik haritası (Sun ve Stack, 2020)",
     "bbox": [
-      77.36,
-      18.38,
-      77.51,
-      18.52
-    ],
-    "dummy": true
+      77.28,
+      18.365,
+      77.48,
+      18.555
+    ]
   },
   {
     "id": "traversability",
@@ -123,16 +135,19 @@
       },
       {
         "color": "#e74c3c",
-        "label": "Zor / geçilmez (>0,8)"
+        "label": "Zor"
+      },
+      {
+        "color": "#280000",
+        "label": "Geçilmez (eğim >25° ya da skor >0.8)"
       }
     ],
-    "source": "0,4·eğim + 0,25·kum + 0,15·kaya + 0,2·(1−termal) – şimdilik sahte",
+    "source": "0,4·eğim + 0,25·kum (eolyen birim) + 0,15·kaya (jeoloji vekili; YOLO E10'da) + 0,2·(1−termal)",
     "bbox": [
-      77.36,
-      18.38,
-      77.51,
-      18.52
-    ],
-    "dummy": true
+      77.28,
+      18.365,
+      77.48,
+      18.555
+    ]
   }
 ]
