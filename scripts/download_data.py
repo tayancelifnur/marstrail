@@ -97,19 +97,32 @@ def download(did, retries=5):
 
 
 def extract_d6(zpath):
-    """Zip'ten sadece Jezero_GeoUnits.* dosyalarını data/raw/D6_geology/ altına çıkarır."""
+    """SIM 3464 zip'i shapefile değil, ArcGIS dosya veritabanı (Nili.gdb) içeriyor.
+    Sadece Nili.gdb'yi data/raw/D6_geology/ altına çıkarır, GeologicUnits katmanını
+    kartta beklenen adla Jezero_GeoUnits.shp olarak yazar."""
+    import geopandas as gpd
+    import pyogrio
+
     out = RAW / "D6_geology"
-    out.mkdir(exist_ok=True)
+    gdb = out / "Nili.gdb"
+    gdb.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(zpath) as z:
-        members = [m for m in z.namelist() if Path(m).name.lower().startswith("jezero_geounits.")]
-        if not members:  # ad farklıysa shapefile'ların listesini göster
-            shps = [m for m in z.namelist() if m.lower().endswith(".shp")]
-            log(f"WARN D6 Jezero_GeoUnits bulunamadı. Zip'teki shapefile'lar: {shps[:20]}")
-            return None
+        members = [m for m in z.namelist()
+                   if "/Nili.gdb/" in m and not m.endswith("/") and "__MACOSX" not in m and not m.endswith(".lock")]
         for m in members:  # yol kaçışına karşı sadece dosya adıyla yaz
-            (out / Path(m).name).write_bytes(z.read(m))
-    log(f"EXTRACT D6 {len(members)} dosya -> {out.relative_to(ROOT)}")
-    return out / "Jezero_GeoUnits.shp"
+            (gdb / Path(m).name).write_bytes(z.read(m))
+    layers = [name for name, _ in pyogrio.list_layers(gdb)]
+    log(f"EXTRACT D6 Nili.gdb ({len(members)} dosya), katmanlar: {layers}")
+    # Jeolojik birim poligonları katmanı: zip'teki adı "GeoUnits_v1"
+    cand = [n for n in layers if n.lower().startswith(("geounits", "geologicunits")) and "anno" not in n.lower()]
+    if not cand:
+        log("WARN D6 jeolojik birim katmanı bulunamadı; E3'te katman adını elle seç.")
+        return None
+    units = gpd.read_file(gdb, layer=cand[0])
+    shp = out / "Jezero_GeoUnits.shp"
+    units.to_file(shp, encoding="utf-8")
+    log(f"EXTRACT D6 {cand[0]} -> {shp.relative_to(ROOT)} ({len(units)} poligon)")
+    return shp
 
 
 def check(did):
