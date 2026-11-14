@@ -58,7 +58,7 @@
       fullscreenButton: false,
       infoBox: false,
       selectionIndicator: false,
-      skyAtmosphere: false,      // Dünya'nın mavi atmosferi Mars'a uymuyor
+      skyAtmosphere: new Cesium.SkyAtmosphere(MARS), // aşağıda Mars rengine çevriliyor
     });
   } catch (err) {
     console.error(err);
@@ -67,9 +67,43 @@
   }
 
   const scene = viewer.scene;
-  scene.globe.showGroundAtmosphere = false;
-  scene.globe.baseColor = Cesium.Color.fromCssColorString("#5a2e1c");
+  const globe = scene.globe;
+  globe.baseColor = Cesium.Color.fromCssColorString("#5a2e1c");
   scene.backgroundColor = Cesium.Color.BLACK;
+
+  // --- Güneş ışığı ---
+  // Güneş Jezero'ya göre sabit: kuzeybatıdan (azimut 315°), ufkun 30° üstünden.
+  // Neden: Elif'in hillshade.png katmanı da KB'dan aydınlatılıyor; gölgeler tutarlı olsun.
+  // Bu bir sunum tercihi, gerçek Güneş konumu değil (Mars saati E8'de gelecek).
+  const SUN = { azimuthDeg: 315, elevationDeg: 30 };
+  function sunLightDirection() {
+    const az = Cesium.Math.toRadians(SUN.azimuthDeg);
+    const el = Cesium.Math.toRadians(SUN.elevationDeg);
+    // Yerel doğu-kuzey-yukarı ekseninde Güneş'e doğru birim vektör
+    const toSunLocal = new Cesium.Cartesian3(Math.sin(az) * Math.cos(el), Math.cos(az) * Math.cos(el), Math.sin(el));
+    const enu = Cesium.Transforms.eastNorthUpToFixedFrame(Cesium.Cartesian3.fromDegrees(JEZERO.lon, JEZERO.lat, 0, MARS), MARS);
+    const toSun = Cesium.Matrix4.multiplyByPointAsVector(enu, toSunLocal, new Cesium.Cartesian3());
+    // Işığın yönü Güneş'ten sahneye doğrudur
+    return Cesium.Cartesian3.normalize(Cesium.Cartesian3.negate(toSun, toSun), toSun);
+  }
+  scene.light = new Cesium.DirectionalLight({ direction: sunLightDirection(), intensity: 2.0 });
+  globe.enableLighting = true; // uzaktan bakınca gece-gündüz çizgisi görünür
+  // Mars küçük (Dünya'nın ~yarısı) olduğu için solma mesafeleri küçültüldü:
+  // kamera 2500 km'den yakınsa Jezero tam aydınlık, 6000 km'den uzaksa tam gölgeli küre.
+  globe.lightingFadeOutDistance = 2.5e6;
+  globe.lightingFadeInDistance = 6.0e6;
+  globe.nightFadeOutDistance = 2.5e6;
+  globe.nightFadeInDistance = 6.0e6;
+
+  // --- Mars atmosferi ---
+  // Cesium'un atmosferi Dünya için (mavi). Tonu ~180° çevirip (mavi → somon/turuncu),
+  // doygunluğu ve parlaklığı düşürerek ince, tozlu Mars atmosferine benzetiyoruz. Değerler göz kararı.
+  const ATMO = { hueShift: -0.5, saturationShift: -0.25, brightnessShift: -0.25 };
+  Object.assign(scene.skyAtmosphere, ATMO);
+  // Yer atmosferi kapalı: küreyi maviye boyuyordu. Sadece kenardaki parıltı (skyAtmosphere) kalıyor.
+  globe.showGroundAtmosphere = false;
+  globe.dynamicAtmosphereLighting = true;
+  globe.dynamicAtmosphereLightingFromSun = false; // Dünya'nın güneşi değil, yukarıdaki ışığı kullan
 
   // --- Taban katman ---
   let baseLayer = null;
@@ -100,26 +134,114 @@
       label: "JEZ_ctx_B_soc_008_orthoMosaic_6m_Eqc_latTs0_lon0",
       bbox: [77.1604655, 18.2110274, 77.6991776, 18.7211945],
       maxLevel: 13,
+      alpha: 1,
     },
     {
       name: "HiRISE Jezero mozaiği (25 cm)",
       label: "JEZ_hirise_soc_006_orthoMosaic_25cm_Eqc_latTs0_lon0_first_dd",
       bbox: [77.2229331, 18.3067994, 77.583964, 18.669315],
       maxLevel: 17,
+      alpha: 1,
+      // HiRISE parça parça (farklı tonlarda yamalar); genel bakışta CTX daha temiz.
+      // Sadece iyice yakınlaşınca (arazi seviyesi 15+, ~birkaç km'lik görüş) devreye girsin.
+      minLevel: 15,
     },
   ];
   DETAIL_LAYERS.forEach((d) => {
     const [w, s, e, n] = d.bbox;
-    viewer.imageryLayers.addImageryProvider(
-      new Cesium.UrlTemplateImageryProvider({
-        url: TREK + d.label + "/1.0.0/default/default028mm/{z}/{y}/{x}.png",
-        tilingScheme: new Cesium.GeographicTilingScheme({ ellipsoid: MARS }),
-        rectangle: Cesium.Rectangle.fromDegrees(w, s, e, n),
-        maximumLevel: d.maxLevel,
-        credit: "NASA/JPL-Caltech/USGS Mars Trek – " + d.name,
-      })
+    const provider = new Cesium.UrlTemplateImageryProvider({
+      url: TREK + d.label + "/1.0.0/default/default028mm/{z}/{y}/{x}.png",
+      tilingScheme: new Cesium.GeographicTilingScheme({ ellipsoid: MARS }),
+      rectangle: Cesium.Rectangle.fromDegrees(w, s, e, n),
+      maximumLevel: d.maxLevel,
+      credit: "NASA/JPL-Caltech/USGS Mars Trek – " + d.name,
+    });
+    viewer.imageryLayers.add(
+      new Cesium.ImageryLayer(provider, { alpha: d.alpha, minimumTerrainLevel: d.minLevel })
     );
   });
+
+  // CTX ve HiRISE siyah-beyaz. Üstlerine yarı saydam Mars rengi bir örtü koyup
+  // Viking küresiyle aynı renk tonuna getiriyoruz (renk ve oran göz kararı).
+  const TINT = { color: "#c4703f", alpha: 0.38 };
+  (function addTint() {
+    const c = document.createElement("canvas");
+    c.width = c.height = 1;
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = TINT.color;
+    ctx.fillRect(0, 0, 1, 1);
+    const [w, s, e, n] = DETAIL_LAYERS[0].bbox;
+    const tint = viewer.imageryLayers.addImageryProvider(
+      new Cesium.SingleTileImageryProvider({
+        url: c.toDataURL(),
+        rectangle: Cesium.Rectangle.fromDegrees(w, s, e, n),
+        tileWidth: 1,
+        tileHeight: 1,
+      })
+    );
+    tint.alpha = TINT.alpha;
+  })();
+
+  // --- Jezero 3B arazi (Elif'in grid.json yükseklikleri, CTX DEM'den) ---
+  // Küresel yükseklik verimiz yok; sadece çalışma alanı kabarık, dışı düz.
+  // Yükseklikler kenar ortalamasına göre (göreli) verilir ve kenarlara doğru sıfıra
+  // yumuşatılır; böylece alanın sınırında uçurum oluşmaz.
+  const TERRAIN_EXAGGERATION = 3;  // varsayım: 11 km'de ~870 m fark; 3x abartı eğik bakışta kabartmayı belirgin yapıyor
+  const TERRAIN_FEATHER = 0.08;    // kenarın %8'lik şeridinde yükseklik sıfıra iner
+  const TERRAIN_TILE = 32;         // karo başına 32x32 yükseklik örneği
+
+  function makeTerrainSampler(g) {
+    const { width: W, height: H, elev } = g;
+    const { west, south, east, north } = g.bounds;
+    // Kenar ortalaması = taban yüksekliği (alan dışı bu seviyede kabul edilir)
+    let sum = 0, cnt = 0;
+    for (let i = 0; i < W; i++) { sum += elev[i] + elev[(H - 1) * W + i]; cnt += 2; }
+    for (let r = 0; r < H; r++) { sum += elev[r * W] + elev[r * W + W - 1]; cnt += 2; }
+    const base = sum / cnt;
+
+    // lon/lat (derece) → göreli yükseklik (m). Alan dışında 0. Satır 0 = kuzey.
+    return function sample(lon, lat) {
+      const u = (lon - west) / (east - west);
+      const v = (north - lat) / (north - south);
+      if (u < 0 || u > 1 || v < 0 || v > 1) return 0;
+      const x = u * (W - 1), y = v * (H - 1);
+      const x0 = Math.floor(x), y0 = Math.floor(y);
+      const x1 = Math.min(x0 + 1, W - 1), y1 = Math.min(y0 + 1, H - 1);
+      const fx = x - x0, fy = y - y0;
+      const h =
+        elev[y0 * W + x0] * (1 - fx) * (1 - fy) + elev[y0 * W + x1] * fx * (1 - fy) +
+        elev[y1 * W + x0] * (1 - fx) * fy + elev[y1 * W + x1] * fx * fy;
+      const d = Math.min(u, 1 - u, v, 1 - v) / TERRAIN_FEATHER;
+      const f = d >= 1 ? 1 : d * d * (3 - 2 * d); // yumuşak geçiş (smoothstep)
+      return (h - base) * f;
+    };
+  }
+
+  function enableJezeroTerrain(g) {
+    const sample = makeTerrainSampler(g);
+    const { west, south, east, north } = g.bounds;
+    const tiling = new Cesium.GeographicTilingScheme({ ellipsoid: MARS });
+    const N = TERRAIN_TILE;
+    viewer.terrainProvider = new Cesium.CustomHeightmapTerrainProvider({
+      width: N,
+      height: N,
+      tilingScheme: tiling,
+      callback: (x, y, level) => {
+        const out = new Float32Array(N * N);
+        const r = tiling.tileXYToRectangle(x, y, level);
+        const w = Cesium.Math.toDegrees(r.west), e = Cesium.Math.toDegrees(r.east);
+        const s = Cesium.Math.toDegrees(r.south), n = Cesium.Math.toDegrees(r.north);
+        if (e < west || w > east || n < south || s > north) return out; // alanla kesişmiyor: düz
+        for (let i = 0; i < N; i++) {
+          const lat = n - (i / (N - 1)) * (n - s);
+          for (let j = 0; j < N; j++) out[i * N + j] = sample(w + (j / (N - 1)) * (e - w), lat);
+        }
+        return out;
+      },
+    });
+    scene.verticalExaggeration = TERRAIN_EXAGGERATION;
+    scene.verticalExaggerationRelativeHeight = 0;
+  }
 
   // --- Başlangıç görünümü: Jezero yarımküresi ---
   const HOME_VIEW = {
@@ -162,14 +284,23 @@
     setAutoRotate(false);
     document.getElementById("leftPanel").classList.remove("open");
     const [w, s, e, n] = studyBbox;
-    const padLon = (e - w) * 0.6;
-    const padLat = (n - s) * 0.6;
-    viewer.camera.flyTo({
-      destination: Cesium.Rectangle.fromDegrees(w - padLon, s - padLat, e + padLon, n + padLat),
+    // Tepeden değil, güneyden kuzeye 45° eğik bakış: 3B kabartma görünür, ufuktaki bulanık küre görünmez.
+    // Mesafe alanın köşegeninin ~1,4 katı; alanın tamamı ekrana sığıyor.
+    const center = Cesium.Cartesian3.fromDegrees((w + e) / 2, (s + n) / 2, 0, MARS);
+    const diagM = Cesium.Cartesian3.distance(
+      Cesium.Cartesian3.fromDegrees(w, s, 0, MARS),
+      Cesium.Cartesian3.fromDegrees(e, n, 0, MARS)
+    );
+    viewer.camera.flyToBoundingSphere(new Cesium.BoundingSphere(center, diagM / 2), {
+      offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-45), diagM * 1.4),
       duration: 4,
     });
   }
   document.getElementById("jezeroBtn").addEventListener("click", flyToJezero);
+
+  loadJSON("data/grid.json")
+    .then(enableJezeroTerrain)
+    .catch((err) => console.error("grid.json okunamadı, arazi düz kalacak:", err));
 
   // Tüm küreye geri dön ve dönmeye devam et
   function flyHome() {
