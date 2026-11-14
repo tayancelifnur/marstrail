@@ -1,0 +1,34 @@
+{
+  "spread_no_adjacent": 75,
+  "filled_adjacent_ok": 25,
+  "candidates": {
+    "duz": 134,
+    "duz_dokusuz": 18,
+    "kayalik": 32,
+    "kum": 10,
+    "kayalik_gevsek": 46
+  },
+  "excluded_old_and_neighbors": 893,
+  "std_thresholds": {
+    "dokusuz": 8.56,
+    "duz_p35": 18.34,
+    "kayalik_p60": 24.24
+  },
+  "selected": {
+    "kayalik": 40,
+    "duz": 50,
+    "duz_dokusuz": 3,
+    "kum": 7
+  },
+  "dropped_nodata_fullres": 0,
+  "total": 100,
+  "min_dist_to_old_tiles": {
+    "min": 2.0,
+    "median": 2.0
+  },
+  "zip_mb": 18.1,
+  "stretch": [
+    60.0,
+    219.0
+  ]
+}

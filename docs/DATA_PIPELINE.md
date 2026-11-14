@@ -313,9 +313,60 @@ Ayarlar yukarıdaki gibi, optimizer `auto` (Ultralytics 800 adımdan kısa eğit
 - **Yanlış pozitifler:** Arka planda (etiketsiz yerlerde) çıkan yanlış tahminlerin %56'sı `kum_dalgasi`, %33'ü `kaya_alani`. Bölge ölçekli iki sınıfın kutu sınırı belirsiz olduğu için model "kum alanı" kutusunu farklı boyutta çizince eşleşmiyor ve yanlış pozitif sayılıyor.
 - **Sınıf başına:** `kum_dalgasi` en iyi sınıf (mAP50 0,29). `kaya` küçük nesne olduğu için recall çok düşük (0,06). `kaya_alani` öğrenilemedi (17 val kutusu, mAP50 0,03).
 
-**Sonuç:** Bu modelle E10'a geçilmez. Asıl sorun epoch 3'teki ıraksama: en iyi epoch'a kadar geçen sürenin 12 epoch'u kurtarma ile geçti. Ayarlar düzeltilip yeniden eğitilecek (aşağıda, v2).
+**Sonuç:** Bu modelle E10'a geçilmez. Asıl sorun epoch 3'teki ıraksama: en iyi epoch'a kadar geçen sürenin 12 epoch'u kurtarma ile geçti. Ayarlar düzeltilip yeniden eğitilecek (aşağıda, ablation).
 
 Şekiller: [e6v1_results.png](figures/e6v1_results.png), [e6v1_confusion_matrix_normalized.png](figures/e6v1_confusion_matrix_normalized.png), [e6v1_BoxPR_curve.png](figures/e6v1_BoxPR_curve.png). Sayılar: [e6v1_metrics.json](figures/e6v1_metrics.json).
+
+### Ablation deneyi
+
+**Ortak kararlı ayar:** v1'in ıraksamasında iki olası neden vardı: AdamW ile fp16 (AMP). İkisi de kaldırıldı. Bütün koşular SGD (lr0 0,01) ve fp32 ile, aynı tohumla (seed 0) eğitiliyor; böylece fark şanstan değil ayardan geliyor. Her epoch sonunda doğrulama kaybı NaN mı diye kontrol ediliyor. Gerekçe `ml/train.py` içinde.
+
+| Koşu | Model | Veri | Ne ölçülüyor |
+| --- | --- | --- | --- |
+| 0) `e6_m3` | YOLOv8m | 3 sınıf | v1 ile aynı kurulum, kararlı ayarla. A–C bununla karşılaştırılır. |
+| A) `e6_s3` | YOLOv8s | 3 sınıf | Küçük model 150 karoda daha mı iyi genelleşir? (11 M parametre, yolov8m 26 M) |
+| B) `e6_m2` | YOLOv8m | 2 sınıf | kaya_alani kutuları kaya'ya birleşir. Aynı dokunun iki ölçeğini ayırmaya çalışmak zarar mı veriyor? |
+| C) `e6_s2` | YOLOv8s | 2 sınıf | A ve B birlikte |
+| D) `e6_cls_s` | YOLOv8s-cls | 600 alt karo, 3 sınıf | Kutu yerine 80 m'lik parçayı sınıflandırmak (aşağıda) |
+
+**D · Karo sınıflandırma veri seti** (`ml/make_cls_dataset.py`):
+- 150 karonun her biri 2 × 2'ye bölündü: 600 alt karo, 320 px = 80 m. Bu, grid hücresine (70,4 m) yakın bir boyut.
+- Etiket mevcut kutulardan otomatik türetiliyor; öncelik sırası kum, kayalık, düz:
+
+| Sınıf | Kural | Eşiğin gerekçesi (600 alt karonun dağılımı) |
+| --- | --- | --- |
+| `kum` | kum_dalgasi kutularının birleşimi alt karonun ≥ %50'sini kaplıyor | Kaplama iki uçta toplanıyor: 115 alt karoda 0, 313'ünde ≥ 0,9. Ara değerler düz dağılmış, belirgin bir vadi yok. Bu yüzden "hücrenin çoğunluğu" kuralı seçildi. 0,3 ile 0,5 arası yalnızca 36 alt karoyu etkiliyor. |
+| `kayalik` | kaya_alani kaplaması ≥ 0,1 ya da alt karoda ≥ 2 kaya | 533 alt karoda kaya_alani 0, 518'inde kaya 0. Tek kaya etrafından dolaşılan bir engel, "kayalık arazi" değil. Etiketlemede çok kayalı karolarda kayaların yalnızca en belirgin 30–40'ı işaretlendiği için kaya sayısı bir alt sınır; eşik bu yüzden düşük tutuldu. |
+| `duz` | İkisi de değil | |
+
+- **Sayılar:** train kum 290, kayalık 50, düz 140; val kum 71, kayalık 14, düz 35.
+- **Bölme karo bazında:** Bir karonun 4 alt karosu Roboflow'daki tarafına gidiyor. Komşu alt karolar aynı sahneyi paylaştığı için alt karo bazında rastgele bölme val kümesine sızıntı yapardı.
+- **Sınırlamalar:**
+  - Sınıflar dengesiz: kayalık %11. Bu yüzden düz doğruluğun yanında sınıf dengeli doğruluk ve "her şeye kum de" taban çizgisi de raporlanıyor.
+  - Etiketler kutulardan türedi; kutuların hatası etiketlere de geçiyor.
+- Sayılar: [figures/e6_cls_dataset_stats.json](figures/e6_cls_dataset_stats.json).
+
+**Sonuçlar:** [koşular bitince ml/compare_runs.py tablosu buraya]
+
+### E10'da modelin kullanımı (not)
+
+- **Kutu değil yoğunluk:** Model haritada kutu çizmek için kullanılmayacak. E10'da tüm karolarda çalışacak; tespitler (ya da D'de sınıf olasılıkları) 70 m'lik grid hücresine **yoğunluk** olarak toplanacak: hücredeki kaya sayısı, kum kaplama oranı. Sonuç `hazard_ml.png` olacak. Kutu sınırının tam tutması (mAP50-95) bu kullanımda ikincil; asıl önemli olan, hücre ölçeğinde kumu ve kayayı doğru yerde bulmak (recall ve yanlış pozitif oranı).
+- **Füzyonda tek girdi değil:** YOLO katmanı, geçilebilirlik skorundaki girdilerden yalnızca biri. Diğerleri eğim (D5), termal eylemsizlik (D4) ve jeoloji birimi (D6). Model zayıf kalsa da rota hesabı onlarla çalışmaya devam eder. ML katmanı yalnızca, 20 m DEM'in ve 100 m termal verinin göremediği metre ölçeğindeki engeli ekliyor.
+- **Kapsam:** HiRISE mozaiğinin kapsadığı güneybatı bölümle sınırlı (D8). Kapsam dışındaki hücrelerde ML girdisi yok sayılır; ağırlık diğer girdilere dağıtılır.
+
+### Ek etiketleme: 2. parti (scripts/tile_batch2.py)
+
+- **Neden:** v1'de boş karo 7, kaya_alani kutusu 82 taneydi; model etiketsiz yerlerde kutu uyduruyordu.
+- **Seçim:**
+  - 100 yeni karo: kayalık 40, düz 53 (3'ü dokusuz), kum 7.
+  - Izgara ve kontrast germe E5 ile aynı (60–219).
+  - Eski 150 karo ve 8 komşusu aday dışı; bu, 893 karoyu dışarıda bırakıyor.
+  - En uzak nokta örneklemesi eski karolardan başlatıldı. 75 karo birbirine de bitişik değil. Alan dolduğu için kalan 25 karo eski karolara bitişik değil, ama birbirine bitişik olabilir. Yeniden eğitimde bitişik karolar train/val'de aynı tarafa konacak.
+- **Eşikler:**
+  - Düz: doku < kullanılabilir karoların %35'lik dilimi (18,3) ve eolyen < %10.
+  - Kayalık: kaya vekili birim ≥ %50 ve doku ≥ %60'lık dilim (24,2). Eksik kalan karolar için gevşek kriter: ≥ %40 ve medyan.
+  - Kum: eolyen ≥ %60.
+- **Çıktı:** `ml/roboflow_upload_2.zip` (18 MB), `ml/tiles_manifest_2.csv`. Görsel: [figures/e6_batch2_selection.png](figures/e6_batch2_selection.png). Sayılar: [figures/e6_batch2_stats.json](figures/e6_batch2_stats.json).
 
 ---
 

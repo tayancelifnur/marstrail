@@ -49,6 +49,25 @@ Roboflow sürümü: `marstrail-jezero` v1 "v1-150karo". 150 karo: 120 train, 30 
   - Negatif karoların çoğunda sonradan kum dalgası bulundu (15 karonun 14'ünde en az bir kutu var). Tamamen boş karo yalnızca 7 tane. Yani model "hiçbir şey yok" durumunu az görüyor; yanlış pozitif riskine E10'da bakılacak.
 - **Kapsam:** Karoların hepsi HiRISE mozaiğinin kapsadığı güneybatı bölümden (DATA_PIPELINE.md, D8). Model başka aydınlatma ya da çözünürlükteki görüntüye (ör. Mars Trek mozaiği) genellenmeyebilir.
 
+## 2. parti: 100 ek karo (E6 sonrası)
+
+**Yüklenecek dosya:** `C:\Users\ASUS\marstrail\ml\roboflow_upload_2.zip` (100 PNG, 18 MB). Karoları seçen script: `scripts/tile_batch2.py`. Karoların listesi ve seçilme nedenleri `ml/tiles_manifest_2.csv` dosyasında.
+
+**Neden bu karolar?** v1'de tamamen boş karo yalnızca 7 taneydi. Model etiketsiz yerlerde kum ya da kaya alanı uyduruyordu. kaya_alani da en zayıf sınıftı. Bu yüzden partinin dağılımı şöyle:
+- 40 kayalık karo
+- 53 düz karo (3'ü dokusuz)
+- 7 kum karosu
+
+Karoların hiçbiri eski 150 karoyla ya da onlara bitişik bir karoyla aynı değil. 75'i birbirine de bitişik değil; kalan 25'i alan dolduğu için birbirine bitişik olabilir.
+
+1. **Aynı projeye yükle:** `marstrail-jezero`. Karo adları aynı ızgaradan geliyor ve eskilerle çakışmıyor.
+2. **Aynı kurallarla etiketle:** sınıflar kaya, kaya_alani ve kum_dalgasi; tanımları yukarıda. Auto Label kullanabilirsin ama her karoyu elle kontrol et.
+3. **Boş karoyu boş bırak.** Düz karolarda gerçekten bir şey yoksa "Mark Null" işaretle. Bu partinin asıl amacı bu boş örnekler. Kutu uydurmak için zorlama.
+4. **Yeni sürüm oluştur (v2):**
+   - Ön işleme ve augmentation v1 ile aynı: yalnız Auto-Orient açık, augmentation yok.
+   - Train/valid oranı 80/20 kalabilir. Bölmeyi zaten kendimiz yeniden yapacağız: bitişik karolar aynı tarafa gidecek ki sızıntı olmasın.
+5. **Export:** YOLOv8 formatında indir ve `C:\Users\ASUS\marstrail\ml\dataset_v2\` klasörüne aç. **`ml\dataset\` klasörünün üzerine yazma**, v1 ablation koşuları ona bağlı.
+
 ## Takılırsan
 
 Kartın B planı: **80 karo + tek sınıf (`kum_dalgasi`)**. Kum karoları hem daha hızlı etiketlenir hem demoda (Opportunity hikâyesi) daha önemli.

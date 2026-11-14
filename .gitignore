@@ -24,3 +24,7 @@ ml/roboflow_upload/
 ml/runs/
 ml/weights/
 ml/models/
+ml/roboflow_upload_2/
+ml/dataset_2cls/
+ml/dataset_cls/
+ml/dataset_v2/
