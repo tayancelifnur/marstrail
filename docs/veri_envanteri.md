@@ -7,7 +7,7 @@ Koordinatlar üründe derece cinsinden, doğu pozitif, Mars 2000 küresi (R = 33
 | # | Dosya | Görev / araç | Alet | Veri tarihi | Çözünürlük, kapsam | Biçim, projeksiyon | Üründe | Durum |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | D1 | [M20_waypoints.json](https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_waypoints.json) | Mars 2020 / Perseverance | Rover konum çözümü (lokalizasyon) | Sol 13–2022 | 708 nokta, her Sol'ün son konumu; lon, lat, yükseklik, panorama linki | GeoJSON, derece | Nokta koordinatları ve "Perseverance buraya Sol X'te geldi" (E7) | ✅ |
-| D2 | [M20_traverse.json](https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_traverse.json) | Mars 2020 / Perseverance | Rover sürüş izi | Sol 14–2022 | 559 sürüş çizgisi (Sol, uzunluk, SCLK) | GeoJSON LineString, derece | Tehlike haritası doğrulaması (E10): yolun %100'ü "geçilebilir" çıkıyor (E3) | ✅ |
+| D2 | [M20_traverse.json](https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_traverse.json) | Mars 2020 / Perseverance | Rover sürüş izi | Sol 14–2022 | 559 sürüş çizgisi (Sol, uzunluk, SCLK) | GeoJSON LineString, derece | Tehlike haritası doğrulaması (E10): yolun %100'ü (679 hücre) "geçilebilir" çıkıyor (E3) | ✅ |
 | D3 | [m20_heli_flight_path.json](https://mars.nasa.gov/mmgis-maps/M20/Layers/json/m20_heli_flight_path.json) | Mars 2020 / Ingenuity | Helikopter uçuş izi | Uçuş 1 (Sol 58, 19 Nis 2021) – Uçuş 72 (Sol 1036) | 72 uçuş çizgisi (uçuş no, Sol, uzunluk) | GeoJSON LineString, derece | Ingenuity tarih pini; İHA arama senaryosuna ilham (E13) | ✅ |
 | D4 | [Jezero_Thermal_Inertia_v1.tiff](https://zenodo.org/record/4931348) | Mars Odyssey | THEMIS (termal kızılötesi) | Zenodo kaydı 4931348, 2021 | 100 m/piksel, 890×890 (~89 km, bütün krater) | GeoTIFF float32, SimpleCylindrical | Zemin gevşekliği katmanı ve füzyondaki termal terimi (E3) | ✅ |
 | D5 | [M20_JezeroCrater_CTXDEM_20m.tif](https://planetarymaps.usgs.gov/mosaic/mars2020_trn/CTX/ScienceInvestigationMaps_JPL/M20_JezeroCrater_CTXDEM_20m.tif) ([sayfa](https://astrogeology.usgs.gov/search/map/mars_2020_science_investigation_ctx_dem_mosaic)) | Mars Reconnaissance Orbiter | CTX stereo → DEM (USGS / JPL, Mars 2020 iniş alanı ürünü) | 2020 | 20 m/piksel, 4456×5067 (~89×101 km) | GeoTIFF float32, Jezero_Crater_Projection | Yükseklik, eğim, arazi gölgesi, `grid.json` (E3) | ✅ |
@@ -29,3 +29,55 @@ Koordinatlar üründe derece cinsinden, doğu pozitif, Mars 2000 küresi (R = 33
 ## Veri türleri (6)
 
 Optik (HiRISE, CTX) · topografik (CTX DEM) · termal (THEMIS) · jeolojik (SIM 3464) · yer görüntüsü (Navcam / Mastcam-Z) · hareket izi (rover ve Ingenuity yolları).
+
+## Önizlemeler: ham ve işlenmiş
+
+Her görselde solda indirilen ham veri, sağda üründe kullanılan işlenmiş hali var. Kırmızı (D4'te turkuaz) çerçeve çalışma alanı. Yeniden üretmek için: `venv\Scripts\python scripts\make_previews.py` (~40 sn). Sayılar ve yöntemler: [DATA_PIPELINE.md](DATA_PIPELINE.md).
+
+### D1 · Perseverance konumları
+
+708 noktanın tamamı (renk = Sol) → alan içindeki 516 nokta ve olay günü konumundan üretilen nokta kartı pinleri.
+
+![D1](figures/onizleme/d1.png)
+
+### D2 · Perseverance sürüş izi
+
+46 km'lik iz → 256² grid'de rover'ın geçtiği 679 hücre (turkuaz) ve geçilmez hücreler (koyu kırmızı). Rover hücrelerinin %100'ü geçilebilir.
+
+![D2](figures/onizleme/d2.png)
+
+### D3 · Ingenuity uçuşları
+
+72 uçuşun izi → Uçuş 1 kalkış noktası (airfield pini). İzler İHA arama senaryosu (E13) için duruyor.
+
+![D3](figures/onizleme/d3.png)
+
+### D4 · THEMIS termal eylemsizlik
+
+Bütün mozaik (gri = NoData, 298.150 px) → çalışma alanına kırpılmış, %2–98 aralığıyla 0–1'e ölçeklenmiş katman. Turuncu = gevşek zemin.
+
+![D4](figures/onizleme/d4.png)
+
+### D5 · CTX DEM (20 m)
+
+89 × 101 km'lik yükseklik modeli → 20 m'de hesaplanan eğim ve gölgeli kabartma (≥25° kırmızı).
+
+![D5](figures/onizleme/d5.png)
+
+### D6 · USGS SIM 3464 jeoloji
+
+1304 poligonun hepsi (lejantta kaynaktaki "Crater riim" yazım hatası görülüyor) → alan içindeki 54 poligon, düzeltilmiş ve rasterize edilmiş.
+
+![D6](figures/onizleme/d6.png)
+
+### D7 · Perseverance ham görüntüleri
+
+Sol 415'in 455 kaydından eşit aralıklı 12 ham örnek: alt kare, kalibrasyon, rover donanımı, stereo ikizler. Sağda 7 Sol'ün 1795 kaydından eleme hunisiyle seçilen 10 fotoğraf.
+
+![D7](figures/onizleme/d7.png)
+
+### D8 · HiRISE ortogörüntü (25 cm)
+
+4,7 GB mozaik (1/64 önizleme), çalışma alanı ve seçilen 150 karo → örnek karolar (kum, kaya, negatif).
+
+![D8](figures/onizleme/d8.png)

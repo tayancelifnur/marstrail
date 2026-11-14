@@ -47,8 +47,8 @@ Ham NASA/USGS verisinden tarayıcıdaki haritaya kadar her adım: ne aldık, ney
 - **Neden bu veri:** Tehlike haritamızı bağımsız bir gerçekle sınamak için. Rover'ın fiilen geçtiği yer "geçilebilir" olmalı.
 - **Ham içerik:** 1,7 MB, 559 sürüş çizgisi, 36.661 köşe noktası, toplam 46,0 km.
 - **Atılanlar:** Çalışma alanı dışındaki 11.430 köşe. Alan içinde 25.231 köşe kaldı.
-- **İşlem:** Köşeler 256² grid hücrelerine düşürüldü, rover yolundan 675 benzersiz hücre çıktı.
-- **Sonuç (E3):** 675 hücrenin %100'ü geçilebilir. Tam doğrulama E10'da yapılacak, rastgele hücrelerle kıyas da eklenecek. Geçilmez oranı düşük (%0,3) olduğundan %100 tek başına güçlü bir kanıt değil.
+- **İşlem:** Köşeler 256² grid hücrelerine düşürüldü, rover yolundan 679 benzersiz hücre çıktı (hücre indeksi `floor`, walkback.js ile aynı yöntem; E3'teki ilk hızlı kontrolde yuvarlama yüzünden 675 görünmüştü).
+- **Sonuç (E3):** 679 hücrenin %100'ü geçilebilir. Tam doğrulama E10'da yapılacak, rastgele hücrelerle kıyas da eklenecek. Geçilmez oranı düşük (%0,3) olduğundan %100 tek başına güçlü bir kanıt değil.
 
 ## D3 · Ingenuity uçuşları (m20_heli_flight_path.json)
 
@@ -248,7 +248,7 @@ Ham NASA/USGS verisinden tarayıcıdaki haritaya kadar her adım: ne aldık, ney
 | # | Veri seti | Ham | Atılan | Son | Yöntem |
 | --- | --- | --- | --- | --- | --- |
 | D1 | Perseverance konumları | 0,6 MB · 708 nokta × 23 alan | 19 alan (duruş, sayaçlar) | 5 pin konumu (+ D3'ten 1) | Sol eşleme: o Sol'e eşit ya da önceki son kayıt |
-| D2 | Sürüş izi | 1,7 MB · 559 çizgi, 36.661 köşe | 11.430 köşe (alan dışı) | 675 grid hücresi | Rasterize → doğrulama |
+| D2 | Sürüş izi | 1,7 MB · 559 çizgi, 36.661 köşe | 11.430 köşe (alan dışı) | 679 grid hücresi | Rasterize → doğrulama |
 | D3 | Ingenuity uçuşları | 2,3 MB · 72 uçuş | 71 uçuş (pin için) | 1 tarih pini | Seçim |
 | D4 | THEMIS termal eylemsizlik | 1,7 MB · 792.100 px, 100 m | 778.772 px (alan dışı; 298.150 NoData dahil), 534 px kırpıldı | 1024² + 256², 0–1 | Reprojeksiyon, bilinear, %2–98 normalizasyon |
 | D5 | CTX DEM | 90,3 MB · 22,6 M px, 20 m | 22,26 M px (alan dışı), 13.977 NoData | 1024² (×2 PNG) + 256² grid | 20 m'de eğim, average, hillshade |

@@ -130,3 +130,8 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
   - Mobil düzeltme: detay kartı üst barın altına kayıyordu, artık alttan açılıyor.
 - **Dosyalar:** `web/index.html`, `web/app.js`, `web/style.css`
 - **Kontrol:** 390×844 telefon görünümünde çekmece aç/kapa, astronot formu ve Jezero uçuşu ekran görüntüsüyle denendi. Gerçek telefonda henüz denenmedi.
+
+## Önizlemeler · Cmt 14 Kas 2026
+
+- **Ne yapıldı:** `scripts/make_previews.py` → `docs/figures/onizleme/d1.png … d8.png`. Her veri seti için ham ve işlenmiş hal yan yana. `docs/veri_envanteri.md`'ye eklendi.
+- **Düzeltme:** D2 rover hücre sayısı 675 değil, 679. E3'teki hızlı kontrolde yuvarlama hatası vardı; walkback.js ile aynı `floor` yöntemiyle 679. DATA_PIPELINE güncellendi.
