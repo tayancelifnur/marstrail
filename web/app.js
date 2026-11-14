@@ -1083,7 +1083,7 @@
     if ((r.missions || []).length) parts.push(el("p", { class: "muted small" }, "Görevler: " + r.missions.join(", ")));
 
     // G6: noktayı EVA planına durak olarak ekle
-    if (r.id !== "base") {
+    if (canBeStop(r)) {
       const inPlan = evaPlan.stops.some((s) => s.id === r.id);
       const btn = el("button", { type: "button", class: inPlan ? "" : "primary" }, inPlan ? "Planda ✓" : "Plana ekle");
       btn.disabled = inPlan;
@@ -1437,6 +1437,10 @@
   };
 
   const regionById = (id) => regions.find((r) => r.id === id);
+  // Durak olamayanlar: üs (plan zaten üste döner) ve Jezero Krateri (45 km'lik kraterin tamamı, pini
+  // merkezde; durak yapılınca 34 sa / 43 km'lik anlamsız plan çıkıyordu)
+  const NOT_A_STOP = new Set(["base", "jezero"]);
+  const canBeStop = (r) => r && !NOT_A_STOP.has(r.id);
   // Panelde ve kartta kısa ad: "Delta önü (Hawksbill…)" → "Delta önü"; ayırıcısı olmayan uzun adlar elle
   const SHORT_NAMES = { three_forks: "Three Forks", airfield: "Ingenuity alanı" };
   const shortName = (r) => (r ? SHORT_NAMES[r.id] || r.name.split(/ [–(]/)[0] : "?");
@@ -1472,12 +1476,12 @@
     // Seçim kutusu: henüz planda olmayan noktalar (üs hariç; plan zaten üste döner)
     const sel = document.getElementById("planAdd");
     sel.replaceChildren(el("option", { value: "" }, "Nokta seç…"),
-      ...regions.filter((r) => r.id !== "base" && !evaPlan.stops.some((s) => s.id === r.id))
+      ...regions.filter((r) => canBeStop(r) && !evaPlan.stops.some((s) => s.id === r.id))
         .map((r) => el("option", { value: r.id }, shortName(r))));
   }
 
   function addPlanStop(id) {
-    if (!regionById(id) || evaPlan.stops.some((s) => s.id === id)) return;
+    if (!canBeStop(regionById(id)) || evaPlan.stops.some((s) => s.id === id)) return;
     evaPlan.stops.push({ id, dwellMin: DEFAULT_DWELL_MIN });
     renderPlanStops();
     replanIfActive();
@@ -1680,6 +1684,10 @@
       (total > RAD_LIMIT_MSV ? " ⚠ eşik (" + RAD_LIMIT_MSV + " mSv) aşılıyor" : " (eşik " + RAD_LIMIT_MSV + " mSv)");
   }
 
+  // eva.js kalan yüzdeyi doğrusal düşürüyor, uzun planda eksiye iniyor ("%-38"): kaynak yolda biter
+  const pctLeft = (v) => (v < 0 ? "%0 (yolda biter)" : "%" + v);
+  const fixNegPct = (txt) => String(txt).replace(/%-\d+(?:[.,]\d+)?/g, "%0 (yolda biter)");
+
   function planCard(p) {
     const t = p.totals;
     const first = p.timeline[0], last = p.timeline[p.timeline.length - 1];
@@ -1695,7 +1703,7 @@
         ["Toplam süre", fmtMin(t.minutes) + " (yürüyüş " + fmtMin(t.walkMin) + ")"],
         ["Mesafe", (t.distanceM / 1000).toLocaleString("tr-TR", { maximumFractionDigits: 2 }) + " km"],
         ["O₂", t.o2UsedMin + " dk harcanır, " + o2LeftText(t) + " (nabız ×" + t.multiplier.toFixed(2) + ")"],
-        ["Batarya / su", "dönüşte %" + t.batteryPct + " / %" + t.waterPct],
+        ["Batarya / su", "dönüşte " + pctLeft(t.batteryPct) + " / " + pctLeft(t.waterPct)],
         ["Radyasyon", radiationText(p)],
       ]),
     ];
@@ -1711,7 +1719,7 @@
     parts.push(el("ul", { class: "gonogo" }, p.goNoGo.map((c) =>
       el("li", { class: c.status },
         el("span", { class: "gstatus" }, STATUS_TEXT[c.status]),
-        el("span", null, el("b", null, c.label), el("br"), el("span", { class: "muted small" }, c.detail))
+        el("span", null, el("b", null, c.label), el("br"), el("span", { class: "muted small" }, fixNegPct(c.detail)))
       ))));
 
     parts.push(el("h4", null, "Zaman çizelgesi"));

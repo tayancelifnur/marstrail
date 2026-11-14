@@ -370,3 +370,12 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Düzeltildi:** Yükseklik grafiğinin ekseni rotanın sonunda bitiyor (11,4 km'lik rotada 15 km'ye uzuyordu).
 - **Elif'e (scripts/build_regions.py, E7):** Tarihçeler ince (5 noktada 1 olay, kum alanında 0) ve 3 kaynak zayıf: Rochette → Wikipedia'nın rastgele bir aynası (kaweah.freedombox.rocks/kiwix), Three Forks → spaceodysseyhub.com, Cheyava Falls → skyatnightmagazine. NASA birincil sayfalarıyla değiştirilmeli. Cheyava Falls'a Eylül 2025 "olası biyoimza" (Sapphire Canyon numunesi, Nature) duyurusu eklenebilir.
 - **Dosyalar:** `web/app.js`
+
+## G6 (gözden geçirme) · O₂ bölgeleri ve planlayıcı · Paz 15 Kas 2026, 00:55
+
+- **Kontrol (kartın satırı):** O₂ 480→150, nabız 85→130: bölgeler 288 ms'de yeniden çizildi, yeşil alan 130,1 → 6,6 km². Planlayıcının her düğmesi denendi: durak ekle (Rochette → 6,5 km, 5 sa 7 dk), kalma süresi 90 dk (6 sa 2 dk, O₂ %28), sıra değiştir, çıkar, çıkış "Şimdi" (gün batımı → NO-GO), Planı sil (yürüyüş düğmesi kapanıyor).
+- **Eleştiri → düzeltme:**
+  - "Jezero Krateri" (45 km'lik kraterin tamamı, pini merkezde) durak olarak eklenebiliyordu → 34 sa / 43 km'lik anlamsız plan. Artık durak listesinde ve "Plana ekle"de yok (`NOT_A_STOP`).
+  - Uzun planda batarya/su "Dönüşte %-38" görünüyordu → "%0 (yolda biter)" (plan kartı ve Go/No-Go satırları).
+- **Elif'e not:** eva.js `batteryPct`/`waterPct` sıfırın altına iniyor; Go/No-Go metninde kaynağın hangi dakikada bittiği yazsa daha iyi olur.
+- **Dosyalar:** `web/app.js`
