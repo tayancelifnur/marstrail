@@ -1,4 +1,4 @@
-"""E6 ablation karşılaştırması: docs/figures/e6_<run>_metrics.json dosyalarını tabloya döker, seçilen modeli kopyalar.
+"""E6 ablation karşılaştırması: docs/figures/<run>_metrics.json dosyalarını tabloya döker, seçilen modeli kopyalar.
 
 Çalıştır:
     venv\\Scripts\\python ml\\compare_runs.py                    # tablo (markdown) + docs/figures/e6_ablation.json
@@ -17,7 +17,7 @@ LABEL = {"e6v1": "v1 (ıraksadı)", "e6_m3": "0) m, 3 sınıf", "e6_s3": "A) s, 
 
 
 def load(run):
-    p = FIG / ("e6v1_metrics.json" if run == "e6v1" else f"e6_{run}_metrics.json")
+    p = FIG / ("e6v1_metrics.json" if run == "e6v1" else f"{run}_metrics.json")
     return json.loads(p.read_text(encoding="utf-8")) if p.exists() else None
 
 

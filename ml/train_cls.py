@@ -2,7 +2,7 @@
 
 Çalıştır (önce ml\\make_cls_dataset.py):
     venv\\Scripts\\python ml\\train_cls.py --name e6_cls_s
-Çıktı:  ml/runs/<name>/, docs/figures/e6_<name>_metrics.json (+ confusion matrix, results.png)
+Çıktı:  ml/runs/<name>/, docs/figures/<name>_metrics.json (+ confusion matrix, results.png)
 """
 import argparse
 import json
@@ -79,10 +79,10 @@ def main():
         "train_minutes": round(float(rows[-1]["time"]) / 60, 1),
         "params_M": round(sum(p.numel() for p in m.model.parameters()) / 1e6, 1),
     }
-    (FIG / f"e6_{args.name}_metrics.json").write_text(json.dumps(res, ensure_ascii=False, indent=2), encoding="utf-8")
+    (FIG / f"{args.name}_metrics.json").write_text(json.dumps(res, ensure_ascii=False, indent=2), encoding="utf-8")
     for src in ["results.png", "confusion_matrix_normalized.png"]:
         if (run / src).exists():
-            shutil.copy2(run / src, FIG / f"e6_{args.name}_{src}")
+            shutil.copy2(run / src, FIG / f"{args.name}_{src}")
     print(json.dumps(res, ensure_ascii=False, indent=2))
 
 

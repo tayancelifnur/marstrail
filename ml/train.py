@@ -9,7 +9,7 @@
 Girdi : ml/dataset/ (Roboflow "marstrail-jezero v1-150karo", YOLOv8 export, 120 train / 30 valid)
         --classes2 ile ml/dataset_2cls/ otomatik üretilir (aynı görüntüler, kaya_alani kutuları kaya'ya birleşir)
 Çıktı : ml/runs/<name>/ (Ultralytics: results.png, confusion_matrix*.png, weights/best.pt)
-        docs/figures/e6_<name>_metrics.json + e6_<name>_*.png → ml/compare_runs.py karşılaştırır ve en iyi modeli
+        docs/figures/<name>_metrics.json + <name>_*.png → ml/compare_runs.py karşılaştırır ve en iyi modeli
         ml/models/yolo_marstrail.pt yapar (E10 bunu kullanır).
 """
 import argparse
@@ -143,12 +143,12 @@ def main():
     res["best_epoch"] = int(float(best_row["epoch"]))
     res["train_minutes"] = round(float(rows[-1]["time"]) / 60, 1)
     res["nan_val_epochs"] = [int(float(r["epoch"])) for r in rows if r.get("val/box_loss", "") == "nan"]
-    (FIG / f"e6_{args.name}_metrics.json").write_text(json.dumps(res, ensure_ascii=False, indent=2), encoding="utf-8")
+    (FIG / f"{args.name}_metrics.json").write_text(json.dumps(res, ensure_ascii=False, indent=2), encoding="utf-8")
 
     # Sunum/belge için önemli şekilleri docs/figures'a kopyala (ml/runs git'e girmez)
     for src in ["results.png", "confusion_matrix_normalized.png", "BoxPR_curve.png", "val_batch0_pred.jpg"]:
         if (run / src).exists():
-            shutil.copy2(run / src, FIG / f"e6_{args.name}_{src}")
+            shutil.copy2(run / src, FIG / f"{args.name}_{src}")
     print(json.dumps(res, ensure_ascii=False, indent=2))
     if res["nan_val_epochs"]:
         print(f"UYARI: doğrulama kaybı şu epoch'larda NaN: {res['nan_val_epochs']}")
