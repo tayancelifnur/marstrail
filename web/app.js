@@ -111,25 +111,43 @@
     backgroundColor: Cesium.Color.fromCssColorString("#0d0b0a").withAlpha(0.72),
     backgroundPadding: new Cesium.Cartesian2(6, 3),
   };
+  // Zoom sınırları: demoda fare tekerleği kazara Mars'ı nokta yapmasın ya da kamerayı araziye gömmesin.
+  // En yakın 100 m (HiRISE 25 cm/piksel ayrıntısı bu mesafede okunuyor), en uzak 30.000 km
+  // (açılış görünümü 11.000 km; Mars çapı ~6800 km, küre ekranı rahat dolduruyor).
+  scene.screenSpaceCameraController.minimumZoomDistance = 100;
+  scene.screenSpaceCameraController.maximumZoomDistance = 3.0e7;
   globe.baseColor = Cesium.Color.fromCssColorString("#5a2e1c");
   scene.backgroundColor = Cesium.Color.BLACK;
 
-  // --- Güneş ışığı ---
-  // Güneş Jezero'ya göre sabit: kuzeybatıdan (azimut 315°), ufkun 30° üstünden.
-  // Neden: Elif'in hillshade.png katmanı da KB'dan aydınlatılıyor; gölgeler tutarlı olsun.
-  // Bu bir sunum tercihi, gerçek Güneş konumu değil (Mars saati E8'de gelecek).
-  const SUN = { azimuthDeg: 315, elevationDeg: 30 };
-  function sunLightDirection() {
-    const az = Cesium.Math.toRadians(SUN.azimuthDeg);
-    const el = Cesium.Math.toRadians(SUN.elevationDeg);
+  // --- Güneş ışığı: gerçek Mars Güneşi (üst bardaki saatle aynı an) ---
+  // Güneş altı nokta: enlem = Güneş'in sapması δs, boylam = Jezero boylamı − (LTST − 12) × 15°
+  // (yerel gerçek güneş saati 12:00'de Güneş Jezero meridyeninde; Mars saatte 15° döner).
+  // δs ve LTST Elif'in marstime.js'inden (Mars24, Allison & McEwen 2000). Güneş sonsuz uzakta:
+  // ışık yönü = Güneş altı noktadaki yüzey normalinin tersi. Böylece küredeki gece-gündüz çizgisi
+  // üst bardaki LMST ile tutarlı. Yakında (≤ 2500 km) aydınlatma zaten soluyor, arazi tam aydınlık
+  // kalıyor; Elif'in hillshade.png katmanının KB ışığıyla çelişmiyor.
+  // Yedek (marstime.js yüklenemezse): Jezero'da KB'dan, ufkun 30° üstünden (hillshade ile aynı yön).
+  function sunLightDirection(date) {
+    if (window.MarsTime) {
+      const t = MarsTime.at(date);
+      const decl = MarsTime._mars24(date.getTime()).decl; // derece
+      const subLon = MarsTime.JEZERO.lonE - (t.ltstHours - 12) * 15;
+      const n = MARS.geodeticSurfaceNormalCartographic(Cesium.Cartographic.fromDegrees(subLon, decl));
+      return Cesium.Cartesian3.negate(n, n);
+    }
+    const az = Cesium.Math.toRadians(315), el = Cesium.Math.toRadians(30);
     // Yerel doğu-kuzey-yukarı ekseninde Güneş'e doğru birim vektör
     const toSunLocal = new Cesium.Cartesian3(Math.sin(az) * Math.cos(el), Math.cos(az) * Math.cos(el), Math.sin(el));
     const enu = Cesium.Transforms.eastNorthUpToFixedFrame(Cesium.Cartesian3.fromDegrees(JEZERO.lon, JEZERO.lat, 0, MARS), MARS);
     const toSun = Cesium.Matrix4.multiplyByPointAsVector(enu, toSunLocal, new Cesium.Cartesian3());
-    // Işığın yönü Güneş'ten sahneye doğrudur
-    return Cesium.Cartesian3.normalize(Cesium.Cartesian3.negate(toSun, toSun), toSun);
+    return Cesium.Cartesian3.normalize(Cesium.Cartesian3.negate(toSun, toSun), toSun); // ışık Güneş'ten sahneye
   }
-  scene.light = new Cesium.DirectionalLight({ direction: sunLightDirection(), intensity: 2.0 });
+  scene.light = new Cesium.DirectionalLight({ direction: sunLightDirection(new Date()), intensity: 2.0 });
+  // Cesium'un kendi Güneş/Ay diskleri Dünya'nın gökyüzüne göre çiziliyor (Güneş yanlış yönde, Ay Dünya'nın Ay'ı): gizle
+  if (scene.sun) scene.sun.show = false;
+  if (scene.moon) scene.moon.show = false;
+  // Mars Güneşi saatte 15° ≈ Dünya dakikasında 0,24° kayar: 30 sn'de bir güncellemek yeterli
+  setInterval(() => (scene.light.direction = sunLightDirection(new Date())), 30000);
   globe.enableLighting = true; // uzaktan bakınca gece-gündüz çizgisi görünür
   // Mars küçük (Dünya'nın ~yarısı) olduğu için solma mesafeleri küçültüldü:
   // kamera 2500 km'den yakınsa Jezero tam aydınlık, 6000 km'den uzaksa tam gölgeli küre.

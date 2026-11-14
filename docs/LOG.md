@@ -311,3 +311,10 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
   - 2 sınıflı modelde kenarı ≥ 10 m olan kaya kutusu kaya_alani sayıldı (kaya p90 9,4 m, kaya_alani p10 10,8 m).
   - Güven eşiği 0,25, val'e göre ayarlanmadı.
   - Eşitlikte küçük model seçildi.
+
+## G1 (gözden geçirme) · Gerçek Mars Güneşi + zoom sınırları · Cmt 14 Kas 2026, 23:05
+
+- **Eleştiri:** Güneş Jezero'da sabit KB/30° idi; küredeki gece-gündüz çizgisi üst bardaki LMST ile uyuşmuyordu. Zoom sınırı yoktu (tekerlek kazara Mars'ı nokta yapıyor ya da kamerayı araziye indiriyordu). Cesium'un kendi Güneş diski Dünya'ya göre çiziliyordu (yanlış yönde).
+- **Ne yapıldı:** Işık yönü = Güneş altı noktanın tersi; enlem = δs, boylam = Jezero − (LTST − 12) × 15° (marstime.js, Mars24). 30 sn'de bir güncelleniyor. marstime.js yoksa eski KB/30° yedek. Cesium Güneş/Ay diskleri gizli. Zoom: en yakın 100 m, en uzak 30.000 km.
+- **Dosyalar:** `web/app.js`, `web/index.html` (script yorumları düzeltildi)
+- **Kontrol:** Jezero'da Güneş yüksekliği uygulamadan 67,04°, formülden (sin h = sin φ sin δ + cos φ cos δ cos H) 67,02°; isDay ile tutarlı. LTST 13:28 → Güneş altı boylam 55,2°D (Jezero'nun 22° batısı). Fare tekerleğiyle: dışarı 30.000 km'de, içeri 100 m'de duruyor.
