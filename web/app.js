@@ -508,7 +508,7 @@
     return el("dl", { class: "kv" }, pairs.flatMap(([k, v]) => [el("dt", null, k), el("dd", null, String(v))]));
   }
 
-  // --- G3: Astronotlar (G4'te tam profil formu gelecek) ---
+  // --- G3/G4: Astronotlar ---
   let astronauts = [];
   let selectedAstroId = null;
 
@@ -518,24 +518,129 @@
     return el("span", { class: "zone " + (zone || "") }, zone ? labels[zone] : "BÖLGE –");
   }
 
+  // --- G4: Astronot profili ---
+  // Form alanları. min/max tarayıcı doğrulaması için; değerler varsayım.
+  // warn: değer bu sınırı geçince kartta kırmızı görünür (G6'daki Go/No-Go'ya da girecek).
+  const PROFILE_FIELDS = [
+    { key: "name", label: "Ad", type: "text" },
+    { key: "mass_kg", label: "Kilo", unit: "kg", min: 40, max: 150, step: 1 },
+    { key: "suit", label: "Giysi", type: "text" },
+    // O₂ üst sınırı giysi kapasitesi (astronauts.json: o2_capacity_min; xEMU ~8 saat varsayımı)
+    { key: "o2_min", label: "O₂", unit: "dk", min: 0, max: (a) => a.o2_capacity_min, step: 1,
+      warn: (v, a) => v < a.o2_capacity_min * 0.25 },               // %25 altı: yeşil bölge payı kadar
+    { key: "battery_pct", label: "Batarya", unit: "%", min: 0, max: 100, step: 1, warn: (v) => v < 20 },
+    { key: "water_pct", label: "Su", unit: "%", min: 0, max: 100, step: 1, warn: (v) => v < 20 },
+    // Nabız 150: Apollo 14'te Shepard'ın değeri; PLAN.md §5'te O₂ tüketimi bu noktada ×1,6
+    { key: "heart_rate", label: "Nabız", unit: "atım/dk", min: 40, max: 200, step: 1, warn: (v) => v >= 150 },
+    // Yük 30 kg üstü: Tobler düzeltmesinde hız %30'dan fazla düşüyor (1 − yük/100)
+    { key: "load_kg", label: "Yük", unit: "kg", min: 0, max: 60, step: 0.5, warn: (v) => v > 30 },
+    // 1 mSv: Mars yüzeyinde ~1,5 sol'lük doz (Curiosity RAD ~0,64 mSv/gün); EVA başına uyarı eşiği varsayımı
+    { key: "radiation_msv", label: "Radyasyon", unit: "mSv", min: 0, max: 50, step: 0.01, warn: (v) => v > 1 },
+  ];
+
+  const STORAGE_KEY = "marstrail.astronauts.v1";
+
+  function loadSaved() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+    } catch {
+      return {};
+    }
+  }
+
+  function saveAll() {
+    const data = {};
+    astronauts.forEach((a) => {
+      data[a.id] = {};
+      PROFILE_FIELDS.forEach((f) => (data[a.id][f.key] = a[f.key]));
+    });
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      return true;
+    } catch {
+      return false; // gizli pencere vb.: kaydedilemedi ama uygulama çalışmaya devam eder
+    }
+  }
+
+  const fmtNum = (v) => Number(v).toLocaleString("tr-TR", { maximumFractionDigits: 2 });
+  const isWarn = (f, a) => (f.warn ? f.warn(Number(a[f.key]), a) : false);
+
+  // Profil değişince haber ver: G6'da O₂ bölgeleri bunu dinleyip yeniden çizecek.
+  function emitAstronautChange(a) {
+    window.dispatchEvent(new CustomEvent("marstrail:astronaut", { detail: a }));
+  }
+
   function astroDetail(a) {
-    return el(
-      "div",
-      null,
+    const form = el("form", { class: "profile" });
+
+    const rows = PROFILE_FIELDS.map((f) => {
+      const input = el("input", { name: f.key, type: f.type || "number", required: "" });
+      if (!f.type) {
+        input.min = f.min;
+        input.max = typeof f.max === "function" ? f.max(a) : f.max;
+        input.step = f.step;
+        input.inputMode = "decimal";
+      }
+      input.value = a[f.key];
+      const row = el(
+        "label",
+        { class: "prow" + (isWarn(f, a) ? " warn" : "") },
+        el("span", { class: "plabel" }, f.label),
+        input,
+        el("span", { class: "punit" }, f.unit || "")
+      );
+      return row;
+    });
+
+    const status = el("p", { class: "pstatus muted small" }, "");
+    const saveBtn = el("button", { type: "submit", class: "primary" }, "Güncelle");
+    const resetBtn = el("button", { type: "button" }, "Varsayılana dön");
+
+    form.append(
       el("h3", null, a.name),
       el("p", { class: "muted" }, a.role),
-      zoneBadge(a.zone),
-      kvList([
-        ["Giysi", a.suit],
-        ["Kilo", a.mass_kg + " kg"],
-        ["O₂", a.o2_min + " / " + a.o2_capacity_min + " dk"],
-        ["Batarya", "%" + a.battery_pct],
-        ["Su", "%" + a.water_pct],
-        ["Nabız", a.heart_rate + " atım/dk"],
-        ["Yük", a.load_kg + " kg"],
-        ["Radyasyon", a.radiation_msv + " mSv"],
-      ])
+      el("div", { class: "zone-line" }, zoneBadge(a.zone), el("span", { class: "muted small" }, zoneText(a.zone))),
+      ...rows,
+      el("div", { class: "controls" }, saveBtn, resetBtn),
+      status
     );
+
+    form.addEventListener("submit", (ev) => {
+      ev.preventDefault();
+      if (!form.reportValidity()) return;
+      PROFILE_FIELDS.forEach((f) => {
+        const v = form.elements[f.key].value;
+        a[f.key] = f.type ? v.trim() : Number(v);
+      });
+      const ok = saveAll();
+      renderAstronauts();
+      showDetail(astroDetail(a)); // uyarı renklerini tazele
+      detailBody.querySelector(".pstatus").textContent = ok
+        ? "Kaydedildi · " + new Date().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })
+        : "Güncellendi ama tarayıcı kaydetmeye izin vermedi.";
+      emitAstronautChange(a);
+    });
+
+    resetBtn.addEventListener("click", () => {
+      const def = defaultAstronauts.find((x) => x.id === a.id);
+      if (!def) return;
+      PROFILE_FIELDS.forEach((f) => (a[f.key] = def[f.key]));
+      saveAll();
+      renderAstronauts();
+      showDetail(astroDetail(a));
+      detailBody.querySelector(".pstatus").textContent = "astronauts.json değerlerine dönüldü.";
+      emitAstronautChange(a);
+    });
+
+    return form;
+  }
+
+  function zoneText(zone) {
+    return {
+      green: "Şu an YEŞİL bölgedesin: rahat dönüş",
+      yellow: "Şu an SARI bölgedesin: dönüş payı yok",
+      red: "Şu an KIRMIZI bölgedesin: dönüş O₂'ye yetmiyor",
+    }[zone] || "Bölge hesabı O₂ bölgeleriyle gelecek";
   }
 
   function renderAstronauts() {
@@ -550,10 +655,18 @@
           el(
             "div",
             { class: "astro-vitals" },
-            el("span", null, "O₂ " + a.o2_min + " dk"),
-            el("span", null, "♥ " + a.heart_rate),
-            el("span", null, "🔋 %" + a.battery_pct)
-          )
+            ...[
+              ["o2_min", "O₂ " + fmtNum(a.o2_min) + " dk"],
+              ["heart_rate", "♥ " + fmtNum(a.heart_rate)],
+              ["battery_pct", "🔋 %" + fmtNum(a.battery_pct)],
+              ["water_pct", "💧 %" + fmtNum(a.water_pct)],
+            ].map(([k, txt]) =>
+              el("span", { class: isWarn(PROFILE_FIELDS.find((f) => f.key === k), a) ? "warn" : "" }, txt)
+            )
+          ),
+          el("div", { class: "o2bar" }, el("i", {
+            style: "width:" + Math.max(0, Math.min(100, (a.o2_min / a.o2_capacity_min) * 100)) + "%",
+          }))
         );
         card.addEventListener("click", () => selectAstronaut(a.id, true));
         return card;
@@ -568,10 +681,14 @@
     if (a && openDetail) showDetail(astroDetail(a));
   }
 
+  let defaultAstronauts = [];
   loadJSON("data/astronauts.json")
     .then((d) => {
-      astronauts = d;
-      selectAstronaut(d[0] && d[0].id, false);
+      defaultAstronauts = JSON.parse(JSON.stringify(d));
+      // Kayıtlı profil varsa onun alanları JSON'daki varsayılanın üstüne yazılır
+      const saved = loadSaved();
+      astronauts = d.map((a) => ({ ...a, ...(saved[a.id] || {}) }));
+      selectAstronaut(astronauts[0] && astronauts[0].id, false);
     })
     .catch((err) => {
       console.error(err);
@@ -591,6 +708,6 @@
     showDetail, hideDetail, el, kvList, setLink, updateTopBar,
     get astronauts() { return astronauts; },
     get selectedAstronaut() { return astronauts.find((x) => x.id === selectedAstroId); },
-    selectAstronaut, renderAstronauts,
+    selectAstronaut, renderAstronauts, saveAll, emitAstronautChange, PROFILE_FIELDS,
   };
 })();

@@ -206,7 +206,58 @@ button.icon:hover { color: var(--text); }
   font-variant-numeric: tabular-nums;
 }
 
-/* Bölge etiketi (G4/G6'da hesaplanacak) */
+.astro-vitals .warn { color: var(--red); font-weight: 600; }
+
+.o2bar {
+  height: 4px;
+  margin-top: 8px;
+  border-radius: 2px;
+  background: #2a211c;
+  overflow: hidden;
+}
+.o2bar i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+/* ---------- G4: profil formu ---------- */
+.profile .zone-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 0 12px;
+}
+.prow {
+  display: grid;
+  grid-template-columns: 84px 1fr 56px;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+  font-size: 13px;
+}
+.plabel { color: var(--muted); }
+.punit { color: var(--muted); font-size: 12px; }
+.prow input {
+  width: 100%;
+  min-width: 0;
+  font: inherit;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  background: #1f1916;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+.prow input:focus { outline: none; border-color: var(--accent); }
+.prow input:invalid { border-color: var(--red); }
+.prow.warn .plabel { color: var(--red); font-weight: 600; }
+.prow.warn input { border-color: var(--red); }
+.profile .controls { margin-top: 12px; }
+.pstatus { min-height: 1em; margin: 6px 0 0; }
+
+/* Bölge etiketi (G6'da hesaplanacak) */
 .zone {
   flex: none;
   font-size: 10px;
