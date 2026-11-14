@@ -121,6 +121,131 @@
     canvas.addEventListener(ev, () => setAutoRotate(false), { passive: true })
   );
 
+  // --- G2: Jezero'ya uçuş ---
+  // Çalışma alanı layers.json bbox'ından gelir; yüklenene kadar varsayılan kullanılır.
+  let studyBbox = [77.36, 18.38, 77.51, 18.52]; // [batı, güney, doğu, kuzey]
+
+  function flyToJezero() {
+    setAutoRotate(false);
+    const [w, s, e, n] = studyBbox;
+    const padLon = (e - w) * 0.6;
+    const padLat = (n - s) * 0.6;
+    viewer.camera.flyTo({
+      destination: Cesium.Rectangle.fromDegrees(w - padLon, s - padLat, e + padLon, n + padLat),
+      duration: 4,
+    });
+  }
+  document.getElementById("jezeroBtn").addEventListener("click", flyToJezero);
+
+  // --- G2: Katman menüsü (web/data/layers.json) ---
+  const overlays = {}; // id -> { def, layer }
+
+  async function loadJSON(path) {
+    const res = await fetch(path, { cache: "no-cache" });
+    if (!res.ok) throw new Error(path + " → HTTP " + res.status);
+    return res.json();
+  }
+
+  async function addOverlay(def) {
+    const [w, s, e, n] = def.bbox;
+    const provider = await Cesium.SingleTileImageryProvider.fromUrl("data/" + def.file, {
+      rectangle: Cesium.Rectangle.fromDegrees(w, s, e, n),
+      ellipsoid: MARS,
+      credit: def.source,
+    });
+    const layer = viewer.imageryLayers.addImageryProvider(provider);
+    layer.alpha = def.default_opacity ?? 0.6;
+    layer.show = false;
+    overlays[def.id] = { def, layer };
+    return layer;
+  }
+
+  function renderLayerRow(def, layer) {
+    const row = document.createElement("div");
+    row.className = "layer-row";
+
+    const head = document.createElement("label");
+    head.className = "layer-head";
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = layer.show;
+    const name = document.createElement("span");
+    name.textContent = def.name;
+    head.append(cb, name);
+
+    const body = document.createElement("div");
+    body.className = "layer-body";
+    body.hidden = !layer.show;
+
+    const op = document.createElement("label");
+    op.className = "opacity";
+    const opText = document.createElement("span");
+    const slider = document.createElement("input");
+    slider.type = "range";
+    slider.min = "0";
+    slider.max = "100";
+    slider.value = String(Math.round(layer.alpha * 100));
+    const setOpText = () => (opText.textContent = "Opaklık %" + slider.value);
+    setOpText();
+    op.append(opText, slider);
+
+    const legend = document.createElement("ul");
+    legend.className = "legend";
+    (def.legend || []).forEach((item) => {
+      const li = document.createElement("li");
+      const sw = document.createElement("i");
+      sw.style.background = item.color;
+      const lbl = document.createElement("span");
+      lbl.textContent = item.label;
+      li.append(sw, lbl);
+      legend.append(li);
+    });
+
+    const src = document.createElement("p");
+    src.className = "muted small";
+    src.textContent = "Kaynak: " + (def.source || "—");
+
+    body.append(op, legend, src);
+    row.append(head, body);
+
+    cb.addEventListener("change", () => {
+      layer.show = cb.checked;
+      body.hidden = !cb.checked;
+    });
+    slider.addEventListener("input", () => {
+      layer.alpha = Number(slider.value) / 100;
+      setOpText();
+    });
+    return row;
+  }
+
+  async function initLayers() {
+    const list = document.getElementById("layerList");
+    let defs;
+    try {
+      defs = await loadJSON("data/layers.json");
+    } catch (err) {
+      console.error(err);
+      list.innerHTML = '<p class="muted">layers.json okunamadı. Sayfayı bir sunucuyla açın (python -m http.server).</p>';
+      return;
+    }
+    if (defs.length) studyBbox = defs[0].bbox;
+    list.innerHTML = "";
+    for (const def of defs) {
+      try {
+        const layer = await addOverlay(def);
+        list.append(renderLayerRow(def, layer));
+      } catch (err) {
+        console.error("Katman yüklenemedi:", def.id, err);
+        const p = document.createElement("p");
+        p.className = "muted small";
+        p.textContent = def.name + ": yüklenemedi";
+        list.append(p);
+      }
+    }
+  }
+  initLayers();
+
   // Sonraki kartlar için dışarı aç
-  window.MarsTrail = { viewer, MARS, JEZERO, setBaseLayer, setAutoRotate };
+  window.MarsTrail = { viewer, MARS, JEZERO, setBaseLayer, setAutoRotate, flyToJezero, overlays, loadJSON };
 })();
