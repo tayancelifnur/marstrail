@@ -209,3 +209,13 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Ne yapıldı:** Elif'in genişlettiği alan (77.28–77.60°D) arayüzde denendi: arazi, katmanlar ve O₂ bölgeleri yeni `grid.json`/`layers.json`'dan kod değişmeden geldi; bölgeler artık kenarda kesilmiyor. Alan büyüyünce pinler ekranda sıkıştı; Ayşe adı sağa, Delta önü ve Kum alanı etiketleri sola alındı.
 - **Dosyalar:** `web/app.js`
 - **Kontrol:** Headless Chrome 1440×900, Jezero uçuşu sonrası ekran görüntüsü; etiketler çakışmıyor.
+
+## G6 (2. kısım) · EVA planlayıcı arayüzü · Cmt 14 Kas 2026, 19:10
+
+- **Ne yapıldı:** Elif'in `eva.js`'i (E11) arayüze bağlandı. Sol panelde "EVA planı": durak listesi (kalma süresi, sıra değiştir, çıkar), "Durak ekle" seçimi, çıkış saati (sonraki güvenli pencere 09:00 LTST / şimdi), Planla / Planı sil, kısa GO/NO-GO özeti. Nokta kartlarında "Plana ekle".
+  - Haritada gidiş mavi, dönüş beyaz kesikli (Dijkstra rotası), durak numaraları, dönüş noktası (kırmızı), %25 pay sınırı (sarı), telsiz gölgesinin başladığı yer (mor). Planla'ya basınca kamera rotaya yaklaşıyor (telefonda rota kartın üstünde kalacak şekilde).
+  - Plan kartı: büyük GO/NO-GO, çıkış/dönüş (LMST + UTC), süre, mesafe, O₂ (yetmezse "X dk EKSİK"), batarya/su, Go/No-Go listesi, O₂ çubuklu zaman çizelgesi, bacaklar (yük, yorgunluk), formül notu.
+  - Profil, seçili astronot, durak ya da çıkış saati değişince plan anında yeniden hesaplanıyor. `marstrail:plan` olayı ve `MarsTrail.plan` G7 (canlı yürüyüş) için.
+- **Dosyalar:** `web/index.html`, `web/app.js`, `web/style.css`
+- **Varsayımlar:** Demo planı hazır yüklü (Delta önü 40 dk, Three Forks 30 dk). Yeni durak 30 dk. Kamera uzaklığı rota yarıçapı × 4,2 (en az 3 km), telefonda bakış noktası 0,45 × uzaklık güneye kaydırılıyor (göz kararı).
+- **Kontrol (headless Chrome):** Demo planı 5,52 km, 243 dk, dönüşte 249 dk O₂ → GO, telsiz DİKKAT (E11 testiyle aynı). O₂ 220 + nabız 150 → dönüş noktası T+67 dk, pay sınırı T+51 dk, NO-GO. Rochette kartından "Plana ekle" → 3 durak, 307 dk, GO. 390×844 telefon görünümü denendi.

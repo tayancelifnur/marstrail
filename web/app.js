@@ -694,6 +694,7 @@
     selectedAstroId = id;
     drawZones(); // haritadaki bölgeler seçili astronotunkiler
     renderAstronauts();
+    replanIfActive(); // G6: açık plan seçili astronota göre yeniden hesaplanır
     const a = astronauts.find((x) => x.id === id);
     if (a && openDetail) showDetail(astroDetail(a));
   }
@@ -972,6 +973,20 @@
     if ((r.hazards || []).length) parts.push(el("p", { class: "warn-line" }, "⚠ " + r.hazards.join(", ")));
     if ((r.missions || []).length) parts.push(el("p", { class: "muted small" }, "Görevler: " + r.missions.join(", ")));
 
+    // G6: noktayı EVA planına durak olarak ekle
+    if (r.id !== "base") {
+      const inPlan = evaPlan.stops.some((s) => s.id === r.id);
+      const btn = el("button", { type: "button", class: inPlan ? "" : "primary" }, inPlan ? "Planda ✓" : "Plana ekle");
+      btn.disabled = inPlan;
+      btn.addEventListener("click", () => {
+        addPlanStop(r.id);
+        btn.textContent = "Planda ✓";
+        btn.disabled = true;
+        btn.classList.remove("primary");
+      });
+      parts.push(el("div", { class: "controls card-actions" }, btn));
+    }
+
     return el("div", { class: "card" }, parts);
   }
 
@@ -1064,6 +1079,7 @@
     .then(([r, geo, s]) => {
       regions = r;
       stories = s;
+      renderPlanStops(); // G6: durak listesi nokta adlarıyla
       addPoiEntities(geo);
       renderStories();
     })
@@ -1289,6 +1305,308 @@
     });
   }
 
+  // =====================================================================
+  // --- G6 (2. kısım): EVA planlayıcı arayüzü ---
+  // =====================================================================
+  // Hesap Elif'in web/eva.js'inde (E11): Dijkstra bacakları, yorgunluk, numune yükü, dönüş noktası,
+  // Go/No-Go. Burada durak listesi, haritaya çizim ve plan kartı var.
+  const DEFAULT_DWELL_MIN = 30;   // yeni durağın varsayılan kalma süresi (dk); kullanıcı değiştirir
+  const PLAN_COLORS = {
+    out: "#5dade2",               // gidiş: mavi (yeşil/sarı/kırmızı bölgelerle ve turuncu çizim rotasıyla karışmasın)
+    back: "#ffffff",              // dönüş: beyaz kesikli
+    turn: "#e74c3c",              // dönüş noktası
+    margin: "#f1c40f",            // %25 pay sınırı
+    radio: "#bb8fce",             // telsiz gölgesi
+  };
+  const STATUS_TEXT = { ok: "GO", warn: "DİKKAT", fail: "NO-GO" };
+  const evaPlan = {
+    // Demo planı: E11 testindeki senaryo (Üs → Delta önü 40 dk → Three Forks 30 dk → Üs)
+    stops: [{ id: "delta_front", dwellMin: 40 }, { id: "three_forks", dwellMin: 30 }],
+    result: null,
+    entities: [],
+  };
+
+  const regionById = (id) => regions.find((r) => r.id === id);
+  // Panelde ve kartta kısa ad: "Delta önü (Hawksbill…)" → "Delta önü"; ayırıcısı olmayan uzun adlar elle
+  const SHORT_NAMES = { three_forks: "Three Forks", airfield: "Ingenuity alanı" };
+  const shortName = (r) => (r ? SHORT_NAMES[r.id] || r.name.split(/ [–(]/)[0] : "?");
+  const fmtMin = (m) => (m >= 60 ? Math.floor(m / 60) + " sa " + Math.round(m % 60) + " dk" : Math.round(m) + " dk");
+  const hhmm = (iso) => iso.slice(11, 16);
+
+  function renderPlanStops() {
+    const list = document.getElementById("planStops");
+    list.replaceChildren(
+      ...evaPlan.stops.map((s, i) => {
+        const dwell = el("input", { type: "number", min: "0", max: "240", step: "5", value: String(s.dwellMin), "aria-label": "Kalma süresi (dk)" });
+        dwell.addEventListener("change", () => {
+          s.dwellMin = Math.max(0, Number(dwell.value) || 0);
+          replanIfActive();
+        });
+        const up = el("button", { type: "button", class: "icon", title: "Yukarı taşı" }, "↑");
+        up.disabled = i === 0;
+        up.addEventListener("click", () => {
+          evaPlan.stops.splice(i - 1, 0, evaPlan.stops.splice(i, 1)[0]);
+          renderPlanStops();
+          replanIfActive();
+        });
+        const del = el("button", { type: "button", class: "icon", title: "Duraktan çıkar" }, "×");
+        del.addEventListener("click", () => {
+          evaPlan.stops.splice(i, 1);
+          renderPlanStops();
+          replanIfActive();
+        });
+        return el("li", null, el("span", { class: "pname" }, shortName(regionById(s.id))), dwell, el("span", { class: "punit" }, "dk"), up, del);
+      })
+    );
+    if (!evaPlan.stops.length) list.append(el("li", { class: "muted small empty" }, "Durak yok: aşağıdan ya da nokta kartından ekle."));
+    // Seçim kutusu: henüz planda olmayan noktalar (üs hariç; plan zaten üste döner)
+    const sel = document.getElementById("planAdd");
+    sel.replaceChildren(el("option", { value: "" }, "Nokta seç…"),
+      ...regions.filter((r) => r.id !== "base" && !evaPlan.stops.some((s) => s.id === r.id))
+        .map((r) => el("option", { value: r.id }, shortName(r))));
+  }
+
+  function addPlanStop(id) {
+    if (!regionById(id) || evaPlan.stops.some((s) => s.id === id)) return;
+    evaPlan.stops.push({ id, dwellMin: DEFAULT_DWELL_MIN });
+    renderPlanStops();
+    replanIfActive();
+  }
+  document.getElementById("planAdd").addEventListener("change", (e) => {
+    addPlanStop(e.target.value);
+    e.target.value = "";
+  });
+
+  function clearPlanDrawing() {
+    evaPlan.entities.splice(0).forEach((e) => viewer.entities.remove(e));
+  }
+
+  function clearPlan() {
+    clearPlanDrawing();
+    evaPlan.result = null;
+    document.getElementById("planSummary").replaceChildren();
+    document.getElementById("planClearBtn").disabled = true;
+  }
+
+  // Haritada işaret (nokta + etiket), arazinin önünde
+  function planMarker(lon, lat, color, text, size) {
+    return viewer.entities.add({
+      position: Cesium.Cartesian3.fromDegrees(lon, lat, 0, MARS),
+      point: {
+        pixelSize: size || 11,
+        color: Cesium.Color.fromCssColorString(color),
+        outlineColor: Cesium.Color.BLACK,
+        outlineWidth: 2,
+        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      },
+      label: text ? {
+        text,
+        font: "600 12px system-ui, sans-serif",
+        fillColor: Cesium.Color.fromCssColorString(color),
+        outlineColor: Cesium.Color.BLACK,
+        outlineWidth: 3,
+        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+        pixelOffset: new Cesium.Cartesian2(10, 0),
+        horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      } : undefined,
+    });
+  }
+
+  function drawPlan(p) {
+    clearPlanDrawing();
+    p.legs.forEach((leg) => {
+      evaPlan.entities.push(viewer.entities.add({
+        polyline: {
+          positions: Cesium.Cartesian3.fromDegreesArray(leg.coords.flatMap((c) => [c[0], c[1]]), MARS),
+          width: leg.isReturn ? 3 : 4,
+          material: leg.isReturn
+            ? new Cesium.PolylineDashMaterialProperty({ color: Cesium.Color.fromCssColorString(PLAN_COLORS.back), dashLength: 14 })
+            : Cesium.Color.fromCssColorString(PLAN_COLORS.out),
+          clampToGround: true,
+        },
+      }));
+    });
+    // Durak sıra numaraları (pin etiketleri zaten adı yazıyor)
+    p.legs.filter((l) => !l.isReturn).forEach((leg, i) => {
+      const end = leg.coords[leg.coords.length - 1];
+      evaPlan.entities.push(planMarker(end[0], end[1], PLAN_COLORS.out, String(i + 1), 9));
+    });
+    if (p.turnaround) evaPlan.entities.push(planMarker(p.turnaround.lon, p.turnaround.lat, PLAN_COLORS.turn, "Dönüş noktası · T+" + p.turnaround.t + " dk", 13));
+    if (p.marginPoint) evaPlan.entities.push(planMarker(p.marginPoint.lon, p.marginPoint.lat, PLAN_COLORS.margin, "%25 pay sınırı · T+" + p.marginPoint.t + " dk", 11));
+    const radio = p.goNoGo.find((c) => c.id === "radio");
+    if (radio && radio.firstShadow) {
+      const f = radio.firstShadow;
+      evaPlan.entities.push(planMarker(f.lon, f.lat, PLAN_COLORS.radio, "Telsiz gölgesi · T+" + f.t + " dk", 9));
+    }
+  }
+
+  // Kamerayı plan rotasına yaklaştır: bütün alan görünürken 5 km'lik rota çok küçük kalıyor
+  function flyToPlan(p) {
+    setAutoRotate(false);
+    const pts = p.coords.map((c) => Cesium.Cartesian3.fromDegrees(c[0], c[1], 0, MARS)); // yükseklik 0: arazi göreli ve 3× abartılı (mutlak elev değil)
+    const sphere = Cesium.BoundingSphere.fromPoints(pts);
+    const range = Math.max(3000, sphere.radius * 4.2); // en az 3 km; yan paneller arasında rota tümüyle görünsün
+    if (portrait()) {
+      // Telefonda plan kartı ekranın alt ~%60'ını kaplıyor: bakış noktasını güneye kaydır,
+      // rota ekranın üst yarısında kalsın (0,45 × uzaklık göz kararı, 390×844'te denendi)
+      const c = Cesium.Cartographic.fromCartesian(sphere.center, MARS);
+      const shiftM = range * 0.45;
+      sphere.center = Cesium.Cartesian3.fromRadians(c.longitude, c.latitude - shiftM / 3389500, 0, MARS); // m → rad (Mars yarıçapı)
+    }
+    viewer.camera.flyToBoundingSphere(sphere, {
+      offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(portrait() ? -70 : -50), range),
+      duration: 2,
+    });
+  }
+
+  function runPlan(openCard) {
+    const a = astronauts.find((x) => x.id === selectedAstroId);
+    const box = document.getElementById("planSummary");
+    if (!window.Eva || !zonesReady) {
+      box.replaceChildren(el("p", { class: "muted small" }, "Planlayıcı hazır değil (eva.js ya da grid.json yüklenmedi)."));
+      return;
+    }
+    if (!a) return;
+    if (!evaPlan.stops.length) {
+      clearPlan();
+      box.replaceChildren(el("p", { class: "muted small" }, "Önce en az bir durak ekle."));
+      return;
+    }
+    const stops = evaPlan.stops.map((s) => {
+      const r = regionById(s.id);
+      return { id: s.id, name: shortName(r), lon: r.lon, lat: r.lat, dwellMin: s.dwellMin };
+    });
+    const depart = document.getElementById("planDepart").value === "now" ? new Date() : Eva.nextWindow(new Date());
+    // Profil formundaki değerler metin olabilir: sayıya çevir
+    const astro = { ...a };
+    ["o2_min", "o2_capacity_min", "heart_rate", "load_kg", "battery_pct", "water_pct"].forEach((k) => {
+      if (astro[k] != null) astro[k] = Number(astro[k]);
+    });
+    let p;
+    try {
+      p = Eva.plan({ astronaut: astro, stops, departUTC: depart });
+    } catch (err) {
+      console.error(err);
+      p = { ok: false, error: "Plan hesaplanamadı: " + err.message };
+    }
+    if (!p.ok) {
+      clearPlan();
+      box.replaceChildren(el("p", { class: "warn-line small" }, "⚠ " + p.error));
+      return;
+    }
+    p.astronaut = a.name;
+    p.astronautId = a.id;
+    evaPlan.result = p;
+    drawPlan(p);
+    document.getElementById("planClearBtn").disabled = false;
+    box.replaceChildren(planSummaryEl(p));
+    if (openCard) {
+      showDetail(planCard(p));
+      flyToPlan(p);
+    }
+    else if (!detailPanel.hidden && detailBody.querySelector(".plan-card")) showDetail(planCard(p));
+    window.dispatchEvent(new CustomEvent("marstrail:plan", { detail: p })); // G7 canlı yürüyüş dinleyecek
+  }
+
+  // Profil, seçili astronot, çıkış saati ya da duraklar değişince açık plan yeniden hesaplanır
+  function replanIfActive() {
+    if (evaPlan.result) runPlan(false);
+  }
+
+  // O₂ yetmiyorsa "−169 dk kalır" yerine "169 dk eksik"
+  const o2LeftText = (t) => (t.o2LeftMin >= 0 ? t.o2LeftMin + " dk kalır (%" + t.o2LeftPct + ")" : -t.o2LeftMin + " dk EKSİK");
+
+  function verdictEl(p) {
+    return el("span", { class: "verdict " + (p.go ? "go" : "nogo") }, p.go ? "GO" : "NO-GO");
+  }
+
+  // Sol paneldeki kısa özet; tıklayınca plan kartı açılır
+  function planSummaryEl(p) {
+    const t = p.totals;
+    const fails = p.goNoGo.filter((c) => c.status === "fail").length;
+    const warns = p.goNoGo.filter((c) => c.status === "warn").length;
+    const note = [fails ? fails + " NO-GO" : "", warns ? warns + " dikkat" : ""].filter(Boolean).join(", ") || "hepsi GO";
+    const box = el("button", { type: "button", class: "plan-summary" },
+      verdictEl(p),
+      el("span", null,
+        el("b", null, p.astronaut + " · " + fmtMin(t.minutes) + " · " + (t.distanceM / 1000).toLocaleString("tr-TR", { maximumFractionDigits: 1 }) + " km"),
+        el("br"),
+        el("span", { class: "muted small" }, "Dönüşte O₂ " + o2LeftText(t) + " · " + note)
+      )
+    );
+    box.addEventListener("click", () => showDetail(planCard(p)));
+    return box;
+  }
+
+  function planCard(p) {
+    const t = p.totals;
+    const first = p.timeline[0], last = p.timeline[p.timeline.length - 1];
+    const parts = [
+      el("span", { class: "chip", style: "--chip:" + PLAN_COLORS.out }, "EVA planı"),
+      el("h3", null, p.astronaut + ": " + ["Üs", ...p.legs.filter((l) => !l.isReturn).map((l) => l.to), "Üs"].join(" → ")),
+      el("div", { class: "verdict-row" }, verdictEl(p),
+        el("span", { class: "small muted" }, p.go ? "Kırmızı madde yok; DİKKAT maddelerini oku." : "En az bir madde kırmızı: plan bu haliyle yapılmaz.")),
+      kvList([
+        ["Çıkış", first.lmst + " LMST · " + hhmm(first.utc) + " UTC"],
+        ["Dönüş", last.lmst + " LMST · " + hhmm(last.utc) + " UTC"],
+        ["Toplam süre", fmtMin(t.minutes) + " (yürüyüş " + fmtMin(t.walkMin) + ")"],
+        ["Mesafe", (t.distanceM / 1000).toLocaleString("tr-TR", { maximumFractionDigits: 2 }) + " km"],
+        ["O₂", t.o2UsedMin + " dk harcanır, " + o2LeftText(t) + " (nabız ×" + t.multiplier.toFixed(2) + ")"],
+        ["Batarya / su", "dönüşte %" + t.batteryPct + " / %" + t.waterPct],
+      ]),
+    ];
+    if (p.turnaround) {
+      parts.push(el("p", { class: "warn-line" }, "⚠ Dönüş noktası: çıkıştan " + p.turnaround.t + " dk sonra. Bu noktayı geçersen O₂ üsse dönüşe yetmez (haritada kırmızı işaret)."));
+    } else if (p.marginPoint) {
+      parts.push(el("p", { class: "small", style: "color:var(--yellow)" }, "%25 pay sınırı: çıkıştan " + p.marginPoint.t + " dk sonra (haritada sarı işaret). Sonrasında dönülebilir ama pay kalmaz."));
+    } else {
+      parts.push(el("p", { class: "small muted" }, "Dönüş noktası yok: rotanın her yerinden %25 O₂ payıyla üsse dönülebiliyor."));
+    }
+
+    parts.push(el("h4", null, "Go / No-Go"));
+    parts.push(el("ul", { class: "gonogo" }, p.goNoGo.map((c) =>
+      el("li", { class: c.status },
+        el("span", { class: "gstatus" }, STATUS_TEXT[c.status]),
+        el("span", null, el("b", null, c.label), el("br"), el("span", { class: "muted small" }, c.detail))
+      ))));
+
+    parts.push(el("h4", null, "Zaman çizelgesi"));
+    const EV = { depart: "Çıkış", arrive: "Varış", leave: "Ayrılış", return: "Üsse dönüş" };
+    const cap = Number(p.timeline[0].o2Left) || 1;
+    parts.push(el("ol", { class: "plan-timeline" }, p.timeline.map((e) => {
+      const pct = Math.max(0, Math.min(100, (e.o2Left / cap) * 100));
+      return el("li", { class: e.type },
+        el("time", null, "T+" + e.t),
+        el("span", null, el("b", null, EV[e.type] + " · " + e.name), el("br"),
+          el("span", { class: "muted small" }, e.lmst + " LMST" + (e.dwellMin ? " · " + e.dwellMin + " dk çalışma" : ""))),
+        // O₂ çubuğu: %25'in altı kırmızı (yeşil bölge payıyla aynı eşik)
+        el("span", { class: "o2cell", title: "Kalan O₂" }, e.o2Left + " dk",
+          el("i", { style: "width:" + pct.toFixed(0) + "%;background:" + (e.o2Left < cap * 0.25 ? "var(--red)" : "var(--green)") })));
+    })));
+
+    // Bacaklar: yorgunluk ve numune yükü görünsün (jüri formülü sorarsa)
+    parts.push(el("h4", null, "Bacaklar"));
+    parts.push(kvList(p.legs.map((l) => [
+      l.from.replace(/ .*/, "") + " → " + l.to.replace(/ .*/, "") + (l.isReturn ? " (dönüş)" : ""),
+      fmtMin(l.minutes) + " · " + (l.distanceM / 1000).toLocaleString("tr-TR", { maximumFractionDigits: 2 }) + " km · yük " + l.loadKg + " kg · yorgunluk ×" + l.fatigue,
+    ])));
+    parts.push(el("p", { class: "muted small" },
+      "Rota: Dijkstra, eğim ≥25° geçilmez (walkback.js). Süre: Tobler × 0,6 × (1 − yük/100) × yorgunluk (1 + 0,05·saat). " +
+      "O₂ = süre × (1 + (nabız−90)/100). Durak başına 1 kg numune. Katsayılar varsayım (eva.js)."));
+    return el("div", { class: "card plan-card" }, parts);
+  }
+
+  document.getElementById("planBtn").addEventListener("click", () => runPlan(true));
+  document.getElementById("planDepart").addEventListener("change", replanIfActive);
+  document.getElementById("planClearBtn").addEventListener("click", () => {
+    clearPlan();
+    if (detailBody.querySelector(".plan-card")) hideDetail();
+  });
+  window.addEventListener("marstrail:astronaut", replanIfActive);
+
   // --- Harita tıklamaları: rota modunda nokta ekle, değilse pin kartı aç ---
   const clickHandler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
   // Cesium'un varsayılan çift tıkla "varlığı takip et" davranışını kapat (rotayı bitirmek için kullanıyoruz)
@@ -1357,5 +1675,6 @@
     get astronauts() { return astronauts; },
     get selectedAstronaut() { return astronauts.find((x) => x.id === selectedAstroId); },
     selectAstronaut, renderAstronauts, saveAll, emitAstronautChange, PROFILE_FIELDS,
+    get plan() { return evaPlan.result; }, runPlan, addPlanStop, clearPlan,
   };
 })();

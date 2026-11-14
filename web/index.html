@@ -68,6 +68,28 @@
         <p id="routeHint" class="muted small" hidden>Haritaya tıkla: nokta ekle · Çift tıkla ya da <b>Bitir</b>: rotayı tamamla · Esc: iptal</p>
       </section>
 
+      <!-- G6: EVA planlayıcı (hesap Elif'in eva.js'i, E11) -->
+      <section>
+        <h2>EVA planı</h2>
+        <ol id="planStops" class="plan-stops"></ol>
+        <label class="field">
+          Durak ekle
+          <select id="planAdd"><option value="">Nokta seç…</option></select>
+        </label>
+        <label class="field">
+          Çıkış
+          <select id="planDepart">
+            <option value="window">Sonraki güvenli pencere (yerel 09:00)</option>
+            <option value="now">Şimdi</option>
+          </select>
+        </label>
+        <div class="controls">
+          <button id="planBtn" type="button" class="primary">Planla</button>
+          <button id="planClearBtn" type="button" disabled>Planı sil</button>
+        </div>
+        <div id="planSummary"></div>
+      </section>
+
       <section>
         <h2>Tarihi olaylar</h2>
         <div id="storyList"><p class="muted">Yükleniyor…</p></div>
@@ -107,6 +129,7 @@
 
   <script src="marstime.js"></script>  <!-- Elif, E8: Mars saati + gecikme -->
   <script src="walkback.js"></script>  <!-- Elif, E8: O₂ bölgeleri + güvenli rota -->
+  <script src="eva.js"></script>       <!-- Elif, E11: EVA planlayıcı (bacaklar, dönüş noktası, Go/No-Go) -->
   <script src="app.js"></script>
 </body>
 </html>

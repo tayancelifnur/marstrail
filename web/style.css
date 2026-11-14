@@ -526,3 +526,118 @@ h2 .small { text-transform: none; letter-spacing: 0; font-weight: 400; }
 #routeBtn.primary { color: #1a0f08; }
 button:disabled { opacity: 0.45; cursor: default; }
 .story > a { font-size: 13px; }
+
+/* ---------- G6: EVA planlayıcı ---------- */
+.plan-stops { list-style: none; margin: 0 0 8px; padding: 0; counter-reset: stop; }
+.plan-stops li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  font-size: 13px;
+  counter-increment: stop;
+}
+.plan-stops li:not(.empty)::before {
+  content: counter(stop);
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #5dade2;
+  color: #08141c;
+  font-size: 11px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+.plan-stops .pname { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.plan-stops input {
+  width: 52px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+  background: #1f1916;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 5px;
+  text-align: right;
+}
+.plan-stops input:focus { outline: none; border-color: var(--accent); }
+.plan-stops button.icon {
+  position: static;
+  width: 24px;
+  height: 24px;
+  font-size: 15px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.plan-stops button.icon:disabled { opacity: 0.3; cursor: default; }
+#leftPanel section .field + .field { margin-top: 6px; }
+#leftPanel section .field:last-of-type { margin-bottom: 8px; }
+
+.verdict {
+  display: inline-block;
+  flex: none;
+  min-width: 64px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 1px;
+  text-align: center;
+}
+.verdict.go { background: var(--green); color: #08210f; }
+.verdict.nogo { background: var(--red); color: #fff; }
+.verdict-row { display: flex; align-items: center; gap: 10px; margin: 6px 0 10px; }
+
+.plan-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 8px;
+}
+.plan-summary b { font-size: 13px; }
+
+.gonogo { list-style: none; margin: 0; padding: 0; }
+.gonogo li {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 6px 0;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  line-height: 1.35;
+}
+.gonogo li:first-child { border-top: none; }
+.gstatus {
+  flex: none;
+  width: 56px;
+  padding: 2px 0;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+.gonogo .ok .gstatus { background: var(--green); color: #08210f; }
+.gonogo .warn .gstatus { background: var(--yellow); color: #2a2103; }
+.gonogo .fail .gstatus { background: var(--red); color: #fff; }
+
+.plan-timeline { list-style: none; margin: 0; padding: 0; }
+.plan-timeline li {
+  display: grid;
+  grid-template-columns: 48px 1fr 74px;
+  gap: 8px;
+  align-items: center;
+  padding: 5px 0;
+  border-left: 2px solid #5dade2;
+  padding-left: 8px;
+  font-size: 13px;
+}
+.plan-timeline li.depart, .plan-timeline li.return { border-left-color: var(--accent); }
+.plan-timeline time { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 12px; }
+.o2cell { font-size: 12px; font-variant-numeric: tabular-nums; text-align: right; }
+.o2cell i { display: block; height: 4px; margin-top: 3px; border-radius: 2px; margin-left: auto; }
+.card-actions { margin-top: 12px; }
