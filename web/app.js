@@ -68,6 +68,19 @@
 
   const scene = viewer.scene;
   const globe = scene.globe;
+
+  // Netlik: Cesium varsayılanda CSS pikselinde çizer; Windows %125–150 ölçekte yazı ve harita bulanık
+  // görünüyordu. Ekranın gerçek pikselinde çiz (çok yüksek DPI'da GPU yorulmasın diye en fazla 2×).
+  viewer.useBrowserRecommendedResolution = false;
+  if (window.devicePixelRatio > 2) viewer.resolutionScale = 2 / window.devicePixelRatio;
+
+  // Harita etiketleri: kalın siyah kenar yerine koyu yarı saydam zemin (her arazi renginde okunur)
+  const LABEL_BG = {
+    style: Cesium.LabelStyle.FILL,
+    showBackground: true,
+    backgroundColor: Cesium.Color.fromCssColorString("#0d0b0a").withAlpha(0.72),
+    backgroundPadding: new Cesium.Cartesian2(6, 3),
+  };
   globe.baseColor = Cesium.Color.fromCssColorString("#5a2e1c");
   scene.backgroundColor = Cesium.Color.BLACK;
 
@@ -817,11 +830,9 @@
         },
         label: {
           text: a.name,
-          font: "600 14px system-ui, sans-serif",
+          font: "600 13px 'Segoe UI', system-ui, sans-serif",
           fillColor: Cesium.Color.WHITE,
-          outlineColor: Cesium.Color.BLACK,
-          outlineWidth: 3,
-          style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+          ...LABEL_BG,
           // Ad sağda: üstte Three Forks etiketi, altta üs etiketi var (alan v2'de pinler sıkıştı)
           pixelOffset: new Cesium.Cartesian2(10, 0),
           horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
@@ -873,7 +884,7 @@
   // Birbirine çok yakın pinlerin etiketleri çakışıyor (üs–uçuş alanı 20 m, delta–Three Forks ~400 m).
   // Etiketin yönünü elle ayırıyoruz: [x, y] piksel kaydırma, yatay hiza ve görünme mesafesi (m).
   const LABEL_PLACE = {
-    base: { off: [0, 18], origin: "CENTER", vOrigin: "TOP" },          // üs etiketi altta (Ayşe üstte)
+    base: { off: [-12, 0], origin: "RIGHT", vOrigin: "CENTER" },                         // üs etiketi solda (Ayşe sağ üstte, Rochette altta)
     airfield: { off: [12, 0], origin: "LEFT", maxDist: 3000 },          // sadece çok yakında
     delta_front: { off: [-12, -7], origin: "RIGHT" },                   // sola, biraz yukarı
     three_forks: { off: [12, -2], origin: "LEFT" },                     // sağa
@@ -1032,6 +1043,10 @@
     showDetail(r ? regionCard(r, p) : hazardCard(p));
   }
 
+  // Haritada kısa ad (tam ad kartta): "Üs – Octavia E. Butler iniş alanı" → "Üs"
+  const POI_SHORT = { base: "Üs", three_forks: "Three Forks", airfield: "Ingenuity alanı", jezero: "Jezero Krateri", cheyava_falls: "Cheyava Falls", rochette: "Rochette" };
+  const poiLabel = (p) => POI_SHORT[p.region_id || p.id] || POI_SHORT[p.id] || p.name.split(/ [–(]/)[0];
+
   function addPoiEntities(geo) {
     geo.features.forEach((f) => {
       const p = f.properties;
@@ -1053,12 +1068,10 @@
           distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 1.5e6),
         },
         label: {
-          text: p.name.split(" (")[0],
-          font: "500 12px system-ui, sans-serif",
+          text: poiLabel(p),
+          font: "600 12px 'Segoe UI', system-ui, sans-serif",
           fillColor: Cesium.Color.WHITE,
-          outlineColor: Cesium.Color.BLACK,
-          outlineWidth: 3,
-          style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+          ...LABEL_BG,
           pixelOffset: new Cesium.Cartesian2(...(place.off || [0, -16])),
           horizontalOrigin: Cesium.HorizontalOrigin[place.origin || "CENTER"],
           verticalOrigin: Cesium.VerticalOrigin[place.vOrigin || "BOTTOM"],
@@ -1413,11 +1426,11 @@
         text,
         font: "600 12px system-ui, sans-serif",
         fillColor: Cesium.Color.fromCssColorString(color),
-        outlineColor: Cesium.Color.BLACK,
-        outlineWidth: 3,
-        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-        pixelOffset: new Cesium.Cartesian2(10, 0),
-        horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+        ...LABEL_BG,
+        // Etiket noktanın altında: sağ/sol pin adlarına (Üs, Three Forks…) çakışmasın
+        pixelOffset: new Cesium.Cartesian2(0, 10),
+        horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+        verticalOrigin: Cesium.VerticalOrigin.TOP,
         heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
       } : undefined,
@@ -1438,10 +1451,10 @@
         },
       }));
     });
-    // Durak sıra numaraları (pin etiketleri zaten adı yazıyor)
-    p.legs.filter((l) => !l.isReturn).forEach((leg, i) => {
+    // Durak işaretleri (etiketsiz: adı pin yazıyor, sırası sol panelde)
+    p.legs.filter((l) => !l.isReturn).forEach((leg) => {
       const end = leg.coords[leg.coords.length - 1];
-      evaPlan.entities.push(planMarker(end[0], end[1], PLAN_COLORS.out, String(i + 1), 9));
+      evaPlan.entities.push(planMarker(end[0], end[1], PLAN_COLORS.out, "", 9));
     });
     if (p.turnaround) evaPlan.entities.push(planMarker(p.turnaround.lon, p.turnaround.lat, PLAN_COLORS.turn, "Dönüş noktası · T+" + p.turnaround.t + " dk", 13));
     if (p.marginPoint) evaPlan.entities.push(planMarker(p.marginPoint.lon, p.marginPoint.lat, PLAN_COLORS.margin, "%25 pay sınırı · T+" + p.marginPoint.t + " dk", 11));
@@ -1694,9 +1707,7 @@
         text: new Cesium.CallbackProperty(() => a.name + " · O₂ " + Math.max(0, Math.round(walk.o2)) + " dk", false),
         font: "700 13px system-ui, sans-serif",
         fillColor: Cesium.Color.WHITE,
-        outlineColor: Cesium.Color.BLACK,
-        outlineWidth: 3,
-        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+        ...LABEL_BG,
         pixelOffset: new Cesium.Cartesian2(12, 0),
         horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
         heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
@@ -2121,8 +2132,7 @@
       }, false),
       point: { pixelSize: 10, color: Cesium.Color.WHITE, outlineColor: Cesium.Color.fromCssColorString("#5dade2"), outlineWidth: 3,
                heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY },
-      label: { text: "İHA", font: "700 12px system-ui, sans-serif", fillColor: Cesium.Color.WHITE, outlineColor: Cesium.Color.BLACK,
-               outlineWidth: 3, style: Cesium.LabelStyle.FILL_AND_OUTLINE, pixelOffset: new Cesium.Cartesian2(10, 0),
+      label: { text: "İHA", font: "700 12px system-ui, sans-serif", fillColor: Cesium.Color.WHITE, ...LABEL_BG, pixelOffset: new Cesium.Cartesian2(10, 0),
                horizontalOrigin: Cesium.HorizontalOrigin.LEFT, heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
                disableDepthTestDistance: Number.POSITIVE_INFINITY },
     });
@@ -2134,7 +2144,7 @@
       point: { pixelSize: 12, color: Cesium.Color.fromCssColorString("#00e5ff"), outlineColor: Cesium.Color.WHITE, outlineWidth: 2,
                heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY },
       label: { text: rescue.rescuerName, font: "700 13px system-ui, sans-serif", fillColor: Cesium.Color.fromCssColorString("#00e5ff"),
-               outlineColor: Cesium.Color.BLACK, outlineWidth: 3, style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+               ...LABEL_BG,
                pixelOffset: new Cesium.Cartesian2(10, 0), horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
                heightReference: Cesium.HeightReference.CLAMP_TO_GROUND, disableDepthTestDistance: Number.POSITIVE_INFINITY },
     });

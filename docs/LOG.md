@@ -241,3 +241,10 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Dosyalar:** `web/index.html`, `web/app.js`, `web/style.css`
 - **Varsayımlar:** İHA hemen kalkar, 10 m/s sabit hız; Ali 10 dk hazırlanır, rota boyunca eşit hızda yürür (animasyon için). Kayıp astronotun O₂'si = kopmadaki − (geçen + arama süresi) × çarpan.
 - **Kontrol (headless Chrome):** Demo: alan 1,07 km² (%50 0,25, %90 0,79), İHA 11 şerit 24,2 dk, %50 11,6 dk, %90 21,6 dk; Ali 116/480 YEŞİL, Ayşe üste 168 dk ile → KURTARILABİLİR (E13 testiyle aynı). Hesap 47 ms. Yürüyüşte T+46'da kopma → alan ve rotalar o konumdan.
+
+## G-ek · Harita yazılarının netliği · Cmt 14 Kas 2026, 20:30
+
+- **Sorun:** Windows %125–150 ekran ölçeğinde harita yazıları bulanık ve tırtıklı; kalın siyah kenarlı uzun adlar birbirine giriyordu (Gözde'nin ekran görüntüsü).
+- **Ne yapıldı:** Cesium artık ekranın gerçek pikselinde çiziyor (`useBrowserRecommendedResolution = false`, DPI > 2'de en fazla 2×). Bütün harita etiketleri (pinler, astronot, plan işaretleri, yürüyüş, İHA/Ali) koyu yarı saydam zeminli düz yazı (`LABEL_BG`). Haritada kısa adlar (Üs, Three Forks, Rochette, Jezero Krateri…), tam adlar kartta. Üs etiketi solda; plan işaretlerinin etiketleri noktanın altında; durak numaraları kaldırıldı (sıra sol panelde).
+- **Dosyalar:** `web/app.js`
+- **Kontrol:** Headless Chrome, cihaz ölçeği 1,5 (1280×720 → 1920×1080): genel görünüm ve NO-GO plan görünümünde yazılar net, çakışma yok.
