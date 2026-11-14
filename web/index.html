@@ -59,6 +59,16 @@
       </section>
 
       <section>
+        <h2>O₂ bölgeleri <span class="muted small">· her zaman açık</span></h2>
+        <ul class="legend">
+          <li><i style="background:#2ecc71"></i><span>Yeşil: git, çalış, %25 payla dön</span></li>
+          <li><i style="background:#f1c40f"></i><span>Sarı: dönebilirsin ama pay yok</span></li>
+          <li><i style="background:#e74c3c"></i><span>Kırmızı: dönüşü olmayan bölge</span></li>
+        </ul>
+        <div id="zoneStats"></div>
+      </section>
+
+      <section>
         <h2>Katmanlar</h2>
         <div id="layerList"><p class="muted">Yükleniyor…</p></div>
       </section>
@@ -74,6 +84,7 @@
   <div id="error" hidden></div>
 
   <script src="marstime.js"></script>  <!-- Elif, E8: Mars saati + gecikme -->
+  <script src="walkback.js"></script>  <!-- Elif, E8: O₂ bölgeleri + güvenli rota -->
   <script src="app.js"></script>
 </body>
 </html>

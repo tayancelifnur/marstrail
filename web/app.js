@@ -304,7 +304,10 @@
   document.getElementById("jezeroBtn").addEventListener("click", flyToJezero);
 
   loadJSON("data/grid.json")
-    .then(enableJezeroTerrain)
+    .then((g) => {
+      enableJezeroTerrain(g);
+      initZones(g); // G6: aynı grid'i Walkback'e de ver (ikinci kez indirme)
+    })
     .catch((err) => console.error("grid.json okunamadı, arazi düz kalacak:", err));
 
   // Tüm küreye geri dön ve dönmeye devam et
@@ -612,6 +615,7 @@
       el("h3", null, a.name),
       el("p", { class: "muted" }, a.role),
       el("div", { class: "zone-line" }, zoneBadge(a.zone), el("span", { class: "muted small" }, zoneText(a.zone))),
+      zoneSummary(a),
       ...rows,
       el("div", { class: "controls" }, saveBtn, resetBtn),
       status
@@ -625,12 +629,12 @@
         a[f.key] = f.type ? v.trim() : Number(v);
       });
       const ok = saveAll();
+      emitAstronautChange(a); // önce bölgeler yeniden hesaplansın, sonra kart çizilsin
       renderAstronauts();
-      showDetail(astroDetail(a)); // uyarı renklerini tazele
+      showDetail(astroDetail(a)); // uyarı renklerini ve bölge etiketini tazele
       detailBody.querySelector(".pstatus").textContent = ok
         ? "Kaydedildi · " + new Date().toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })
         : "Güncellendi ama tarayıcı kaydetmeye izin vermedi.";
-      emitAstronautChange(a);
     });
 
     resetBtn.addEventListener("click", () => {
@@ -638,10 +642,10 @@
       if (!def) return;
       PROFILE_FIELDS.forEach((f) => (a[f.key] = def[f.key]));
       saveAll();
+      emitAstronautChange(a);
       renderAstronauts();
       showDetail(astroDetail(a));
       detailBody.querySelector(".pstatus").textContent = "astronauts.json değerlerine dönüldü.";
-      emitAstronautChange(a);
     });
 
     return form;
@@ -688,6 +692,7 @@
 
   function selectAstronaut(id, openDetail) {
     selectedAstroId = id;
+    drawZones(); // haritadaki bölgeler seçili astronotunkiler
     renderAstronauts();
     const a = astronauts.find((x) => x.id === id);
     if (a && openDetail) showDetail(astroDetail(a));
@@ -701,11 +706,148 @@
       const saved = loadSaved();
       astronauts = d.map((a) => ({ ...a, ...(saved[a.id] || {}) }));
       selectAstronaut(astronauts[0] && astronauts[0].id, false);
+      computeZones(); // grid önce geldiyse bölgeler şimdi hesaplanır
     })
     .catch((err) => {
       console.error(err);
       document.getElementById("astroList").innerHTML = '<p class="muted">astronauts.json okunamadı.</p>';
     });
+
+  // --- G6: O₂ bölgeleri (her zaman açık) ---
+  // Hesap Elif'in web/walkback.js'inde (E8): Dijkstra ile gidiş + üsse dönüş süresi,
+  // O₂ nabız çarpanıyla bölünür. Yeşil ≤ O₂/1,25, sarı ≤ O₂, kırmızı > O₂ (PLAN.md §3.3).
+  // Burada sadece çizim ve arayüz var.
+  const ZONE_ALPHA = 0.4;          // bölge dolgusunun saydamlığı (arazi görünsün diye)
+  let zonesReady = false;
+  let zoneLayer = null;            // dolgu (ImageryLayer)
+  const zoneEntities = [];         // sınır çizgileri + astronot simgesi
+
+  function initZones(grid) {
+    if (!window.Walkback) {
+      console.error("walkback.js yüklenemedi; O₂ bölgeleri çizilemiyor");
+      return;
+    }
+    Walkback.init(grid);
+    zonesReady = true;
+    computeZones();
+  }
+
+  // Bütün astronotlar için bölgeyi hesapla (kart etiketleri), seçili olanı haritaya çiz
+  function computeZones() {
+    if (!zonesReady || !astronauts.length) return;
+    astronauts.forEach((a) => {
+      try {
+        const z = Walkback.zones(a.position, Number(a.o2_min), Number(a.heart_rate), Number(a.load_kg));
+        a.zone = z.here;
+        a._z = z; // çizim için sakla (kaydedilmez: PROFILE_FIELDS'ta yok)
+      } catch (err) {
+        console.error("Bölge hesaplanamadı:", a.id, err);
+        a.zone = null;
+        a._z = null;
+      }
+    });
+    renderAstronauts();
+    drawZones();
+  }
+
+  function clearZoneDrawing() {
+    if (zoneLayer) viewer.imageryLayers.remove(zoneLayer, true);
+    zoneLayer = null;
+    zoneEntities.splice(0).forEach((e) => viewer.entities.remove(e));
+  }
+
+  function drawZones() {
+    if (!zonesReady) return;
+    const a = astronauts.find((x) => x.id === selectedAstroId);
+    clearZoneDrawing();
+    if (!a || !a._z) return;
+    const z = a._z;
+    const b = Walkback.grid.b;
+
+    // 1) Dolgu: walkback'in 256×256 canvas'ı grid sınırlarına serilir
+    zoneLayer = viewer.imageryLayers.addImageryProvider(
+      new Cesium.SingleTileImageryProvider({
+        url: z.canvas(ZONE_ALPHA).toDataURL(),
+        rectangle: Cesium.Rectangle.fromDegrees(b.west, b.south, b.east, b.north),
+        tileWidth: Walkback.grid.w,
+        tileHeight: Walkback.grid.h,
+      })
+    );
+
+    // 2) Sınır çizgileri: araziye yapışık, net görünsün diye kalın
+    const lines = [
+      ["green", z.outlines.green, "#2ecc71"],
+      ["yellow", z.outlines.yellow, "#f1c40f"],
+    ];
+    lines.forEach(([, polys, color]) =>
+      polys.forEach((pts) =>
+        zoneEntities.push(
+          viewer.entities.add({
+            polyline: {
+              positions: Cesium.Cartesian3.fromDegreesArray(pts.flat(), MARS),
+              width: 2.5,
+              material: Cesium.Color.fromCssColorString(color),
+              clampToGround: true,
+            },
+          })
+        )
+      )
+    );
+
+    // 3) Astronot simgesi
+    zoneEntities.push(
+      viewer.entities.add({
+        position: Cesium.Cartesian3.fromDegrees(a.position.lon, a.position.lat, 0, MARS),
+        point: {
+          pixelSize: 12,
+          color: Cesium.Color.fromCssColorString("#ff7a2f"),
+          outlineColor: Cesium.Color.WHITE,
+          outlineWidth: 2,
+          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY, // arazinin arkasında kaybolmasın
+        },
+        label: {
+          text: a.name,
+          font: "600 14px system-ui, sans-serif",
+          fillColor: Cesium.Color.WHITE,
+          outlineColor: Cesium.Color.BLACK,
+          outlineWidth: 3,
+          style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+          pixelOffset: new Cesium.Cartesian2(0, -20),
+          heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        },
+      })
+    );
+
+    updateZonePanel(a);
+  }
+
+  // Sol paneldeki "O₂ bölgeleri" kutusu: seçili astronotun özeti
+  function updateZonePanel(a) {
+    const box = document.getElementById("zoneStats");
+    if (!box) return;
+    box.replaceChildren(zoneSummary(a));
+  }
+
+  function zoneSummary(a) {
+    const z = a && a._z;
+    if (!z) return el("p", { class: "muted small" }, "Bölgeler hesaplanıyor…");
+    const fmt = (v) => Math.round(v).toLocaleString("tr-TR");
+    return el(
+      "dl",
+      { class: "kv zone-kv" },
+      el("dt", null, "Kullanılabilir O₂"),
+      el("dd", null, fmt(z.availableMin) + " dk (nabız ×" + z.multiplier.toFixed(2) + ")"),
+      el("dt", null, "Üsse dönüş"),
+      el("dd", null, fmt(z.homeMin) + " dk"),
+      el("dt", null, "Yeşil / sarı alan"),
+      el("dd", null, z.stats.greenKm2.toLocaleString("tr-TR") + " / " + z.stats.yellowKm2.toLocaleString("tr-TR") + " km²")
+    );
+  }
+
+  // Profil "Güncelle" ya da "Varsayılana dön" → bölgeleri anında yeniden hesapla
+  window.addEventListener("marstrail:astronaut", computeZones);
 
   // --- G3: Mobil çekmece ---
   const leftPanel = document.getElementById("leftPanel");

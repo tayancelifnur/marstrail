@@ -257,6 +257,18 @@ button.icon:hover { color: var(--text); }
 .profile .controls { margin-top: 12px; }
 .pstatus { min-height: 1em; margin: 6px 0 0; }
 
+/* G6: bölge özeti */
+.kv.zone-kv {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 3px 10px;
+  margin: 8px 0 4px;
+  font-size: 12px;
+}
+.kv.zone-kv dt { color: var(--muted); }
+.kv.zone-kv dd { margin: 0; font-variant-numeric: tabular-nums; }
+h2 .small { text-transform: none; letter-spacing: 0; font-weight: 400; }
+
 /* Bölge etiketi (G6'da hesaplanacak) */
 .zone {
   flex: none;

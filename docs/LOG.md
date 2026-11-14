@@ -135,3 +135,11 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 
 - **Ne yapıldı:** `scripts/make_previews.py` → `docs/figures/onizleme/d1.png … d8.png`. Her veri seti için ham ve işlenmiş hal yan yana. `docs/veri_envanteri.md`'ye eklendi.
 - **Düzeltme:** D2 rover hücre sayısı 675 değil, 679. E3'teki hızlı kontrolde yuvarlama hatası vardı; walkback.js ile aynı `floor` yöntemiyle 679. DATA_PIPELINE güncellendi.
+
+## G6 (1. kısım) · O₂ bölgeleri her zaman açık · Cmt 14 Kas 2026, 17:45
+
+- **Ne yapıldı:** Elif'in `walkback.js`'i (E8) arayüze bağlandı. Seçili astronotun yeşil/sarı/kırmızı bölgeleri haritada dolgu + araziye yapışık sınır çizgisi olarak her zaman çiziliyor; astronot simgesi ve adı haritada. Her iki astronotun kart etiketi (YEŞİL/SARI/KIRMIZI) ve formda "Şu an … bölgedesin" yazısı gerçek hesaptan. Sol panelde lejant + kullanılabilir O₂, üsse dönüş süresi, yeşil/sarı alan (km²). Profil "Güncelle" ile bölgeler anında yeniden hesaplanıyor.
+- **Dosyalar:** `web/index.html`, `web/app.js`, `web/style.css`
+- **Varsayımlar:** Bölge dolgusu %40 saydam. `grid.json` terrain için bir kez indiriliyor, Walkback'e aynı nesne veriliyor.
+- **Kontrol (headless Chrome):** O₂ 480 dk, nabız 85 → yeşil 73,2 km², hesap ~45 ms. O₂ 84 dk, nabız 120 → kullanılabilir 65 dk (×1,30), yeşil 2,4 km², sarı 1,3 km².
+- **Kalan (G6 2. kısım):** Planlayıcı paneli, dönüş noktası, Go/No-Go (E11 bekleniyor).
