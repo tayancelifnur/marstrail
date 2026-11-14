@@ -345,3 +345,13 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Ne yapıldı:** Bir veri katmanı açıkken bölge dolgusu ×0,25 soluklaşır, sınır çizgileri tam kalır (kapatınca geri gelir). PNG'ler aynı anda iner, haritaya layers.json sırasıyla eklenir.
 - **Elif'e not:** `scripts/prep_layers.py` hillshade azimutu 315° (KB); beyaz = KB'ya bakan yamaç. Lejantta "Güneye bakan yamaç" yazıyor → "KB'ya bakan yamaç (ışık KB'dan)" olmalı.
 - **Dosyalar:** `web/app.js`
+
+## G3 (gözden geçirme) · Üst bar telefonda, örnek hava verisi, tablet düzeni · Paz 15 Kas 2026, 00:05
+
+- **Kontrol (kartın satırı):** 1366×768 laptop: 8 değerin hepsi taşmadan sığıyor. 390×844 telefon ve 820×1180 tablet aşağıda düzeltildikten sonra düzgün.
+- **Eleştiri → düzeltme:**
+  - Telefonda üst bar 4 değer gösteriyordu, "Habitat ağı" (telsiz kopunca ilk bakılan) ekran dışındaydı ve kaydırılabildiği belli değildi → telefonda UTC/TR gizli, habitat ağı Sol'ün arkasında, sağ kenarda solma.
+  - Hava `conditions.json`'dan ve tüm satırlar `"dummy": true` (gün doğumu/batımı her Sol aynı) ama gerçek ölçüm gibi görünüyordu → başlık "Hava · örnek", üstüne gelince açıklama; dummy değilse "Hava · MEDA".
+  - Tablet (iPad dikey 768–834 px) masaüstü düzenine düşüyordu, iki panel arasında harita ~196 px → çekmece düzeni 900 px'e kadar.
+- **Elif'e not:** conditions.json gerçek MEDA verisiyle (sıcaklık, basınç, toz τ) değiştirilirse arayüz kendiliğinden "Hava · MEDA" yazar.
+- **Dosyalar:** `web/index.html`, `web/style.css`, `web/app.js`

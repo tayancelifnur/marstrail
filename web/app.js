@@ -566,6 +566,12 @@
     if (c) {
       $("tbWeather").textContent =
         Math.round(c.temp_min_c) + "…" + Math.round(c.temp_max_c) + " °C · toz τ " + c.dust_tau.toFixed(2);
+      // conditions.json'da "dummy": true ise gerçek ölçüm değil: başlıkta açıkça "örnek" yazar
+      // (jüri veri hakimiyetine bakıyor; varsayım verisini gerçekmiş gibi göstermeyelim)
+      $("tbWeatherLabel").textContent = c.dummy ? "Hava · örnek" : "Hava · MEDA";
+      $("tbWeather").title = c.dummy
+        ? "Örnek değerler (conditions.json, Sol " + c.sol + "): Perseverance MEDA ölçümleri eklenince gerçek olacak."
+        : "Perseverance MEDA, Sol " + c.sol;
     }
 
     const link = $("tbLink");
