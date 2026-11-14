@@ -19,3 +19,8 @@ Thumbs.db
 
 # E5: Roboflow yükleme karoları (büyük, yeniden üretilebilir)
 ml/roboflow_upload/
+
+# E6: YOLO eğitim çıktıları (önemli şekiller docs/figures/e6_* olarak kopyalanır)
+ml/runs/
+ml/weights/
+ml/models/

@@ -1,0 +1,89 @@
+{
+  "names": [
+    "kaya",
+    "kaya_alani",
+    "kum_dalgasi"
+  ],
+  "splits": {
+    "train": {
+      "images": 120,
+      "empty_images": 6,
+      "image_sizes": {
+        "640x640": 120
+      },
+      "boxes": {
+        "kaya": 199,
+        "kaya_alani": 65,
+        "kum_dalgasi": 193
+      },
+      "boxes_total": 457,
+      "boxes_per_image_median": 1.0,
+      "boxes_per_image_max": 62
+    },
+    "valid": {
+      "images": 30,
+      "empty_images": 1,
+      "image_sizes": {
+        "640x640": 30
+      },
+      "boxes": {
+        "kaya": 56,
+        "kaya_alani": 17,
+        "kum_dalgasi": 44
+      },
+      "boxes_total": 117,
+      "boxes_per_image_median": 1.5,
+      "boxes_per_image_max": 20
+    }
+  },
+  "res_m": 0.25,
+  "box_size_m": {
+    "kaya": {
+      "count": 255,
+      "p10": 2.5,
+      "median": 5.0,
+      "p90": 9.4
+    },
+    "kum_dalgasi": {
+      "count": 237,
+      "p10": 26.1,
+      "median": 60.9,
+      "p90": 159.8
+    },
+    "kaya_alani": {
+      "count": 82,
+      "p10": 10.8,
+      "median": 23.9,
+      "p90": 65.1
+    }
+  },
+  "full_tile_boxes": {
+    "kaya": 0,
+    "kaya_alani": 1,
+    "kum_dalgasi": 74
+  },
+  "by_tile_category": {
+    "kaya_adayi": {
+      "kaya": 227,
+      "kum_dalgasi": 138,
+      "kaya_alani": 70,
+      "(boş)": 5
+    },
+    "kum_adayi": {
+      "kum_dalgasi": 80,
+      "kaya": 25,
+      "kaya_alani": 9,
+      "(boş)": 1
+    },
+    "negatif": {
+      "(boş)": 1,
+      "kum_dalgasi": 19,
+      "kaya_alani": 3,
+      "kaya": 3
+    }
+  },
+  "tiles_in_manifest": 150,
+  "tiles_exported": 150,
+  "tiles_missing_from_export": [],
+  "invalid_label_rows": []
+}

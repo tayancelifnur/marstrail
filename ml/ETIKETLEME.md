@@ -32,6 +32,23 @@ Görüntü 25 cm/piksel. Bir karo 160 × 160 m.
 - Karo kenarında yarım kalan nesne en az yarısı görünüyorsa etiketlenir.
 - **Hız hedefi:** karo başına ~1 dakika. Çok kayalı bir karoda en belirgin 30–40 kaya yeter; hepsini sayma.
 
+## Etiket tanımı ve sınırlamalar (son hali, v1-150karo)
+
+Roboflow sürümü: `marstrail-jezero` v1 "v1-150karo". 150 karo: 120 train, 30 valid. Sınıflar alfabetik sırada (etiket dosyalarındaki indisler bu sırayla): `0 kaya`, `1 kaya_alani`, `2 kum_dalgasi`. Yukarıdaki iki sınıflı plana etiketleme sırasında `kaya_alani` eklendi.
+
+- **Ön etiketleme:** Roboflow Auto Label (GPT-6.1 Terra) ile yapıldı. Sonra 150 karonun hepsi elle kontrol edildi: yanlış, eksik ve fazla kutular düzeltildi. YZ beyanında yazılı (`docs/TESLIM.md` bölüm 4).
+- **`kaya`:** Küçük yüzey engeli, metre ölçeğinde. Kaya da olabilir küçük çukur da. Tek görüntüde ikisini ayırmanın yolu gölgenin hangi yanda olduğuna bakmak (güneş yönüne göre). Bunu güvenilir yapamadık. Astronot için ikisi de takılıp düşme engeli, bu yüzden tek sınıf.
+- **`kaya_alani`:** Yoğun kaya bölgesi. Tek tek kaya saymak yerine bölge kutusu. Rota grid'inin hücresi 70 m olduğu için haritaya giden bilgi zaten bölge ölçeğinde; bu sınıf o ölçeğe doğrudan karşılık geliyor.
+- **`kum_dalgasi`:** Kum dalgası sırtları ya da sırtlarla dolu kum alanı.
+- **Etiketlenmeyenler:**
+  - Büyük çöküntü yamaçları ve gölgeleri. Eğim zaten DEM'den (D5) geliyor; modelin aynı tehlikeyi ikinci kez saymasına gerek yok.
+  - Mozaik dikiş yerleri (görüntü şeritlerinin birleştiği düz çizgiler). Bunlar arazi değil, görüntüleme izi.
+- **Ölçülen özellikler** (`ml/dataset_stats.py` → `docs/figures/e6_dataset_stats.json`):
+  - Kutu boyları üç sınıfı ölçekle ayırıyor: `kaya` medyan 5 m, `kaya_alani` 24 m, `kum_dalgasi` 61 m.
+  - 237 `kum_dalgasi` kutusunun 74'ü karonun %80'inden fazlasını kaplıyor. Bu karolarda sınıf "nesne" değil "bu karo kum alanı" anlamına geliyor. Kum için model kısmen karo sınıflandırıcısı gibi davranacak; haritaya yoğunluk olarak gittiği için (E10) bu sorun değil.
+  - Negatif karoların çoğunda sonradan kum dalgası bulundu (15 karonun 14'ünde en az bir kutu var). Tamamen boş karo yalnızca 7 tane. Yani model "hiçbir şey yok" durumunu az görüyor; yanlış pozitif riskine E10'da bakılacak.
+- **Kapsam:** Karoların hepsi HiRISE mozaiğinin kapsadığı güneybatı bölümden (DATA_PIPELINE.md, D8). Model başka aydınlatma ya da çözünürlükteki görüntüye (ör. Mars Trek mozaiği) genellenmeyebilir.
+
 ## Takılırsan
 
 Kartın B planı: **80 karo + tek sınıf (`kum_dalgasi`)**. Kum karoları hem daha hızlı etiketlenir hem demoda (Opportunity hikâyesi) daha önemli.

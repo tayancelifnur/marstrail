@@ -248,8 +248,48 @@ Ham NASA/USGS verisinden tarayıcıdaki haritaya kadar her adım: ne aldık, ney
 - **Çıktı:**
   - `ml/roboflow_upload.zip`: 150 PNG, 28,2 MB.
   - `ml/tiles_manifest.csv`: karo → piksel konumu, derece sınırları, birim oranları, seçim nedeni.
-- **Etiketleme:** Elif, Roboflow'da elle. Sınıflar `kaya` ve `kum_dalgasi`. Kurallar `ml/ETIKETLEME.md`'de; kaya için alt sınır ~8 px (2 m). Train/val 80/20, Roboflow'da çoğaltma yok (Ultralytics yapacak). Etiket sayıları etiketleme bitince buraya eklenecek.
+- **Etiketleme:** Roboflow'da; ayrıntı ve sayılar aşağıda (E6).
 - **Görseller:** [figures/d8_tile_selection.png](figures/d8_tile_selection.png) (karo haritası ve atılanlar), [figures/d8_tile_samples.png](figures/d8_tile_samples.png) (örnek karolar). Sayılar: [figures/e5_stats.json](figures/e5_stats.json).
+
+## E6 · Etiketler ve YOLOv8 eğitimi (ml/dataset_stats.py, ml/train.py)
+
+- **Veri seti:** Roboflow `marstrail-jezero` v1 "v1-150karo", YOLOv8 formatı. E5'in 150 karosu, 640 × 640, 0,25 m/piksel.
+- **Neden:** Kum dalgası ve kaya, DEM'in (20 m) ve termal verinin (100 m) göremediği tehlikeler. Model bunları 25 cm'lik görüntüde bulup E10'da grid maliyetine ekleyecek.
+
+### Etiket tanımı ve sınırlamalar
+
+- **Ön etiketleme:** Roboflow Auto Label (GPT-6.1 Terra). 150 karonun hepsi elle kontrol edilip düzeltildi (YZ beyanında, TESLIM.md bölüm 4).
+- **Sınıflar:**
+
+| İndis | Sınıf | Tanım | Kutu boyu (p10 / medyan / p90) |
+| --- | --- | --- | --- |
+| 0 | `kaya` | Küçük yüzey engeli, metre ölçeğinde: kaya ya da küçük çukur. Gölgenin hangi yanda olduğuna bakmadan ayırt edilemiyor; astronot için ikisi de engel, bu yüzden tek sınıf. | 2,5 / 5,0 / 9,4 m |
+| 1 | `kaya_alani` | Yoğun kaya bölgesi. Grid hücresi 70 m olduğu için bölge ölçeği seçildi. | 10,8 / 23,9 / 65,1 m |
+| 2 | `kum_dalgasi` | Kum dalgası sırtları ya da sırtlarla dolu kum alanı. | 26,1 / 60,9 / 159,8 m |
+
+- **Etiketlenmeyenler:**
+  - Büyük çöküntü yamaçları ve gölgeleri: eğim DEM'den (D5) geliyor, aynı tehlike iki kez sayılmasın.
+  - Mozaik dikiş yerleri: arazi değil görüntüleme izi.
+- **Sınırlamalar** (ölçülen):
+  - 237 `kum_dalgasi` kutusunun 74'ü karonun ≥ %80'ini kaplıyor. Bu karolarda kum "nesne" değil "karo türü" olarak etiketli; kum için model kısmen karo sınıflandırıcısı gibi öğrenir. E10'da çıktı zaten yoğunluk olarak grid'e gittiği için kabul edildi.
+  - 15 negatif karonun 14'ünde etiketleme sırasında nesne bulundu. Tamamen boş karo 7 (train 6, valid 1). Yanlış pozitif riski E10'da kontrol edilecek.
+  - `kaya_alani` en az örnekli sınıf (82 kutu). Valid kümesinde 17 kutu var; bu sınıfın mAP'i birkaç kutuyla değişebilir.
+  - Hepsi HiRISE mozaiğinin kapsadığı güneybatı bölümden. Başka aydınlatma/çözünürlükte genellemesi denenmedi.
+
+### Etiket sayıları
+
+| Bölüm | Karo | Boş karo | `kaya` | `kaya_alani` | `kum_dalgasi` | Toplam kutu |
+| --- | --- | --- | --- | --- | --- | --- |
+| train | 120 | 6 | 199 | 65 | 193 | 457 |
+| valid | 30 | 1 | 56 | 17 | 44 | 117 |
+
+- **Temizlik kontrolü:** Geçersiz satır (koordinat 0–1 dışında, bilinmeyen sınıf) 0. Manifest'teki 150 karonun 150'si dışa aktarımda var. Bütün görüntüler 640 × 640.
+- **Bölme:** 80/20 Roboflow'da rastgele. Karolar E5'te en uzak nokta örneklemesiyle seçildiği için komşu karo yok; val kümesi train'e sızmıyor.
+- **Normalizasyon:** Piksel germesi E5'te yapıldı (60–219 → 0–255). Roboflow karoları JPG'ye çevirdi (kayıplı sıkıştırma; 2 m'lik kaya ~8 piksel, etkisi küçük ama not edildi). Ultralytics girişte 0–1'e böler.
+- **Artırma (sadece eğitimde, Roboflow'da yok):** yatay+dikey çevirme (yukarıdan çekimde "yukarı" yok), parlaklık ±%30 (güneş açısı ve mozaik şeritleri arası ton farkı), renk tonu/doygunluk 0 (görüntü gri), döndürme 0 (ince kum sırtlarında kutuyu şişirir), ölçek ±%25 (sınıflar fiziksel boyuta bağlı; varsayılan ±%50 kaya ile kaya_alani'yi karıştırır), mozaik (son 10 epoch kapalı). Gerekçeler `ml/train.py` yorumlarında.
+- **Öğrenme yöntemi:** YOLOv8m, COCO ön-eğitimli ağırlıktan transfer öğrenme. 640 px, 100 epoch, erken durdurma 20 epoch, batch 16, seed 0. RTX 5090 Laptop, CUDA 12.8.
+- **Sonuç:** [eğitim bitince doldurulacak: sınıf bazında P, R, mAP50, mAP50-95]
+- **Görseller:** [figures/e6_dataset.png](figures/e6_dataset.png) (sınıf sayıları ve kutu boyu dağılımı). Sayılar: [figures/e6_dataset_stats.json](figures/e6_dataset_stats.json).
 
 ---
 
