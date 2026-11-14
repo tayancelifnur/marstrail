@@ -36,6 +36,10 @@ rng = np.random.default_rng(42)
 
 def write_json(name, obj, compact=False):
     path = OUT / name
+    # Koruma: gerçek veri (prep_layers.py, build_regions.py çıktısı) sahteyle ezilmesin.
+    if path.exists() and '"dummy"' not in path.read_text(encoding="utf-8")[:20000]:
+        print(f"  ATLANDI {path.relative_to(ROOT)} (gerçek veri var)")
+        return
     with open(path, "w", encoding="utf-8") as f:
         if compact:
             json.dump(obj, f, ensure_ascii=False, separators=(",", ":"))
@@ -326,20 +330,29 @@ def make_placeholder_photo():
     print(f"  {path.relative_to(ROOT)}")
 
 
+def is_real(name):
+    path = OUT / name
+    return path.exists() and '"dummy"' not in path.read_text(encoding="utf-8")[:20000]
+
+
 def main():
     for d in (OUT, LAYERS_DIR, PHOTOS_DIR):
         d.mkdir(parents=True, exist_ok=True)
     print("Sahte veri yazılıyor:")
     t = make_terrain()
     score = traversability(t)
-    make_layers(t, score)
+    if is_real("layers.json"):
+        print("  ATLANDI layers/*.png ve layers.json (gerçek veri var)")
+    else:
+        make_layers(t, score)
     make_grid(t, score)
     regions = make_regions(t)
     make_poi(regions)
     make_stories()
     make_astronauts()
     make_conditions()
-    make_placeholder_photo()
+    if not is_real("regions.json"):
+        make_placeholder_photo()
     print("Bitti.")
 
 

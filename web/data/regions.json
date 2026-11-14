@@ -2,231 +2,388 @@
   {
     "id": "base",
     "name": "Üs – Octavia E. Butler iniş alanı",
-    "lat": 18.4447,
-    "lon": 77.4508,
+    "lat": 18.444627,
+    "lon": 77.450886,
+    "elevation_m": -2567,
     "science_value": 2,
-    "summary": "Perseverance'ın iniş noktası; MarsTrail habitatının yeri.",
+    "summary": "Perseverance'ın 18 Şubat 2021'de indiği nokta. MarsTrail senaryosunda habitatın yeri; bütün yürüyüşler buradan başlar ve buraya döner.",
     "hazards": [],
     "missions": [
       "Mars 2020 / Perseverance"
     ],
-    "sol": 0,
     "history": [
       {
         "date": "2021-02-18",
-        "event": "Perseverance Jezero'ya indi",
+        "event": "Perseverance Jezero Krateri'ne indi (Sol 0).",
         "source": "https://science.nasa.gov/mission/mars-2020-perseverance/location-map/"
       }
     ],
-    "elevation_m": -2600,
+    "sol": 0,
     "photos": [
       {
-        "url": "photos/placeholder.jpg",
+        "url": "photos/base_sol0000_front_hazcam_left_a.jpg",
+        "url_large": "https://mars.nasa.gov/mars2020-raw-images/pub/ods/surface/sol/00000/ids/edr/browse/fcam/FLG_0000_0666958226_808ECM_N0010052AUT_04096_00_2I3J02_1200.jpg",
+        "page": "https://mars.nasa.gov/mars2020/multimedia/raw-images/FLG_0000_0666958226_808ECM_N0010052AUT_04096_00_2I3J02",
+        "imageid": "FLG_0000_0666958226_808ECM_N0010052AUT_04096_00_2I3J02",
         "sol": 0,
-        "camera": "NAVCAM_LEFT",
-        "caption": "Üs – Octavia E. Butler iniş alanı – Sol 0 (sahte)",
-        "dummy": true
+        "camera": "Ön Hazcam",
+        "date_utc": "2021-02-18",
+        "lmst": "17:19",
+        "credit": "NASA/JPL-Caltech",
+        "caption": "Ön Hazcam, Sol 0 (2021-02-18), yerel saat 17:19"
       }
     ],
-    "dummy": true
+    "position_source": "D1 Sol 13 kaydı (Sol ≤ 0 olan son konum)",
+    "terrain": {
+      "elevation_m": -2567,
+      "geology_unit": "Jezero floor unit",
+      "geology_walkability": 0.85,
+      "slope_deg": 2.6,
+      "max_slope_300m_deg": 5.7,
+      "sand_pct_300m": 0.0,
+      "thermal_norm": 0.48,
+      "traversability_score": 0.17
+    },
+    "poi_type": "habitat"
   },
   {
-    "id": "jezero_lake",
-    "name": "Jezero antik gölü",
-    "lat": 18.45,
-    "lon": 77.42,
+    "id": "jezero",
+    "name": "Jezero Krateri – antik göl",
+    "lat": 18.38,
+    "lon": 77.58,
+    "elevation_m": -2628,
     "science_value": 5,
-    "summary": "Yaklaşık 3,5 milyar yıl önce göl olan krater tabanı.",
-    "hazards": [
-      "gevşek toz"
-    ],
+    "summary": "45 km çaplı krater, yaklaşık 3,5 milyar yıl önce bir göldü. Batıdan giren nehir bir delta bıraktı; Perseverance'ın iniş yeri olarak bu yüzden seçildi.",
+    "hazards": [],
     "missions": [
-      "MRO",
+      "Mars Global Surveyor",
+      "Mars Reconnaissance Orbiter",
       "Mars 2020"
     ],
-    "sol": null,
     "history": [
       {
         "date": "2005",
-        "event": "Antik göl yörünge görüntülerinden tanımlandı (Caleb Fassett)",
+        "event": "Antik göl yörünge görüntülerinden ilk kez tanımlandı (Caleb Fassett).",
         "source": "https://www.astronomy.com/?p=40600"
       },
       {
+        "date": "2020-11",
+        "event": "Mars 2020 bilim ekibi HiRISE üzerinde 1:5000 ölçekli fotojeolojik harita yayımladı (Stack vd.).",
+        "source": "https://dspace.mit.edu/entities/publication/592b30f4-e0c9-4caa-8f9c-2bd12ebdffe9"
+      },
+      {
         "date": "2020-12-02",
-        "event": "USGS jeolojik haritası (SIM 3464) yayımlandı",
+        "event": "USGS jeolojik haritası SIM 3464 yayımlandı (Jezero ve Nili Planum).",
         "source": "https://www.usgs.gov/maps/geologic-map-jezero-crater-and-nili-planum-region-mars"
       }
     ],
-    "elevation_m": -2564,
+    "sol": null,
     "photos": [],
-    "dummy": true
+    "position_source": "Krater merkezi, yayınlanmış koordinat (18,38°K, 77,58°D)",
+    "terrain": {
+      "elevation_m": -2628,
+      "geology_unit": "Jezero floor unit",
+      "geology_walkability": 0.85
+    },
+    "poi_type": "history"
   },
   {
     "id": "airfield",
     "name": "Ingenuity uçuş alanı (Wright Brothers Field)",
-    "lat": 18.4446,
-    "lon": 77.4512,
+    "lat": 18.444863,
+    "lon": 77.451019,
+    "elevation_m": -2568,
     "science_value": 3,
-    "summary": "Başka bir gezegende ilk güçlü, kontrollü uçuşun yapıldığı alan.",
+    "summary": "Başka bir gezegende ilk güçlü, kontrollü uçuşun yapıldığı alan. Ingenuity 72 uçuşla rover'a keşif yaptı; Hayatta Kal modundaki İHA taramasının ilham kaynağı.",
     "hazards": [],
     "missions": [
-      "Ingenuity"
+      "Ingenuity",
+      "Mars 2020"
     ],
-    "sol": 58,
     "history": [
       {
         "date": "2021-04-19",
-        "event": "Ingenuity ilk uçuşunu yaptı",
+        "event": "Ingenuity ilk uçuşunu yaptı: Mars'ta ilk motorlu, kontrollü uçuş (Sol 58).",
         "source": "https://mars.nasa.gov/mmgis-maps/M20/Layers/json/m20_heli_flight_path.json"
       }
     ],
-    "elevation_m": -2602,
+    "sol": 58,
     "photos": [
       {
-        "url": "photos/placeholder.jpg",
+        "url": "photos/airfield_sol0058_navcam_left.jpg",
+        "url_large": "https://mars.nasa.gov/mars2020-raw-images/pub/ods/surface/sol/00058/ids/edr/browse/ncam/NLE_0058_0672086980_304ECM_N0032046NCAM00603_00_0LLJ02_1200.jpg",
+        "page": "https://mars.nasa.gov/mars2020/multimedia/raw-images/NLE_0058_0672086980_304ECM_N0032046NCAM00603_00_0LLJ",
+        "imageid": "NLE_0058_0672086980_304ECM_N0032046NCAM00603_00_0LLJ",
         "sol": 58,
-        "camera": "NAVCAM_LEFT",
-        "caption": "Ingenuity uçuş alanı (Wright Brothers Field) – Sol 58 (sahte)",
-        "dummy": true
+        "camera": "Navcam",
+        "date_utc": "2021-04-19",
+        "lmst": "11:52",
+        "credit": "NASA/JPL-Caltech",
+        "caption": "Navcam, Sol 58 (2021-04-19), yerel saat 11:52"
+      },
+      {
+        "url": "photos/airfield_sol0058_mcz_left.jpg",
+        "url_large": "https://mars.nasa.gov/mars2020-raw-images/pub/ods/surface/sol/00058/ids/edr/browse/zcam/ZL0_0058_0672092633_568ECM_N0032046ZCAM05033_110085J02_1200.jpg",
+        "page": "https://mars.nasa.gov/mars2020/multimedia/raw-images/ZL0_0058_0672092633_568ECM_N0032046ZCAM05033_110085J",
+        "imageid": "ZL0_0058_0672092633_568ECM_N0032046ZCAM05033_110085J",
+        "sol": 58,
+        "camera": "Mastcam-Z",
+        "date_utc": "2021-04-19",
+        "lmst": "13:23",
+        "credit": "NASA/JPL-Caltech/ASU",
+        "caption": "Mastcam-Z, Sol 58 (2021-04-19), yerel saat 13:23"
       }
     ],
-    "dummy": true
+    "position_source": "D3 Uçuş 1 kalkış noktası",
+    "terrain": {
+      "elevation_m": -2568,
+      "geology_unit": "Jezero floor unit",
+      "geology_walkability": 0.85,
+      "slope_deg": 2.7,
+      "max_slope_300m_deg": 5.7,
+      "sand_pct_300m": 0.0,
+      "thermal_norm": 0.48,
+      "traversability_score": 0.17
+    },
+    "poi_type": "history"
   },
   {
     "id": "rochette",
-    "name": "Rochette kayası",
-    "lat": 18.437,
-    "lon": 77.444,
+    "name": "Rochette kayası (Citadelle)",
+    "lat": 18.430739,
+    "lon": 77.444366,
+    "elevation_m": -2578,
     "science_value": 4,
-    "summary": "İlk başarılı kaya numunesinin alındığı yer.",
-    "hazards": [
-      "kayalık zemin"
-    ],
+    "summary": "Perseverance'ın ilk başarılı kaya numunesini aldığı yer. Krater tabanının volkanik kayaları suyla değişime uğramış.",
+    "hazards": [],
     "missions": [
       "Mars 2020"
     ],
-    "sol": 190,
     "history": [
       {
         "date": "2021-09-01",
-        "event": "İlk başarılı kaya numunesi",
+        "event": "İlk başarılı kaya numunesi alındı (Sol 190).",
         "source": "https://kaweah.freedombox.rocks/kiwix/wikipedia_en_all_maxi_2023-10/Timeline_of_Mars_2020"
       }
     ],
-    "elevation_m": -2583,
+    "sol": 190,
     "photos": [
       {
-        "url": "photos/placeholder.jpg",
+        "url": "photos/rochette_sol0190_navcam_left.jpg",
+        "url_large": "https://mars.nasa.gov/mars2020-raw-images/pub/ods/surface/sol/00190/ids/edr/browse/ncam/NLE_0190_0683808901_487ECM_N0070000NCAM00209_06_0LLJ01_1200.jpg",
+        "page": "https://mars.nasa.gov/mars2020/multimedia/raw-images/NLE_0190_0683808901_487ECM_N0070000NCAM00209_06_0LLJ",
+        "imageid": "NLE_0190_0683808901_487ECM_N0070000NCAM00209_06_0LLJ",
         "sol": 190,
-        "camera": "NAVCAM_LEFT",
-        "caption": "Rochette kayası – Sol 190 (sahte)",
-        "dummy": true
+        "camera": "Navcam",
+        "date_utc": "2021-09-01",
+        "lmst": "12:51",
+        "credit": "NASA/JPL-Caltech",
+        "caption": "Navcam, Sol 190 (2021-09-01), yerel saat 12:51"
+      },
+      {
+        "url": "photos/rochette_sol0190_mcz_left.jpg",
+        "url_large": "https://mars.nasa.gov/mars2020-raw-images/pub/ods/surface/sol/00190/ids/edr/browse/zcam/ZL0_0190_0683810203_244EBY_N0070000ZCAM05069_0340LMJ01_1200.jpg",
+        "page": "https://mars.nasa.gov/mars2020/multimedia/raw-images/ZL0_0190_0683810203_244EBY_N0070000ZCAM05069_0340LMJ",
+        "imageid": "ZL0_0190_0683810203_244EBY_N0070000ZCAM05069_0340LMJ",
+        "sol": 190,
+        "camera": "Mastcam-Z",
+        "date_utc": "2021-09-01",
+        "lmst": "13:14",
+        "credit": "NASA/JPL-Caltech/ASU",
+        "caption": "Mastcam-Z, Sol 190 (2021-09-01), yerel saat 13:14"
       }
     ],
-    "dummy": true
+    "position_source": "D1 Sol 180 kaydı (Sol ≤ 190 olan son konum)",
+    "terrain": {
+      "elevation_m": -2578,
+      "geology_unit": "Lower etched unit",
+      "geology_walkability": 0.75,
+      "slope_deg": 2.9,
+      "max_slope_300m_deg": 8.2,
+      "sand_pct_300m": 0.0,
+      "thermal_norm": 0.52,
+      "traversability_score": 0.18
+    },
+    "poi_type": "science"
   },
   {
     "id": "delta_front",
-    "name": "Delta önü (Kodiak / Hawksbill Gap)",
-    "lat": 18.456,
-    "lon": 77.404,
+    "name": "Delta önü (Hawksbill Gap yönü)",
+    "lat": 18.449405,
+    "lon": 77.405186,
+    "elevation_m": -2539,
     "science_value": 5,
-    "summary": "Göl ve nehir deltası; ani sel izleri.",
-    "hazards": [
-      "eğim",
-      "kum dalgası"
-    ],
+    "summary": "Antik nehrin göle döküldüğü yerde biriken tortul katmanlar. Kodiak tepesinin görüntüleri deltayı ve ani sel izlerini doğruladı. Demo rotasının ilk bilim durağı.",
+    "hazards": [],
     "missions": [
+      "Mars Reconnaissance Orbiter",
       "Mars 2020"
     ],
-    "sol": 223,
     "history": [
       {
         "date": "2021-10-07",
-        "event": "Rover görüntüleri göl deltasını ve ani sel izlerini doğruladı (Science)",
+        "event": "Rover görüntüleri (Kodiak) göl deltasını ve ani sel izlerini doğruladı (Science).",
         "source": "https://earthsky.org/space/ancient-martian-lake-delta-floods-perseverance/"
+      },
+      {
+        "date": "2022-04-21",
+        "event": "Perseverance delta önüne ulaştı ve tırmanışa başladı (Sol 415).",
+        "source": "https://mars.nasa.gov/mmgis-maps/M20/Layers/json/M20_waypoints.json"
       }
     ],
-    "elevation_m": -2523,
+    "sol": 415,
     "photos": [
       {
-        "url": "photos/placeholder.jpg",
-        "sol": 223,
-        "camera": "NAVCAM_LEFT",
-        "caption": "Delta önü (Kodiak / Hawksbill Gap) – Sol 223 (sahte)",
-        "dummy": true
+        "url": "photos/delta_front_sol0415_navcam_left.jpg",
+        "url_large": "https://mars.nasa.gov/mars2020-raw-images/pub/ods/surface/sol/00415/ids/edr/browse/ncam/NLF_0415_0703775477_633ECM_N0230000NCAM12414_01_195J01_1200.jpg",
+        "page": "https://mars.nasa.gov/mars2020/multimedia/raw-images/NLF_0415_0703775477_633ECM_N0230000NCAM12414_01_195J",
+        "imageid": "NLF_0415_0703775477_633ECM_N0230000NCAM12414_01_195J",
+        "sol": 415,
+        "camera": "Navcam",
+        "date_utc": "2022-04-21",
+        "lmst": "10:46",
+        "credit": "NASA/JPL-Caltech",
+        "caption": "Navcam, Sol 415 (2022-04-21), yerel saat 10:46"
+      },
+      {
+        "url": "photos/delta_front_sol0415_mcz_left.jpg",
+        "url_large": "https://mars.nasa.gov/mars2020-raw-images/pub/ods/surface/sol/00415/ids/edr/browse/zcam/ZL0_0415_0703793521_348EBY_N0230824ZCAM08430_1100LMJ03_1200.jpg",
+        "page": "https://mars.nasa.gov/mars2020/multimedia/raw-images/ZL0_0415_0703793521_348EBY_N0230824ZCAM08430_1100LMJ",
+        "imageid": "ZL0_0415_0703793521_348EBY_N0230824ZCAM08430_1100LMJ",
+        "sol": 415,
+        "camera": "Mastcam-Z",
+        "date_utc": "2022-04-21",
+        "lmst": "15:39",
+        "credit": "NASA/JPL-Caltech/ASU",
+        "caption": "Mastcam-Z, Sol 415 (2022-04-21), yerel saat 15:39"
       }
     ],
-    "dummy": true
+    "position_source": "D1 Sol 415 kaydı (Sol ≤ 415 olan son konum)",
+    "terrain": {
+      "elevation_m": -2539,
+      "geology_unit": "Jezero floor unit",
+      "geology_walkability": 0.85,
+      "slope_deg": 5.6,
+      "max_slope_300m_deg": 11.0,
+      "sand_pct_300m": 0.6,
+      "thermal_norm": 0.41,
+      "traversability_score": 0.23
+    },
+    "poi_type": "science"
   },
   {
     "id": "three_forks",
     "name": "Three Forks numune deposu",
-    "lat": 18.453,
-    "lon": 77.415,
+    "lat": 18.452627,
+    "lon": 77.407756,
+    "elevation_m": -2546,
     "science_value": 4,
-    "summary": "Başka bir gezegendeki ilk numune deposu; 10 tüp bırakıldı.",
+    "summary": "Başka bir gezegendeki ilk numune deposu: 10 tüp, ileride Dünya'ya getirilmek üzere yüzeye bırakıldı. Demo rotasının ikinci durağı.",
     "hazards": [],
     "missions": [
       "Mars 2020",
       "Mars Sample Return (plan)"
     ],
-    "sol": 653,
     "history": [
       {
         "date": "2022-12-21",
-        "event": "İlk tüp bırakıldı",
+        "event": "Depoya ilk tüp bırakıldı (Sol 653).",
         "source": "https://spaceodysseyhub.com/replays/perseverance"
       },
       {
         "date": "2023-01-28",
-        "event": "Depo tamamlandı (10 tüp)",
+        "event": "Depo tamamlandı: 10 tüp.",
         "source": "https://spaceodysseyhub.com/replays/perseverance"
       }
     ],
-    "elevation_m": -2555,
+    "sol": 653,
     "photos": [
       {
-        "url": "photos/placeholder.jpg",
-        "sol": 653,
-        "camera": "NAVCAM_LEFT",
-        "caption": "Three Forks numune deposu – Sol 653 (sahte)",
-        "dummy": true
+        "url": "photos/three_forks_sol0654_navcam_left.jpg",
+        "url_large": "https://mars.nasa.gov/mars2020-raw-images/pub/ods/surface/sol/00654/ids/edr/browse/ncam/NLF_0654_0725008793_634ECM_N0320250NCAM05654_01_195J01_1200.jpg",
+        "page": "https://mars.nasa.gov/mars2020/multimedia/raw-images/NLF_0654_0725008793_634ECM_N0320250NCAM05654_01_195J",
+        "imageid": "NLF_0654_0725008793_634ECM_N0320250NCAM05654_01_195J",
+        "sol": 654,
+        "camera": "Navcam",
+        "date_utc": "2022-12-22",
+        "lmst": "15:09",
+        "credit": "NASA/JPL-Caltech",
+        "caption": "Navcam, Sol 654 (2022-12-22), yerel saat 15:09"
+      },
+      {
+        "url": "photos/three_forks_sol0654_mcz_left.jpg",
+        "url_large": "https://mars.nasa.gov/mars2020-raw-images/pub/ods/surface/sol/00654/ids/edr/browse/zcam/ZL0_0654_0724997362_303EBY_N0320148ZCAM08649_0340LMJ01_1200.jpg",
+        "page": "https://mars.nasa.gov/mars2020/multimedia/raw-images/ZL0_0654_0724997362_303EBY_N0320148ZCAM08649_0340LMJ",
+        "imageid": "ZL0_0654_0724997362_303EBY_N0320148ZCAM08649_0340LMJ",
+        "sol": 654,
+        "camera": "Mastcam-Z",
+        "date_utc": "2022-12-22",
+        "lmst": "12:04",
+        "credit": "NASA/JPL-Caltech/ASU",
+        "caption": "Mastcam-Z, Sol 654 (2022-12-22), yerel saat 12:04"
       }
     ],
-    "dummy": true
+    "position_source": "D1 Sol 652 kaydı (Sol ≤ 653 olan son konum)",
+    "terrain": {
+      "elevation_m": -2546,
+      "geology_unit": "Jezero floor unit",
+      "geology_walkability": 0.85,
+      "slope_deg": 1.1,
+      "max_slope_300m_deg": 11.0,
+      "sand_pct_300m": 0.0,
+      "thermal_norm": 0.25,
+      "traversability_score": 0.19
+    },
+    "poi_type": "science"
   },
   {
     "id": "cheyava_falls",
     "name": "Cheyava Falls (Neretva Vallis)",
-    "lat": 18.488,
-    "lon": 77.382,
+    "lat": 18.497484,
+    "lon": 77.305191,
+    "elevation_m": -2353,
     "science_value": 5,
-    "summary": "\"Leopar benekli\" kaya; olası biyoimza.",
+    "summary": "\"Leopar benekli\" kaya: antik mikrobik yaşamın olası izi (biyoimza). Üsten ~15 km uzakta; tek EVA ile gidip dönülemez, O₂ haritasında kırmızı bölgede.",
     "hazards": [
-      "dik kanal duvarı"
+      "Dik yamaç: 300 m içinde 30.0° (sınır 25°)",
+      "Eolyen kum: 300 m çevrenin %24'i kum dalgası birimi"
     ],
     "missions": [
       "Mars 2020"
     ],
-    "sol": 1212,
     "history": [
       {
         "date": "2024-07-18",
-        "event": "\"Leopar benekli\" kaya bulundu; olası biyoimza",
+        "event": "\"Leopar benekli\" kaya bulundu; olası biyoimza (Sol 1212).",
         "source": "https://skyatnightmagazine.com/space-missions/perseverance-jezero-crater"
       }
     ],
-    "elevation_m": -2468,
+    "sol": 1212,
     "photos": [
       {
-        "url": "photos/placeholder.jpg",
+        "url": "photos/cheyava_falls_sol1212_front_hazcam_left_a.jpg",
+        "url_large": "https://mars.nasa.gov/mars2020-raw-images/pub/ods/surface/sol/01212/ids/edr/browse/fcam/FLF_1212_0774537987_112ECM_N0560000FHAZ00206_01_295J01_1200.jpg",
+        "page": "https://mars.nasa.gov/mars2020/multimedia/raw-images/FLF_1212_0774537987_112ECM_N0560000FHAZ00206_01_295J",
+        "imageid": "FLF_1212_0774537987_112ECM_N0560000FHAZ00206_01_295J",
         "sol": 1212,
-        "camera": "NAVCAM_LEFT",
-        "caption": "Cheyava Falls (Neretva Vallis) – Sol 1212 (sahte)",
-        "dummy": true
+        "camera": "Ön Hazcam",
+        "date_utc": "2024-07-18",
+        "lmst": "13:16",
+        "credit": "NASA/JPL-Caltech",
+        "caption": "Ön Hazcam, Sol 1212 (2024-07-18), yerel saat 13:16"
       }
     ],
-    "dummy": true
+    "position_source": "D1 Sol 1210 kaydı (Sol ≤ 1212 olan son konum)",
+    "terrain": {
+      "elevation_m": -2353,
+      "geology_unit": "Upper etched unit",
+      "geology_walkability": 0.75,
+      "slope_deg": 14.8,
+      "max_slope_300m_deg": 30.0,
+      "sand_pct_300m": 24.5,
+      "thermal_norm": 1.0,
+      "traversability_score": 0.27
+    },
+    "poi_type": "science"
   }
 ]

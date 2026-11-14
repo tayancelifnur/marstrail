@@ -43,3 +43,15 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
   - `docs/TESLIM.md` (form taslakları, kaynaklar, YZ beyanı, Drive listesi).
   - README UTF-8 olarak yeniden yazıldı, YZ notu eklendi.
 - **Çalıştır:** `venv\Scripts\python scripts\pipeline_stats.py`. Bu komut DATA_PIPELINE sayılarını ve figürlerini yeniden üretir.
+
+## E7 · Nokta kartları ve tarihçeler · Cmt 14 Kas 2026
+
+- **Ne yapıldı:** `scripts/build_regions.py` ile sahte `regions.json`, `poi.geojson` ve `stories.json` gerçekleriyle değişti. 7 nokta, 1 kum tehlikesi pini, 3 hikâye, 10 gerçek Perseverance fotoğrafı (`web/data/photos/`).
+- **Çalıştır:** `venv\Scripts\python scripts\build_regions.py` (~1 dk, D7 API'sine bağlanıyor)
+- **Kurallar/varsayımlar:**
+  - Konum: olay Sol'üne eşit ya da önceki son D1 kaydı. Ingenuity için D3 Uçuş 1.
+  - Tehlikeler 300 m içindeki eğim, kum ve termal değerlerinden kuralla üretiliyor.
+  - Fotoğraf: eleme hunisi (kamera, boyut, renkli/gri ikiz, direk açısı, kenar şiddeti ≥ 3,5) ve 1 kare insan kontrolüyle elendi.
+  - Ayrıntı: DATA_PIPELINE.md E7.
+- **Ek:** `regions.json`'a `terrain`, `position_source` ve `poi_type` alanları eklendi; sözleşmedeki alanlar aynı. Fotoğraflarda `credit`, `page`, `url_large`, `lmst` var. `make_dummies.py` artık gerçek dosyaların üzerine yazmıyor.
+- **Kontrol:** Gözde'nin kartında tarih, olay ve fotoğraf görünmesi G5'te test edilecek. Veri tarafında 10 fotoğrafın hepsi gözle kontrol edildi.

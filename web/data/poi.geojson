@@ -1,14 +1,13 @@
 {
   "type": "FeatureCollection",
-  "dummy": true,
   "features": [
     {
       "type": "Feature",
       "geometry": {
         "type": "Point",
         "coordinates": [
-          77.4508,
-          18.4447
+          77.450886,
+          18.444627
         ]
       },
       "properties": {
@@ -23,15 +22,15 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          77.42,
-          18.45
+          77.58,
+          18.38
         ]
       },
       "properties": {
-        "id": "jezero_lake",
-        "name": "Jezero antik gölü",
-        "type": "science",
-        "region_id": "jezero_lake"
+        "id": "jezero",
+        "name": "Jezero Krateri – antik göl",
+        "type": "history",
+        "region_id": "jezero"
       }
     },
     {
@@ -39,14 +38,14 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          77.4512,
-          18.4446
+          77.451019,
+          18.444863
         ]
       },
       "properties": {
         "id": "airfield",
         "name": "Ingenuity uçuş alanı (Wright Brothers Field)",
-        "type": "science",
+        "type": "history",
         "region_id": "airfield"
       }
     },
@@ -55,13 +54,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          77.444,
-          18.437
+          77.444366,
+          18.430739
         ]
       },
       "properties": {
         "id": "rochette",
-        "name": "Rochette kayası",
+        "name": "Rochette kayası (Citadelle)",
         "type": "science",
         "region_id": "rochette"
       }
@@ -71,13 +70,13 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          77.404,
-          18.456
+          77.405186,
+          18.449405
         ]
       },
       "properties": {
         "id": "delta_front",
-        "name": "Delta önü (Kodiak / Hawksbill Gap)",
+        "name": "Delta önü (Hawksbill Gap yönü)",
         "type": "science",
         "region_id": "delta_front"
       }
@@ -87,8 +86,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          77.415,
-          18.453
+          77.407756,
+          18.452627
         ]
       },
       "properties": {
@@ -103,8 +102,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          77.382,
-          18.488
+          77.305191,
+          18.497484
         ]
       },
       "properties": {
@@ -119,8 +118,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          77.43,
-          18.43
+          77.406565,
+          18.442702
         ]
       },
       "properties": {
@@ -131,7 +130,9 @@
           "opportunity",
           "spirit"
         ],
-        "note": "Opportunity buna benzer bir kum dalgasında 5 hafta kaldı."
+        "area_km2": 16.917,
+        "note": "Opportunity buna benzer bir kum dalgasında 5 hafta kaldı. Spirit yumuşak kuma gömüldü.",
+        "source": "USGS SIM 3464, Eolian bedform unit"
       }
     }
   ]

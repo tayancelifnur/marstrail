@@ -1,0 +1,110 @@
+{
+  "waypoints": 708,
+  "regions": 7,
+  "photos": 10,
+  "photo_filter": {
+    "cams": [
+      "NAVCAM_LEFT",
+      "MCZ_LEFT",
+      "FRONT_HAZCAM_LEFT_A"
+    ],
+    "min_width_px": 1000,
+    "mast_el_deg": [
+      -25.0,
+      5.0
+    ],
+    "target_el_deg": -10.0
+  },
+  "per_region": {
+    "base": {
+      "sol": 0,
+      "api_images": 161,
+      "after_full": 161,
+      "after_left_cams": 21,
+      "after_width": 21,
+      "after_dedupe": 21,
+      "after_mast_el": 0,
+      "rejected_flat": 0,
+      "rejected_manual": 0,
+      "selected": 1
+    },
+    "airfield": {
+      "sol": 58,
+      "api_images": 156,
+      "after_full": 156,
+      "after_left_cams": 77,
+      "after_width": 72,
+      "after_dedupe": 72,
+      "after_mast_el": 72,
+      "rejected_flat": 4,
+      "rejected_manual": 0,
+      "selected": 2
+    },
+    "rochette": {
+      "sol": 190,
+      "api_images": 131,
+      "after_full": 131,
+      "after_left_cams": 86,
+      "after_width": 82,
+      "after_dedupe": 65,
+      "after_mast_el": 12,
+      "rejected_flat": 1,
+      "rejected_manual": 1,
+      "selected": 2
+    },
+    "delta_front": {
+      "sol": 415,
+      "api_images": 455,
+      "after_full": 455,
+      "after_left_cams": 228,
+      "after_width": 203,
+      "after_dedupe": 124,
+      "after_mast_el": 78,
+      "rejected_flat": 0,
+      "rejected_manual": 0,
+      "selected": 2
+    },
+    "three_forks_tried": [
+      {
+        "sol": 653,
+        "api_images": 110,
+        "after_full": 110,
+        "after_left_cams": 0,
+        "after_width": 0,
+        "after_dedupe": 0,
+        "after_mast_el": 0,
+        "rejected_flat": 0,
+        "rejected_manual": 0
+      }
+    ],
+    "three_forks": {
+      "sol": 654,
+      "api_images": 382,
+      "after_full": 382,
+      "after_left_cams": 195,
+      "after_width": 184,
+      "after_dedupe": 173,
+      "after_mast_el": 33,
+      "rejected_flat": 0,
+      "rejected_manual": 0,
+      "selected": 2
+    },
+    "cheyava_falls": {
+      "sol": 1212,
+      "api_images": 400,
+      "after_full": 400,
+      "after_left_cams": 92,
+      "after_width": 70,
+      "after_dedupe": 38,
+      "after_mast_el": 0,
+      "rejected_flat": 0,
+      "rejected_manual": 0,
+      "selected": 1
+    }
+  },
+  "sand_poi": {
+    "eolian_polygons_ge_0_02km2": 475,
+    "area_km2": 16.917,
+    "dist_to_route_m": 235
+  }
+}

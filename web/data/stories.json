@@ -3,33 +3,30 @@
     "id": "apollo14",
     "title": "Apollo 14 – Cone Krateri",
     "date": "1971-02-06",
-    "body": "Shepard ve Mitchell Cone Krateri'nde konumlarını kaybetti; Shepard'ın nabzı 150'ye çıktı. Oksijen ve dönüş yolu nedeniyle arama durduruldu. Krater kenarının ~21 m yakınına geldikleri sonradan anlaşıldı.",
+    "body": "Shepard ve Mitchell, Cone Krateri'nin kenarını ararken konumlarını kaybetti. Shepard'ın nabzı 150'ye çıktı; oksijen ve dönüş yolu nedeniyle Houston aramayı durdurdu. Sonradan krater kenarının ~21 m yakınına kadar geldikleri anlaşıldı.",
     "location_text": "Ay, Fra Mauro",
-    "lesson": "Konum, nabız ve dönüş sınırı",
+    "lesson": "Konum, nabız ve dönüş sınırı: MarsTrail'in O₂ bölgeleri ve dönüş noktası",
     "layer": null,
-    "source": "https://www.astronomy.com/space-exploration/50-years-since-apollo-14-mission-to-fra-mauro/",
-    "dummy": true
+    "source": "https://www.astronomy.com/space-exploration/50-years-since-apollo-14-mission-to-fra-mauro/"
   },
   {
     "id": "opportunity",
     "title": "Opportunity – Purgatory Kumulu",
     "date": "2005-04-26",
-    "body": "10–15 cm'lik bir kum dalgasında beş haftadan fazla mahsur kaldı.",
-    "location_text": "Meridiani Planum (Jezero'da değil; ~2°K, 354°D)",
-    "lesson": "Küçük kum dalgaları bile tuzak olabilir",
-    "layer": "hazard_ml",
-    "source": "https://science.nasa.gov/photojournal/looking-back-at-purgatory-dune",
-    "dummy": true
+    "body": "Opportunity 10–15 cm yüksekliğinde bir kum dalgasına saplandı ve beş haftadan fazla çıkamadı.",
+    "location_text": "Meridiani Planum (Jezero'da değil)",
+    "lesson": "Küçük kum dalgaları bile tuzaktır: eolyen birim ve YOLO kum dalgası katmanı",
+    "layer": "geology",
+    "source": "https://science.nasa.gov/photojournal/looking-back-at-purgatory-dune"
   },
   {
     "id": "spirit",
     "title": "Spirit – Troy",
     "date": "2009-05",
-    "body": "Sert kabuğun altındaki yumuşak kuma gömüldü ve görevini kaybetti.",
-    "location_text": "Gusev Krateri (Jezero'da değil; ~14,6°G, 175,5°D)",
-    "lesson": "Düşük termal eylemsizlik = batma riski",
+    "body": "Spirit sert bir kabuğun altındaki yumuşak kuma gömüldü; aylarca süren kurtarma denemeleri başarısız oldu ve görev sona erdi.",
+    "location_text": "Gusev Krateri (Jezero'da değil)",
+    "lesson": "Düşük termal eylemsizlik = gevşek zemin = batma riski",
     "layer": "thermal",
-    "source": "https://www.space.com/18766-spirit-rover.html",
-    "dummy": true
+    "source": "https://www.space.com/18766-spirit-rover.html"
   }
 ]

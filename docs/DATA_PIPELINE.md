@@ -2,7 +2,7 @@
 
 Ham NASA/USGS verisinden tarayıcıdaki haritaya kadar her adım: ne aldık, neyi neden attık, nasıl temizledik ve normalize ettik.
 
-- Sayılar elle yazılmadı. Kaynak `scripts/pipeline_stats.py` → [figures/pipeline_stats.json](figures/pipeline_stats.json). E7 sayıları `scripts/build_regions.py` çıktısından geliyor.
+- Sayılar elle yazılmadı. Kaynak `scripts/pipeline_stats.py` → [figures/pipeline_stats.json](figures/pipeline_stats.json). E7 sayıları `scripts/build_regions.py` → [figures/e7_stats.json](figures/e7_stats.json).
 - Kaynak linkleri ve tarihler: [veri_envanteri.md](veri_envanteri.md).
 
 **Ortak hedef sistem:** Mars 2000 küresi (R = 3396,19 km) üzerinde coğrafi koordinat. Birim derece, doğu pozitif. Üç rasterin projeksiyonu farklıydı:
@@ -140,9 +140,68 @@ Ham NASA/USGS verisinden tarayıcıdaki haritaya kadar her adım: ne aldık, ney
 - **Görsel:** [figures/fusion.png](figures/fusion.png). Dört terim ve skor yan yana.
 - **YOLO (E10):** Gelince "kaya" terimi jeoloji vekili yerine model tespit yoğunluğundan gelecek.
 
-## D7 · Perseverance ham görüntüleri (API)
+## E7 · Nokta kartları: D1 + D3 + D7 (scripts/build_regions.py)
 
-E7'de dolduruluyor (aşağıda).
+### Konum (D1, D3)
+
+- **Neden:** Pinler uydurma koordinatta değil, olay günü rover'ın ölçülmüş konumunda olsun.
+- **Kural:** Sol'ü olayın Sol'üne eşit ya da daha küçük olan son D1 kaydı. Rover numune alırken günlerce park ettiği için "o gün rover nerede duruyordu" sorusunun cevabı bu.
+
+| Nokta | Olay Sol'ü | Kullanılan D1 kaydı | Not |
+| --- | --- | --- | --- |
+| Üs | 0 | Sol 13 | İlk kayıt, "no motion": iniş noktası |
+| Rochette | 190 | Sol 180 | |
+| Delta önü | 415 | Sol 415 | Bu Sol'den sonra yükseklik −2545 → −2520 m: tırmanış |
+| Three Forks | 653 | Sol 652 | |
+| Cheyava Falls | 1212 | Sol 1210 | |
+
+- **Ingenuity uçuş alanı:** D3 Uçuş 1'in kalkış noktası. D1'de rover'ın Sol 34 konumuyla birebir aynı (77,45102°D, 18,44486°K); rover helikopteri burada bıraktı. İki bağımsız kaynak birbirini doğruluyor.
+- **Jezero (bütün krater):** Rover konumu yok. Yayınlanmış krater merkezi kullanıldı (18,38°K, 77,58°D).
+
+### Nokta başına arazi (D5, D6, E3 katmanları)
+
+- Her nokta için DEM yüksekliği, jeoloji birimi ve 300 m içindeki şu değerler hesaplanıyor: en yüksek eğim, kum oranı, termal_norm ve skor. Sonuç `terrain` alanında.
+- `hazards[]` metni bu sayılardan kuralla üretiliyor, elle yazılmıyor:
+
+| Tehlike | Koşul |
+| --- | --- |
+| Dik yamaç | 300 m içinde eğim > 25° |
+| Eğimli arazi | 300 m içinde eğim > 15° |
+| Eolyen kum | 300 m içinde kum oranı ≥ %10 |
+| Gevşek zemin | termal_norm < 0,25 |
+
+- Sonuç: Demo rotasındaki noktalarda tehlike çıkmıyor (en yüksek eğim 11°). Cheyava Falls'ta 2 tehlike var: 30° yamaç ve %24,5 kum.
+
+### Kum alanı pini (D6)
+
+- 475 eolyen poligondan, üs → delta önü hattına en yakın olanı seçildi (235 m).
+- Poligon 16,9 km² olduğu için pin merkeze değil, poligonun rotaya en yakın kısmına konuldu: poligon ∩ (hat + 300 m tamponu).
+- Sonuç: delta önünün ~700 m güneydoğusu. Demodaki "yolda bir kum alanı var" ve Opportunity/Spirit bilgi kartı bu pine bağlı.
+
+### D7 · Perseverance ham görüntüleri (API)
+
+- **Neden bu veri:** Nokta kartında "oraya varınca bunu göreceksin". Astronotun yürüyeceği yerin, rover'ın o gün çektiği gerçek fotoğrafı.
+- **Ham içerik:** 7 Sol için API'den 1795 görüntü kaydı. Sol başına bir JSON; görüntü başına kamera, boyut, direk açısı (`mastEl`), yerel saat ve 4 boy bağlantı. Not: API `num`/`page` parametrelerini yok sayıp Sol'ün bütün görüntülerini döndürüyor.
+- **Eleme hunisi (sayılar 7 Sol'ün toplamı):**
+
+| Adım | Kalan | Neden |
+| --- | --- | --- |
+| API kaydı | 1795 | |
+| Tam kare (`sample_type = Full`) | 1795 | Bu Sol'lerde küçük önizleme yok |
+| Sol göz Navcam / Mastcam-Z / ön Hazcam | 699 | Sağ göz stereo tekrarı; arka Hazcam, SkyCam, iç kameralar atıldı |
+| Genişlik ≥ 1000 px | 632 | Alt kareler (ör. 128×128) atıldı |
+| Renkli/gri ikizden tekilleştirme | 493 | Aynı kare `EBY` (renkli) ve `ECM` (gri) olarak iki kez geliyor; renkli kaldı |
+| Direk açısı −25° … +5° | 195 | Daha aşağısı rover güvertesi/kol, yukarısı gökyüzü |
+| Doku eşiği: ortalama kenar şiddeti ≥ 3,5 | | 5 kare atıldı (düz gökyüzü). Eşik ölçümden: gökyüzü 1,4 ve 3,1; en düşük iyi kare 4,2 |
+| İnsan kontrolü | | 1 kare atıldı: rover donanımı, manzara yok. `EXCLUDE` listesinde gerekçesiyle |
+| Seçilen | 10 | 7 noktaya |
+
+- **Seçim kuralı:** Kamera başına, direk açısı −10°'ye (ufka yakın, zemini de gösteren) en yakın kare.
+- **Yedekler:**
+  - Three Forks: Sol 653'te uygun kamera yok, Sol 654 kullanıldı. Yakın Sol'ler ±3'e kadar deneniyor.
+  - Üs (Sol 0) ve Cheyava Falls (Sol 1212): direk kamerası o gün manzaraya bakmıyordu, ön Hazcam kullanıldı.
+- **Çıktı:** `web/data/photos/*.jpg` (800 px yerel kopya, toplam ~580 KB, çevrimdışı demo için). Kaynak sayfa, büyük boy bağlantısı, `imageid`, UTC tarih, yerel Mars saati ve kredi (NASA/JPL-Caltech[/ASU]) `regions.json` içinde.
+- **İstatistik:** [figures/e7_stats.json](figures/e7_stats.json)
 
 ## D8 · HiRISE ortogörüntü mozaiği
 
@@ -154,12 +213,12 @@ E5'te dolduruluyor: karolama, karo seçimi, etiketleme, train/val ayrımı.
 
 | # | Veri seti | Ham | Atılan | Son | Yöntem |
 | --- | --- | --- | --- | --- | --- |
-| D1 | Perseverance konumları | 0,6 MB · 708 nokta × 23 alan | 19 alan (duruş, sayaçlar) | 4 alan; Sol → konum tablosu | Sol eşleme (o Sol'e eşit/önceki son kayıt) |
+| D1 | Perseverance konumları | 0,6 MB · 708 nokta × 23 alan | 19 alan (duruş, sayaçlar) | 5 pin konumu (+ D3'ten 1) | Sol eşleme: o Sol'e eşit ya da önceki son kayıt |
 | D2 | Sürüş izi | 1,7 MB · 559 çizgi, 36.661 köşe | 11.430 köşe (alan dışı) | 675 grid hücresi | Rasterize → doğrulama |
 | D3 | Ingenuity uçuşları | 2,3 MB · 72 uçuş | 71 uçuş (pin için) | 1 tarih pini | Seçim |
 | D4 | THEMIS termal eylemsizlik | 1,7 MB · 792.100 px, 100 m | 778.772 px (alan dışı; 298.150 NoData dahil), 534 px kırpıldı | 1024² + 256², 0–1 | Reprojeksiyon, bilinear, %2–98 normalizasyon |
 | D5 | CTX DEM | 90,3 MB · 22,6 M px, 20 m | 22,26 M px (alan dışı), 13.977 NoData | 1024² (×2 PNG) + 256² grid | 20 m'de eğim, average, hillshade |
 | D6 | SIM 3464 jeoloji | 349 MB · 181 dosya, 13 katman, 1304 poligon | 19 sistem dosyası, 12 katman, 1250 poligon; 2 kaynak hatası düzeltildi | 54 poligon, 8 birim → 1024² | Reprojeksiyon, rasterize, katsayı tablosu |
-| D7 | Perseverance ham görüntüleri | API, Sol başına JSON | E7 | E7 | E7 |
+| D7 | Perseverance ham görüntüleri | 7 Sol · 1795 görüntü kaydı | 1785: kamera, alt kare, renkli/gri ikiz, açı, doku eşiği, 1 insan kontrolü | 10 fotoğraf (800 px, ~580 KB) | Kural tabanlı eleme hunisi + kenar şiddeti eşiği |
 | D8 | HiRISE 25 cm mozaiği | 5,5 GB zip | E5 | E5 | E5 |
 | Füzyon | Geçilebilirlik + grid | D4 + D5 + D6 | – | 65.536 hücre, 193 geçilmez | Ağırlıklı toplam, Tobler, Dijkstra |
