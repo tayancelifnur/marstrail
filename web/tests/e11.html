@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>E11 testi – EVA planlayıcı</title>
+<style>
+  body { background: #111; color: #ddd; font: 13px/1.45 monospace; margin: 12px; }
+  .row { display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-start; }
+  .map { position: relative; width: 560px; height: 560px; }
+  .map img, .map canvas { position: absolute; left: 0; top: 0; width: 560px; height: 560px; }
+  .ok { color: #2ecc71; } .warn { color: #f1c40f; } .fail { color: #e74c3c; }
+  h3 { color: #fc0; margin: 10px 0 4px; font-size: 14px; }
+  pre { margin: 0; white-space: pre-wrap; max-width: 980px; }
+</style>
+</head>
+<body>
+<div class="row"><div><pre id="out">çalışıyor...</pre></div><div class="map" id="map"><img src="../data/layers/hillshade.png"></div></div>
+<script src="../marstime.js"></script>
+<script src="../walkback.js"></script>
+<script src="../eva.js"></script>
+<script>
+/* Kullanım: python -m http.server 8765 --directory web  →  http://localhost:8765/tests/e11.html */
+const out = [];
+const log = (s, ok) => out.push(ok === undefined ? s : `<span class="${ok ? "ok" : "fail"}">${ok ? "✔" : "✘"}</span> ${s}`);
+const icon = { ok: '<span class="ok">● GO  </span>', warn: '<span class="warn">● DİKKAT</span>', fail: '<span class="fail">● NO-GO</span>' };
+
+Promise.all([Walkback.load("../data/grid.json"), fetch("../data/astronauts.json").then((r) => r.json()),
+             fetch("../data/regions.json").then((r) => r.json())]).then(([, astros, regions]) => {
+  const R = Object.fromEntries(regions.map((r) => [r.id, r]));
+  const stop = (id, dwellMin) => ({ id, name: R[id].name, lon: R[id].lon, lat: R[id].lat, dwellMin });
+  const ayse = astros.find((x) => x.id === "ayse");
+  const stops = [stop("delta_front", 40), stop("three_forks", 30)];
+  const depart = Eva.nextWindow(new Date("2026-11-15T00:00:00Z"));
+
+  // --- A: demo planı ---
+  const t0 = performance.now();
+  const A = Eva.plan({ astronaut: ayse, stops, departUTC: depart });
+  const ms = performance.now() - t0;
+  out.push(`<h3>A · Ayşe (O₂ ${ayse.o2_min} dk, nabız ${ayse.heart_rate}, yük ${ayse.load_kg} kg): Üs → Delta önü (40 dk) → Three Forks (30 dk) → Üs</h3>`);
+  log(`Plan çıktı: ${A.legs.length} bacak, ${(A.totals.distanceM / 1000).toFixed(2)} km, toplam ${A.totals.minutes} dk (yürüyüş ${A.totals.walkMin}), ${ms.toFixed(0)} ms`, A.ok && A.legs.length === 3);
+  out.push("Zaman çizelgesi:");
+  for (const e of A.timeline) out.push(`  T+${String(e.t).padStart(3)} dk  ${e.lmst} LMST  ${e.type.padEnd(7)} ${e.name.padEnd(40)} O₂ ${e.o2Left} dk`);
+  out.push("Bacaklar:");
+  for (const l of A.legs) out.push(`  ${l.from} → ${l.to}: ${l.minutes.toFixed(0)} dk, ${(l.distanceM / 1000).toFixed(2)} km, yük ${l.loadKg} kg, yorgunluk ×${l.fatigue}${l.isReturn ? "  (DÖNÜŞ)" : ""}`);
+  out.push(`Dönüş noktası: ${A.turnaround ? JSON.stringify(A.turnaround) : "yok (her noktadan dönülebilir)"} · %25 pay noktası: ${A.marginPoint ? "T+" + A.marginPoint.t : "yok"}`);
+  out.push("Go/No-Go:");
+  for (const c of A.goNoGo) out.push(`  ${icon[c.status]} ${c.label.padEnd(30)} ${c.detail}`);
+  log(`Karar: ${A.go ? "GO" : "NO-GO"}`, A.go);
+
+  // positionAt
+  const L0 = A.legs[0];
+  const pMid = Eva.positionAt(A, (L0.startMin + L0.endMin) / 2), pDw = Eva.positionAt(A, L0.endMin + 10), pEnd = Eva.positionAt(A, A.totals.minutes + 1);
+  log(`positionAt: ilk bacak ortası → ${pMid.phase}; deltaya varıştan 10 dk sonra → ${pDw.phase} (${pDw.at}); son → ${pEnd.phase}`,
+      pMid.phase === "walk" && pDw.phase === "dwell" && pEnd.phase === "done");
+
+  // --- B: nabız 150, az O₂ ---
+  const B = Eva.plan({ astronaut: Object.assign({}, ayse, { o2_min: 220, heart_rate: 150 }), stops, departUTC: depart });
+  out.push(`<h3>B · Aynı plan, O₂ 220 dk, nabız 150 (Apollo 14)</h3>`);
+  out.push(`Toplam ${B.totals.minutes} dk, çarpan ×${B.totals.multiplier}, dönüşte O₂ ${B.totals.o2LeftMin} dk`);
+  out.push(`Dönüş noktası: ${B.turnaround ? `T+${B.turnaround.t} dk, bacak ${B.turnaround.leg} (${B.turnaround.lon.toFixed(5)}, ${B.turnaround.lat.toFixed(5)})` : "yok"} · %25 pay noktası: ${B.marginPoint ? "T+" + B.marginPoint.t + " dk" : "yok"}`);
+  for (const c of B.goNoGo) out.push(`  ${icon[c.status]} ${c.label.padEnd(30)} ${c.detail}`);
+  log(`Dönüş noktası işaretlendi ve karar NO-GO`, !!B.turnaround && !B.go);
+
+  // --- C: gece çıkışı ---
+  const night = Eva.nextWindow(new Date("2026-11-15T00:00:00Z"), 20.5);
+  const C = Eva.plan({ astronaut: ayse, stops, departUTC: night });
+  const cs = C.goNoGo.find((c) => c.id === "sunset");
+  log(`C · Akşam çıkışı (${C.timeline[0].lmst} LMST): gün batımı kontrolü ${cs.status} – ${cs.detail}`, cs.status === "fail");
+
+  // --- Harita ---
+  const g = Walkback.grid, S = 560;
+  const px = (lon, lat) => [((lon - g.b.west) / (g.b.east - g.b.west)) * S, ((g.b.north - lat) / (g.b.north - g.b.south)) * S];
+  const cv = document.createElement("canvas"); cv.width = cv.height = S; document.getElementById("map").append(cv);
+  const ctx = cv.getContext("2d");
+  const z = Walkback.zones(Walkback.BASE, ayse.o2_min, ayse.heart_rate, ayse.load_kg);
+  ctx.globalAlpha = 0.35; ctx.imageSmoothingEnabled = false; ctx.drawImage(z.canvas(1), 0, 0, S, S); ctx.globalAlpha = 1;
+  const colors = ["#00e5ff", "#ff66ff", "#ffffff"];
+  A.legs.forEach((l, i) => {
+    ctx.strokeStyle = colors[i % 3]; ctx.lineWidth = 2.5; ctx.setLineDash(l.isReturn ? [6, 4] : []); ctx.beginPath();
+    l.coords.forEach(([lo, la], k) => { const [x, y] = px(lo, la); k ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke();
+  });
+  ctx.setLineDash([]);
+  if (B.turnaround) { const [x, y] = px(B.turnaround.lon, B.turnaround.lat); ctx.fillStyle = "#e74c3c"; ctx.beginPath(); ctx.arc(x, y, 7, 0, 7); ctx.fill(); ctx.fillText("B: dönüş noktası", x + 9, y + 4); }
+  const sh = A.goNoGo.find((c) => c.id === "radio").firstShadow;
+  if (sh) { const [x, y] = px(sh.lon, sh.lat); ctx.strokeStyle = "#f1c40f"; ctx.lineWidth = 2; ctx.strokeRect(x - 5, y - 5, 10, 10); ctx.fillStyle = "#f1c40f"; ctx.fillText("telsiz gölgesi", x + 8, y - 6); }
+  for (const [id, t] of [["base", "Üs"], ["delta_front", "Delta"], ["three_forks", "3F"]]) {
+    const [x, y] = px(R[id].lon, R[id].lat); ctx.fillStyle = "#fff"; ctx.fillRect(x - 3, y - 3, 6, 6); ctx.fillText(t, x + 5, y - 5);
+  }
+  document.getElementById("out").innerHTML = out.join("\n");
+  document.title = "E11 OK";
+}).catch((e) => { document.getElementById("out").textContent = out.join("\n") + "\nHATA: " + e.stack; });
+</script>
+</body>
+</html>

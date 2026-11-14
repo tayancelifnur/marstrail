@@ -148,6 +148,7 @@ Ham NASA/USGS verisinden tarayıcıdaki haritaya kadar her adım: ne aldık, ney
 
 - **Görsel:** [figures/fusion.png](figures/fusion.png). Dört terim ve skor yan yana.
 - **grid.json'a `score` eklendi (E8):** `walkback.js` kenar süresini yönlü eğimle (komşu hücrelerin yükseklik farkı) yeniden hesaplıyor; yokuş yukarı ve aşağı farklı sürüyor. Eğimden bağımsız arazi cezası için hücre skoru ayrıca gerekiyor. Görsel: [figures/e8_zones.png](figures/e8_zones.png) (O₂ bölgeleri; nabız 85 ve 150).
+- **grid.json'a `sand` eklendi (E11):** Hücrenin yarısından fazlası eolyen birimse 1. Toplam 7531 hücre = 37,3 km², jeolojideki eolyen alanla (37,2 km²) tutarlı. `eva.js` Go/No-Go'daki "rotada kum tuzağı var mı?" kontrolü bunu kullanıyor.
 - **YOLO (E10):** Gelince "kaya" terimi jeoloji vekili yerine model tespit yoğunluğundan gelecek.
 
 ## E7 · Nokta kartları: D1 + D3 + D7 (scripts/build_regions.py)

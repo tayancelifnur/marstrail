@@ -165,3 +165,22 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
   - Geçilmez hücre 150 (%0,2). Rover yolu 397 hücre, %100 geçilebilir.
   - Üsten süreler (yük 0): Three Forks 73 dk, delta önü 75 dk, Cheyava Falls 278 dk.
   - Yeşil alan: nabız 85'te 130 km², nabız 150'de 47 km².
+
+## E11 · EVA planlayıcı · Cmt 14 Kas 2026
+
+- **Ne yapıldı:** `web/eva.js`:
+  - `Eva.plan()`: duraklar ve kalma süreleri → bacak bacak rota (dönüş ayrı; yönlü eğim, numune yükü, yorgunluk), zaman çizelgesi (UTC + LMST + kalan O₂), dönüş noktası, %25 pay noktası ve Go/No-Go listesi.
+  - Go/No-Go maddeleri: O₂, gün batımı, kum, eğim, telsiz görüş hattı, batarya, su.
+  - `Eva.positionAt()`: canlı yürüyüş (G7) için. `Eva.nextWindow()`: Jezero'da LTST 09:00 çıkış penceresi.
+  - `grid.json`'a `sand` eklendi. Test sayfası: `web/tests/e11.html`.
+- **Varsayımlar (kodda gerekçeli):**
+  - Yorgunluk: saat başına %5 yavaşlama. Durak başına 1 kg numune.
+  - Batarya ve su: %12,5/sa. Alt sınırlar: batarya %20, su %10.
+  - Gün batımı payı 30 dk.
+  - Telsiz: anten 10 m, giysi 2 m, eğrilik düzeltmeli görüş hattı.
+  - Dönüş noktası = harcanan + üsse dönüş > kalan O₂ olan ilk nokta (PLAN §5).
+- **Kontrol:**
+  - Üs → Delta önü (40 dk) → Three Forks (30 dk) → Üs: 5,52 km, 243 dk, dönüşte 249 dk O₂ (%52) → GO. Telsiz uyarısı: ~126 dk görüş yok.
+  - Nabız 150 + O₂ 220: dönüş noktası T+67 dk → NO-GO.
+  - Akşam çıkışı: gün batımı NO-GO.
+  - Plan 67 ms'de çıkıyor. Görsel: `docs/figures/e11_plan.png`.

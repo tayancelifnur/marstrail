@@ -270,7 +270,7 @@ def make_grid(G):
         "width": N_GRID, "height": N_GRID, "bounds": BOUNDS, "cell_size_m": round(cell_m, 2),
         "order": "row-major; satır 0 = kuzey, sütun 0 = batı; indeks = satır*width + sütun",
         "units": {"elev": "m (Mars 2000 küresi/areoid, CTX DEM)", "cost": "dk/hücre, kenar yönünde (yük 0 kg, nabız 90); geçilmez = 999",
-                  "blocked": "0/1", "score": "0-1 birleşik geçilebilirlik skoru"},
+                  "blocked": "0/1", "score": "0-1 birleşik geçilebilirlik skoru", "sand": "0/1 eolyen kum birimi"},
         "source": "prep_layers.py: CTX DEM + THEMIS TI + USGS SIM 3464",
         "elev": np.round(elev).astype(int).ravel().tolist(),
         "cost": np.round(cost, 2).ravel().tolist(),
@@ -278,6 +278,9 @@ def make_grid(G):
         # Birleşik skor (0-1): walkback.js kenar maliyetini yönlü eğimle (elev farkı) yeniden kurar,
         # bu yüzden eğimden bağımsız arazi cezası ayrıca gerekiyor.
         "score": np.round(np.nan_to_num(G["score"], nan=1.0), 2).ravel().tolist(),
+        # Eolyen kum birimi (0/1, D6): eva.js Go/No-Go "rotada kum tuzağı var mı?" kontrolü için.
+        # Hücrenin yarısından fazlası eolyen birimse 1 (256² ızgarada en yakın komşu rasterizasyonu).
+        "sand": (np.nan_to_num(G["sand"]) >= 0.5).astype(int).ravel().tolist(),
     }
     with open(OUT / "grid.json", "w", encoding="utf-8") as f:
         json.dump(grid, f, separators=(",", ":"))

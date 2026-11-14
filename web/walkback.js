@@ -39,6 +39,7 @@
       elev: Float32Array.from(grid.elev),
       score: grid.score ? Float32Array.from(grid.score) : new Float32Array(n).fill(0.3),
       blocked: Uint8Array.from(grid.blocked),
+      sand: grid.sand ? Uint8Array.from(grid.sand) : new Uint8Array(n), // eolyen kum (eva.js Go/No-Go)
       backCache: new Map(),
     };
     return G;
