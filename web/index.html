@@ -87,6 +87,9 @@
           <button id="planBtn" type="button" class="primary">Planla</button>
           <button id="planClearBtn" type="button" disabled>Planı sil</button>
         </div>
+        <div class="controls">
+          <button id="walkBtn" type="button" disabled title="Önce Planla">▶ Yürüyüşü başlat</button>
+        </div>
         <div id="planSummary"></div>
       </section>
 
@@ -124,6 +127,26 @@
     <button id="routeFabDone" type="button" class="primary">Bitir</button>
     <button id="routeFabCancel" type="button">İptal</button>
   </div>
+
+  <!-- G7: canlı yürüyüş paneli -->
+  <div id="walkHud" hidden>
+    <div class="wh-top"><span class="live">● CANLI</span><b id="walkTime"></b><span id="walkZone"></span></div>
+    <div id="walkPhase" class="small muted"></div>
+    <div class="wh-o2">
+      <span class="muted">O₂</span><b id="walkO2"></b><span id="walkMult" class="muted small"></span>
+      <div class="wh-bar"><i id="walkO2Bar"></i></div>
+    </div>
+    <div id="walkHome" class="small"></div>
+    <label class="wh-row">Nabız <input id="walkHr" type="range" min="60" max="180" step="1"> <b id="walkHrVal"></b></label>
+    <div class="wh-row"><input id="walkNote" type="text" placeholder="Not / fotoğraf…" maxlength="40"><button id="walkNoteBtn" type="button">📍 Pin</button></div>
+    <div class="wh-row">
+      <select id="walkSpeed" aria-label="Hız"><option value="60">×60</option><option value="300">×300</option><option value="900">×900</option></select>
+      <button id="walkPause" type="button">Duraklat</button>
+      <button id="walkReturn" type="button" class="danger">Üsse dön</button>
+      <button id="walkStop" type="button">Bitir</button>
+    </div>
+  </div>
+  <div id="walkToasts" aria-live="polite"></div>
 
   <div id="error" hidden></div>
 

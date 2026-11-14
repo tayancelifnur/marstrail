@@ -219,3 +219,15 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Dosyalar:** `web/index.html`, `web/app.js`, `web/style.css`
 - **Varsayımlar:** Demo planı hazır yüklü (Delta önü 40 dk, Three Forks 30 dk). Yeni durak 30 dk. Kamera uzaklığı rota yarıçapı × 4,2 (en az 3 km), telefonda bakış noktası 0,45 × uzaklık güneye kaydırılıyor (göz kararı).
 - **Kontrol (headless Chrome):** Demo planı 5,52 km, 243 dk, dönüşte 249 dk O₂ → GO, telsiz DİKKAT (E11 testiyle aynı). O₂ 220 + nabız 150 → dönüş noktası T+67 dk, pay sınırı T+51 dk, NO-GO. Rochette kartından "Plana ekle" → 3 durak, 307 dk, GO. 390×844 telefon görünümü denendi.
+
+## G7 · Canlı yürüyüş · Cmt 14 Kas 2026, 19:40
+
+- **Ne yapıldı:** "▶ Yürüyüşü başlat" (sol panel ve plan kartı). Plan zaman ekseninde oynuyor: astronot simgesi `Eva.positionAt()` ile rota boyunca ilerliyor (×60 / ×300 / ×900), etiketinde canlı O₂.
+  - Yürüyüş paneli: T+ ve LMST, ne yaptığı (yürüyor / durakta), büyük O₂ sayacı + çubuk, "üsse dönüş X dk O₂ · pay Y dk", bölge etiketi, nabız kaydırıcısı (60–180), not/fotoğraf pini, Duraklat, Üsse dön, Bitir. Telefonda altta.
+  - Bölgeler her 5 sim. dakikada o anki konum, kalan O₂ ve nabızla yeniden çiziliyor (nabız artınca daralma hızlanıyor). Eski çizim 1,5 sn tutuluyor, titreme yok.
+  - Uyarılar: kum alanına yaklaşma/giriş, dönüş noktasına 5 dk, dönüş noktası, sarı/kırmızı bölgeye giriş, O₂ %25 altı, telsiz gölgesi (üst bar "kopuk" olur), durak varış/ayrılış.
+  - "Üsse dön": bulunduğu yerden yeni Dijkstra dönüş rotası (sarı kesikli), kalan O₂ ile.
+  - Bitişte özet kartı: GÜVENDE / ACİL, süre, yürünen mesafe, O₂ başlangıç → bitiş, ort./en yüksek nabız, pinler, olay kaydı, Tekrar oynat.
+- **Dosyalar:** `web/index.html`, `web/app.js`, `web/style.css`
+- **Formül:** O₂(t+dt) = O₂(t) − dt × (1 + (nabız−90)/100), canlı nabızla. Konum plan hızında (nabız tüketimi değiştirir, hızı değil). Bölge: üsse dönüş × yorgunluk ≤ O₂/çarpan/1,25 yeşil, ≤ O₂/çarpan sarı, değilse kırmızı. Yürüyüş simülasyon: profil kaydedilmez, bitince eski değerler geri gelir.
+- **Kontrol (headless Chrome):** Demo planı ×900 baştan sona: 245 dk, dönüşte 247 dk O₂ (plan 249) → "Yürüyüş tamamlandı". O₂ 220 + nabız 150: T+23 telsiz koptu, T+63 dönüş noktasına 5 dk + sarı bölge, T+67 dönüş noktası, T+71 kırmızı bölge; T+75 "Üsse dön" geç kaldı → T+140 "O₂ BİTTİ / ACİL". 390×844 telefon görünümü denendi.

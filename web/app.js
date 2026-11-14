@@ -751,10 +751,17 @@
     drawZones();
   }
 
+  // Eski çizim hemen silinmez: yenisinin dolgusu/çizgileri yüklenene kadar 1,5 sn kalır,
+  // yoksa canlı yürüyüşte her güncellemede bölgeler bir an kaybolur (göz kararı süre).
+  const ZONE_SWAP_MS = 1500;
   function clearZoneDrawing() {
-    if (zoneLayer) viewer.imageryLayers.remove(zoneLayer, true);
+    const oldLayer = zoneLayer, oldEntities = zoneEntities.splice(0);
     zoneLayer = null;
-    zoneEntities.splice(0).forEach((e) => viewer.entities.remove(e));
+    const drop = () => {
+      if (oldLayer) viewer.imageryLayers.remove(oldLayer, true);
+      oldEntities.forEach((e) => viewer.entities.remove(e));
+    };
+    if (oldLayer || oldEntities.length) setTimeout(drop, ZONE_SWAP_MS);
   }
 
   function drawZones() {
@@ -795,8 +802,8 @@
       )
     );
 
-    // 3) Astronot simgesi
-    zoneEntities.push(
+    // 3) Astronot simgesi (canlı yürüyüşte hareketli simge var, sabit olan çizilmez)
+    if (!walk.active || walk.astro !== a) zoneEntities.push(
       viewer.entities.add({
         position: Cesium.Cartesian3.fromDegrees(a.position.lon, a.position.lat, 0, MARS),
         point: {
@@ -1386,6 +1393,7 @@
     evaPlan.result = null;
     document.getElementById("planSummary").replaceChildren();
     document.getElementById("planClearBtn").disabled = true;
+    document.getElementById("walkBtn").disabled = true;
   }
 
   // Haritada işaret (nokta + etiket), arazinin önünde
@@ -1513,11 +1521,19 @@
 
   // Profil, seçili astronot, çıkış saati ya da duraklar değişince açık plan yeniden hesaplanır
   function replanIfActive() {
+    if (walk.active) return; // yürüyüş sırasında plan sabit (canlı değerler yürüyüşü etkiler)
     if (evaPlan.result) runPlan(false);
   }
 
   // O₂ yetmiyorsa "−169 dk kalır" yerine "169 dk eksik"
   const o2LeftText = (t) => (t.o2LeftMin >= 0 ? t.o2LeftMin + " dk kalır (%" + t.o2LeftPct + ")" : -t.o2LeftMin + " dk EKSİK");
+
+  // G7: plan kartından da canlı yürüyüş başlatılabilsin
+  function startWalkButton() {
+    const b = el("button", { type: "button", class: "primary walk-start" }, "▶ Yürüyüşü başlat (×60)");
+    b.addEventListener("click", () => startWalk());
+    return b;
+  }
 
   function verdictEl(p) {
     return el("span", { class: "verdict " + (p.go ? "go" : "nogo") }, p.go ? "GO" : "NO-GO");
@@ -1549,6 +1565,7 @@
       el("h3", null, p.astronaut + ": " + ["Üs", ...p.legs.filter((l) => !l.isReturn).map((l) => l.to), "Üs"].join(" → ")),
       el("div", { class: "verdict-row" }, verdictEl(p),
         el("span", { class: "small muted" }, p.go ? "Kırmızı madde yok; DİKKAT maddelerini oku." : "En az bir madde kırmızı: plan bu haliyle yapılmaz.")),
+      startWalkButton(),
       kvList([
         ["Çıkış", first.lmst + " LMST · " + hhmm(first.utc) + " UTC"],
         ["Dönüş", last.lmst + " LMST · " + hhmm(last.utc) + " UTC"],
@@ -1602,10 +1619,369 @@
   document.getElementById("planBtn").addEventListener("click", () => runPlan(true));
   document.getElementById("planDepart").addEventListener("change", replanIfActive);
   document.getElementById("planClearBtn").addEventListener("click", () => {
+    if (walk.active) return;
     clearPlan();
     if (detailBody.querySelector(".plan-card")) hideDetail();
   });
   window.addEventListener("marstrail:astronaut", replanIfActive);
+
+  // =====================================================================
+  // --- G7: Canlı yürüyüş ---
+  // =====================================================================
+  // Plan (eva.js) zaman ekseninde oynatılır: konum Eva.positionAt(plan, t), O₂ ise canlı nabızla akar:
+  //   O₂(t + dt) = O₂(t) − dt × (1 + (nabız − 90)/100)       (PLAN.md §5, walkback.js ile aynı çarpan)
+  // Konum planın hızında ilerler (nabız yürüme hızını değil tüketimi değiştirir). Bölgeler o anki konum,
+  // kalan O₂ ve nabızla yeniden hesaplanır: nabız yükselince daha hızlı daralır.
+  const WALK_TICK_MIN = 1;        // uyarı/telsiz kontrolü her 1 simülasyon dakikasında
+  const WALK_ZONE_MIN = 5;        // bölgeler her 5 sim. dakikasında yeniden çizilir (~45 ms hesap; ×60'ta 5 sn'de bir)
+  const WALK_ZONE_REAL_MS = 2000; // ama gerçek zamanda en fazla 2 sn'de bir (×900'de çizim yetişsin)
+  const SAND_LOOKAHEAD_MIN = 3;   // "kum alanına yaklaşıyorsun": 3 sim. dk sonraki konum kumdaysa (~50–100 m)
+  const TURN_WARN_MIN = 5;        // dönüş noktasından 5 dk önce uyar (PLAN §3.6)
+  const walk = {
+    active: false, paused: false, plan: null, astro: null, saved: null,
+    t: 0, o2: 0, hr: 90, speed: 60, lastFrame: 0, nextTick: 0, nextZone: 0,
+    pos: null, distM: 0, hrMax: 0, hrSum: 0, hrN: 0,
+    zone: null, inSand: false, radioUp: true, flags: {}, alerts: [], notes: [], entities: [],
+    returning: false, raf: 0,
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const fmtT = (t) => "T+" + Math.floor(t) + " dk";
+
+  function walkLmst(t) {
+    if (!window.MarsTime || !walk.plan) return "";
+    const d = new Date(new Date(walk.plan.depart).getTime() + t * 60000);
+    return MarsTime.at(d).lmst + " LMST";
+  }
+
+  // Uyarı: haritanın üstünde kısa süreli kutu + bitişte özet listesi
+  function walkAlert(level, text) {
+    walk.alerts.push({ t: Math.round(walk.t), level, text });
+    const box = el("div", { class: "toast " + level }, el("b", null, fmtT(walk.t)), " ", text);
+    $("walkToasts").prepend(box);
+    setTimeout(() => box.classList.add("fade"), 6000);
+    setTimeout(() => box.remove(), 6800);
+  }
+
+  function startWalk() {
+    const p = evaPlan.result;
+    const a = p && astronauts.find((x) => x.id === p.astronautId);
+    if (!p || !a || walk.active) return;
+    // Profil kaydedilmez: yürüyüş bitince astronotun formdaki değerleri geri gelir (demo tekrar oynatılabilsin)
+    walk.saved = { position: { ...a.position }, o2_min: a.o2_min, heart_rate: a.heart_rate };
+    Object.assign(walk, {
+      active: true, paused: false, plan: p, astro: a, t: 0, o2: Number(a.o2_min), hr: Number(a.heart_rate) || 90,
+      lastFrame: performance.now(), nextTick: 0, nextZone: WALK_ZONE_MIN, distM: 0, hrMax: 0, hrSum: 0, hrN: 0,
+      zone: a.zone, inSand: false, radioUp: true, flags: {}, alerts: [], notes: [], returning: false,
+    });
+    walk.pos = Eva.positionAt(p, 0);
+    clearWalkEntities();
+    if (walk.walker) viewer.entities.remove(walk.walker);
+    if (selectedAstroId !== a.id) selectAstronaut(a.id, false);
+    drawZones(); // sabit astronot simgesi gizlenir, yerine hareketli simge
+    walk.walker = viewer.entities.add({
+      position: new Cesium.CallbackProperty(() => Cesium.Cartesian3.fromDegrees(walk.pos.lon, walk.pos.lat, 0, MARS), false),
+      point: {
+        pixelSize: 14,
+        color: Cesium.Color.fromCssColorString("#ff7a2f"),
+        outlineColor: Cesium.Color.WHITE,
+        outlineWidth: 3,
+        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      },
+      label: {
+        text: new Cesium.CallbackProperty(() => a.name + " · O₂ " + Math.max(0, Math.round(walk.o2)) + " dk", false),
+        font: "700 13px system-ui, sans-serif",
+        fillColor: Cesium.Color.WHITE,
+        outlineColor: Cesium.Color.BLACK,
+        outlineWidth: 3,
+        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+        pixelOffset: new Cesium.Cartesian2(12, 0),
+        horizontalOrigin: Cesium.HorizontalOrigin.LEFT,
+        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      },
+    });
+    $("walkHr").value = walk.hr;
+    $("walkHrVal").textContent = walk.hr;
+    $("walkSpeed").value = String(walk.speed);
+    $("walkPause").textContent = "Duraklat";
+    $("walkReturn").disabled = false;
+    $("walkToasts").replaceChildren();
+    $("walkHud").hidden = false;
+    $("walkBtn").disabled = true;
+    hideDetail();
+    closeDrawer();
+    flyToPlan(p);
+    walkAlert("info", "Yürüyüş başladı: " + a.name + ", O₂ " + Math.round(walk.o2) + " dk" + (p.go ? "" : " · plan NO-GO!"));
+    walk.raf = requestAnimationFrame(walkFrame);
+  }
+
+  function walkFrame(now) {
+    if (!walk.active) return;
+    const dtReal = Math.min(250, now - walk.lastFrame); // sekme arkadayken büyük sıçrama olmasın
+    walk.lastFrame = now;
+    if (!walk.paused) {
+      const dt = (dtReal / 60000) * walk.speed; // ×60: 1 gerçek sn = 1 sim. dk
+      const prev = walk.pos;
+      walk.t += dt;
+      walk.o2 -= dt * Walkback.o2Multiplier(walk.hr);
+      walk.hrSum += walk.hr * dt;
+      walk.hrN += dt;
+      walk.hrMax = Math.max(walk.hrMax, walk.hr);
+      walk.pos = Eva.positionAt(walk.plan, Math.min(walk.t, walk.plan.totals.minutes));
+      walk.distM += Math.hypot((walk.pos.lon - prev.lon) * Math.cos((prev.lat * Math.PI) / 180), walk.pos.lat - prev.lat) * 59274.7; // derece → m
+      if (walk.t >= walk.nextTick) {
+        walk.nextTick = walk.t + WALK_TICK_MIN;
+        walkChecks();
+      }
+      if (walk.t >= walk.nextZone && now - (walk.lastZoneReal || 0) >= WALK_ZONE_REAL_MS) {
+        walk.nextZone = walk.t + WALK_ZONE_MIN;
+        walk.lastZoneReal = now;
+        walkZones();
+      }
+      if (walk.o2 <= 0) return endWalk("o2");
+      if (walk.t >= walk.plan.totals.minutes) return endWalk(walk.returning ? "return" : "done");
+    }
+    renderWalkHud();
+    walk.raf = requestAnimationFrame(walkFrame);
+  }
+
+  // Seçili astronotun bölgelerini o anki konum + kalan O₂ + nabızla yeniden çiz
+  function walkZones() {
+    const a = walk.astro;
+    a.position = { lon: walk.pos.lon, lat: walk.pos.lat };
+    a.o2_min = Math.max(0, Math.round(walk.o2));
+    a.heart_rate = walk.hr;
+    try {
+      a._z = Walkback.zones(a.position, Math.max(1, walk.o2), walk.hr, currentLoad());
+      a.zone = a._z.here;
+    } catch (err) {
+      console.error(err);
+    }
+    renderAstronauts();
+    if (selectedAstroId === a.id) drawZones();
+  }
+
+  const currentLoad = () => {
+    const leg = walk.plan.legs[walk.pos.leg] || walk.plan.legs[0];
+    return leg.loadKg;
+  };
+
+  // Uyarılar: kum, dönüş noktası, bölge değişimi, telsiz, durak varış/ayrılış
+  function walkChecks() {
+    const p = walk.plan, pos = walk.pos, f = walk.flags;
+    const G = Walkback.grid;
+    // 1) Kum
+    const i = Walkback.cellOf(pos);
+    const sandNow = i >= 0 && G.sand[i] === 1;
+    const ahead = Eva.positionAt(p, Math.min(walk.t + SAND_LOOKAHEAD_MIN, p.totals.minutes));
+    const ia = Walkback.cellOf(ahead);
+    if (!sandNow && ia >= 0 && G.sand[ia] === 1 && !f.sandAhead) {
+      f.sandAhead = true;
+      walkAlert("warn", "Kum alanına yaklaşıyorsun: yavaşla, adımlarını kontrol et (Opportunity/Spirit).");
+    }
+    if (sandNow && !walk.inSand) walkAlert("warn", "Kum alanındasın. Saplanma riski: yükü azalt, yavaş geç.");
+    if (!sandNow && walk.inSand) f.sandAhead = false;
+    walk.inSand = sandNow;
+
+    // 2) Dönüş noktası (plandan) + canlı dönüş payı
+    if (p.turnaround && !walk.returning) {
+      if (!f.turnWarn && walk.t >= p.turnaround.t - TURN_WARN_MIN) {
+        f.turnWarn = true;
+        walkAlert("warn", "Dönüş noktasına " + TURN_WARN_MIN + " dk.");
+      }
+      if (!f.turn && walk.t >= p.turnaround.t) {
+        f.turn = true;
+        walkAlert("danger", "DÖNÜŞ NOKTASI! Şimdi dönmezsen O₂ üsse yetmez. → Üsse dön");
+      }
+    }
+    // 3) Bölge: o anki konumdan üsse dönüş, kalan O₂'ye göre (walkback "here" kuralıyla aynı eşikler)
+    const home = homeMinutes();
+    const avail = walk.o2 / Walkback.o2Multiplier(walk.hr);
+    const zone = home <= avail / Walkback.GREEN_MARGIN ? "green" : home <= avail ? "yellow" : "red";
+    if (zone !== walk.zone) {
+      if (zone === "yellow") walkAlert("warn", "Sarı bölgeye girdin: dönebilirsin ama %25 payın kalmadı.");
+      if (zone === "red") walkAlert("danger", "Kırmızı bölgeye giriyorsun: O₂ dönüşe yetmiyor!");
+      if (zone === "green" && walk.zone) walkAlert("ok", "Yeniden yeşil bölgedesin.");
+      walk.zone = zone;
+      walk.astro.zone = zone;
+      renderAstronauts();
+    }
+    // 4) Telsiz: habitat anteniyle görüş hattı (eva.js); kopunca üst bar kırmızı
+    const up = Eva.lineOfSight(Walkback.BASE, pos);
+    if (up !== walk.radioUp) {
+      walkAlert(up ? "ok" : "warn", up ? "Telsiz bağlantısı geri geldi." : "Telsiz gölgesi: habitatla bağlantı yok. Arkadaşın röle olmalı.");
+      walk.radioUp = up;
+      setLink(up);
+    }
+    // 5) Duraklar (zaman çizelgesinden)
+    for (const e of p.timeline) {
+      const key = e.type + ":" + e.t + ":" + e.name;
+      if (f[key] || walk.t < e.t || e.type === "depart" || e.type === "return") continue;
+      f[key] = true;
+      if (e.type === "arrive") walkAlert("info", e.name + " durağına varıldı. Not ya da fotoğraf pini bırakabilirsin.");
+      if (e.type === "leave") walkAlert("info", e.name + " durağından ayrılış (" + e.dwellMin + " dk çalışıldı).");
+    }
+    // 6) O₂ %25
+    const cap = Number(walk.astro.o2_capacity_min) || walk.saved.o2_min;
+    if (!f.o2low && walk.o2 < cap * 0.25) {
+      f.o2low = true;
+      walkAlert("danger", "O₂ kapasitenin %25'inin altında.");
+    }
+  }
+
+  // Bulunduğun yerden üsse dönüş süresi (dk, nabız çarpanı hariç), o anki yük ve yorgunlukla
+  function homeMinutes() {
+    const fat = 1 + Eva.ASSUMPTIONS.FATIGUE_PER_HOUR * (walk.t / 60);
+    return Walkback.timeHome(walk.pos, { loadKg: currentLoad() }) * fat;
+  }
+
+  function renderWalkHud() {
+    const p = walk.plan, pos = walk.pos;
+    const mult = Walkback.o2Multiplier(walk.hr);
+    const homeO2 = homeMinutes() * mult;
+    const reserve = walk.o2 - homeO2;
+    const cap = Number(walk.astro.o2_capacity_min) || walk.saved.o2_min;
+    $("walkTime").textContent = fmtT(walk.t) + " · " + walkLmst(walk.t);
+    $("walkPhase").textContent =
+      walk.returning ? "Üsse dönüyor (erken dönüş)" :
+      pos.phase === "walk" ? "Yürüyor → " + pos.to :
+      pos.phase === "dwell" ? "Durakta: " + pos.at : "Üste";
+    $("walkO2").textContent = Math.max(0, Math.round(walk.o2)) + " dk";
+    const bar = $("walkO2Bar");
+    bar.style.width = Math.max(0, Math.min(100, (walk.o2 / cap) * 100)) + "%";
+    bar.style.background = walk.zone === "red" ? "var(--red)" : walk.zone === "yellow" ? "var(--yellow)" : "var(--green)";
+    $("walkHome").textContent = "Üsse dönüş " + Math.round(homeO2) + " dk O₂ · pay " + (reserve >= 0 ? Math.round(reserve) + " dk" : "YOK (" + Math.round(-reserve) + " dk eksik)");
+    $("walkHome").className = "small " + (reserve < 0 ? "bad" : reserve < walk.o2 * 0.25 ? "mid" : "muted");
+    $("walkMult").textContent = "×" + mult.toFixed(2);
+    $("walkZone").replaceChildren(zoneBadge(walk.zone));
+  }
+
+  // Erken dönüş: bulunduğun yerden üsse yeni plan (durak yok), kalan O₂ ile; zaman ekseni devam eder
+  function returnNow() {
+    if (!walk.active || walk.returning) return;
+    const a = walk.astro;
+    const r = Eva.plan({
+      astronaut: { ...a, o2_min: walk.o2, heart_rate: walk.hr, load_kg: currentLoad() },
+      start: { lon: walk.pos.lon, lat: walk.pos.lat }, startName: "Bulunduğun yer", stops: [],
+      departUTC: new Date(new Date(walk.plan.depart).getTime() + walk.t * 60000),
+    });
+    if (!r.ok) {
+      walkAlert("danger", "Dönüş rotası bulunamadı: " + r.error);
+      return;
+    }
+    // Yeni planı mevcut zamana kaydır: positionAt(t) = r'de (t − t0)
+    const t0 = walk.t;
+    const shifted = {
+      ...r,
+      legs: r.legs.map((l) => ({ ...l, startMin: l.startMin + t0, endMin: l.endMin + t0, minutesAt: l.minutesAt.map((x) => x + t0) })),
+      timeline: r.timeline.map((e) => ({ ...e, t: e.t + t0 })),
+      totals: { ...r.totals, minutes: r.totals.minutes + t0 },
+      turnaround: null, depart: walk.plan.depart,
+    };
+    walk.plan = shifted;
+    walk.returning = true;
+    walk.flags = { ...walk.flags, turn: true, turnWarn: true };
+    $("walkReturn").disabled = true;
+    // Dönüş rotası (sarı kesikli)
+    walk.entities.push(viewer.entities.add({
+      polyline: {
+        positions: Cesium.Cartesian3.fromDegreesArray(r.coords.flatMap((c) => [c[0], c[1]]), MARS),
+        width: 4,
+        material: new Cesium.PolylineDashMaterialProperty({ color: Cesium.Color.fromCssColorString("#f1c40f"), dashLength: 10 }),
+        clampToGround: true,
+      },
+    }));
+    walkAlert(r.totals.o2LeftMin >= 0 ? "ok" : "danger",
+      "Üsse dönüş başladı: " + fmtMin(r.totals.minutes) + ", varışta O₂ " + (r.totals.o2LeftMin >= 0 ? r.totals.o2LeftMin + " dk" : "YETMİYOR (" + -r.totals.o2LeftMin + " dk eksik)"));
+  }
+
+  // Not / fotoğraf pini: o anki konuma
+  function dropNote() {
+    if (!walk.active) return;
+    const input = $("walkNote");
+    const text = input.value.trim() || (walk.pos.phase === "dwell" ? walk.pos.at + " – numune" : "Not");
+    input.value = "";
+    const n = { t: Math.round(walk.t), text, lon: walk.pos.lon, lat: walk.pos.lat };
+    walk.notes.push(n);
+    walk.entities.push(planMarker(n.lon, n.lat, "#ffffff", "📍 " + fmtT(n.t) + " " + text, 8));
+    walkAlert("info", "Pin bırakıldı: " + text);
+  }
+
+  function endWalk(reason) {
+    cancelAnimationFrame(walk.raf);
+    walk.active = false;
+    $("walkHud").hidden = true;
+    $("walkBtn").disabled = !evaPlan.result;
+    setLink(true);
+    const a = walk.astro;
+    const end = { o2: Math.round(walk.o2), t: Math.round(walk.t) };
+    // Astronotun formdaki değerleri geri gelir (simülasyon; profil değişmez)
+    Object.assign(a, walk.saved);
+    computeZones();
+    // Hareketli simgeyi kaldır; pinler ve dönüş rotası kalır
+    if (walk.walker) viewer.entities.remove(walk.walker);
+    walk.walker = null;
+    showDetail(walkSummary(reason, end));
+  }
+
+  function walkSummary(reason, end) {
+    const p = evaPlan.result;
+    const title = { done: "Yürüyüş tamamlandı", return: "Erken dönüşle üste varıldı", o2: "O₂ BİTTİ", stop: "Yürüyüş durduruldu" }[reason];
+    const ok = reason === "done" || reason === "return";
+    const avgHr = walk.hrN ? Math.round(walk.hrSum / walk.hrN) : walk.hr;
+    const parts = [
+      el("span", { class: "chip", style: "--chip:#ff7a2f" }, "Yürüyüş özeti"),
+      el("h3", null, walk.astro.name + ": " + title),
+      el("div", { class: "verdict-row" },
+        el("span", { class: "verdict " + (ok ? "go" : "nogo") }, ok ? "GÜVENDE" : reason === "o2" ? "ACİL" : "DURDU"),
+        el("span", { class: "small muted" }, ok ? "Astronot üste döndü." : reason === "o2" ? "Astronot üsse ulaşamadı: Hayatta Kal moduna geç." : "Simülasyon elle durduruldu.")),
+      kvList([
+        ["Süre", fmtMin(end.t) + (p ? " (plan " + fmtMin(p.totals.minutes) + ")" : "")],
+        ["Yürünen mesafe", (walk.distM / 1000).toLocaleString("tr-TR", { maximumFractionDigits: 2 }) + " km"],
+        ["O₂", walk.saved.o2_min + " → " + Math.max(0, end.o2) + " dk" + (p && ok ? " (plan " + p.totals.o2LeftMin + " dk)" : "")],
+        ["Nabız", "ort. " + avgHr + ", en yüksek " + walk.hrMax + " atım/dk"],
+        ["Uyarı sayısı", walk.alerts.filter((x) => x.level === "warn" || x.level === "danger").length],
+      ]),
+    ];
+    if (walk.notes.length) {
+      parts.push(el("h4", null, "Pinler"));
+      parts.push(el("ol", { class: "timeline" }, walk.notes.map((n) => el("li", null, el("time", null, fmtT(n.t)), el("span", null, n.text)))));
+    }
+    parts.push(el("h4", null, "Olay kaydı"));
+    parts.push(el("ul", { class: "walk-log" }, walk.alerts.map((x) => el("li", { class: x.level }, el("time", null, fmtT(x.t)), el("span", null, x.text)))));
+    const again = el("button", { type: "button", class: "primary" }, "Tekrar oynat");
+    again.addEventListener("click", () => { clearWalkEntities(); startWalk(); });
+    const clear = el("button", { type: "button" }, "Pinleri temizle");
+    clear.addEventListener("click", clearWalkEntities);
+    parts.push(el("div", { class: "controls card-actions" }, again, clear));
+    parts.push(el("p", { class: "muted small" }, "O₂ = Σ dt × (1 + (nabız − 90)/100), canlı nabızla. Konum plan hızında (eva.js positionAt). Simülasyon: profil kaydedilmez."));
+    return el("div", { class: "card" }, parts);
+  }
+
+  function clearWalkEntities() {
+    walk.entities.splice(0).forEach((e) => viewer.entities.remove(e));
+  }
+
+  $("walkBtn").addEventListener("click", startWalk);
+  $("walkPause").addEventListener("click", () => {
+    walk.paused = !walk.paused;
+    $("walkPause").textContent = walk.paused ? "Devam" : "Duraklat";
+    walk.lastFrame = performance.now();
+  });
+  $("walkReturn").addEventListener("click", returnNow);
+  $("walkStop").addEventListener("click", () => walk.active && endWalk("stop"));
+  $("walkNoteBtn").addEventListener("click", dropNote);
+  $("walkNote").addEventListener("keydown", (e) => { if (e.key === "Enter") dropNote(); });
+  $("walkSpeed").addEventListener("change", (e) => { walk.speed = Number(e.target.value); });
+  $("walkHr").addEventListener("input", (e) => {
+    walk.hr = Number(e.target.value);
+    $("walkHrVal").textContent = walk.hr;
+    $("walkHrVal").className = walk.hr >= 150 ? "bad" : "";
+    walk.nextZone = Math.min(walk.nextZone, walk.t + 1); // nabız değişince bölgeler 1 sim. dk içinde güncellensin
+  });
+  window.addEventListener("marstrail:plan", () => { $("walkBtn").disabled = walk.active || !evaPlan.result; });
 
   // --- Harita tıklamaları: rota modunda nokta ekle, değilse pin kartı aç ---
   const clickHandler = new Cesium.ScreenSpaceEventHandler(viewer.canvas);
@@ -1676,5 +2052,6 @@
     get selectedAstronaut() { return astronauts.find((x) => x.id === selectedAstroId); },
     selectAstronaut, renderAstronauts, saveAll, emitAstronautChange, PROFILE_FIELDS,
     get plan() { return evaPlan.result; }, runPlan, addPlanStop, clearPlan,
+    walk, startWalk, returnNow, endWalk,
   };
 })();
