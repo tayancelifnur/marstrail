@@ -197,7 +197,7 @@ def slides():
     S.append({"els": els, "say": [
         ("NASA ve USGS'nin açık verisini kullandık: sekiz veri seti, yaklaşık 6 gigabayt.", "“8 açık veri seti · ~6 GB” ve veri listesi"),
         ("Üç farklı projeksiyonu tek bir 70 metrelik ızgarada birleştirdik.", "“3 → 1”"),
-        ("2.590 HiRISE karosunun 1.444'ü boştu, attık; jeoloji haritasında iki kaynak hatasını düzelttik.", "“1.444 / 2.590” ve karo seçim haritası"),
+        ("2.590 HiRISE karosunun 1.444'ü boştu, attık; jeoloji haritasında iki kaynak hatasını düzelttik.", "“1.444 / 2.590” ve üç örnek karo (NoData, dokusuz, kullanılır)"),
         ("Eğim, kum, kaya ve termali tek bir zorluk skorunda birleştirdik.", "Füzyon görseli ve formül"),
         ("Geriye tarayıcıda çalışan 1,3 megabaytlık bir harita kaldı.", "“1,3 MB”")]})
 
@@ -534,14 +534,15 @@ def mmss(t):
 
 def write_md(S):
     titles = [s["els"][1]["paras"][0]["text"] for s in S]
-    kick = [s["els"][0]["paras"][0]["text"].title() for s in S]
+    kick = ["Hikâye", "Sorun", "Çözüm", "Uygulama · hazırlan, planla", "Uygulama · yürü, hayatta kal", "Nasıl yaptık · veri",
+            "Nasıl yaptık · model", "Doğrulama", "Rakip analizi", "Hedef"]
     total = sum(words(t) for s in S for t, _ in s["say"])
     L = ["# Konuşma metni · MarsTrail final sunumu (5:00)", "",
          "Bu dosya `scripts/final/make_final.py` ile üretilir. Metin, slaytlar ve video aynı kaynaktan geliyor; zamanlar birebir aynı.",
          "",
          "- **Video:** `docs/sunum/MarsTrail_final.mp4`. 10 bölüm × 30 sn, sessiz. Her cümlenin görseli, cümlenin başladığı saniyede belirir.",
          "- **PPTX:** `docs/sunum/MarsTrail_final.pptx`. Her cümle bir tıklama; metin slayt notlarında.",
-         f"- **Hız:** Ses taslağından ölçüldü (faster-whisper): {RATE:.2f} kelime/sn, cümle arasında {PAUSE:.2f} sn nefes. Toplam {total} kelime.",
+         f"- **Hız:** Ses taslağından ölçüldü (faster-whisper): {RATE:.2f} kelime/sn, cümle arasında {PAUSE:.2f} sn nefes. Toplam {total} kelime.".replace("2.10", "2,10").replace("0.45", "0,45"),
          "- **Okurken:** Cümleye ekrandaki görsel belirince başla. Geride kalırsan bölümün son cümlesini kısalt; bölüm sınırını kaçırma.", ""]
     for n, s in enumerate(S, 1):
         a = (n - 1) * SLOT
@@ -549,7 +550,7 @@ def write_md(S):
               "| # | Zaman | Söyle | Ekranda |", "| --- | --- | --- | --- |"]
         for k, ((txt, scr), t) in enumerate(zip(s["say"], s["t"]), 1):
             L.append(f"| {n}.{k} | {mmss(a + t)} | {txt} | {scr} |")
-        L += ["", f"*Konuşma {s['end']:.1f} / 30 sn.*", ""]
+        L += ["", f"*Konuşma {s['end']:.1f} / 30 sn.*".replace(".", ",", 1), ""]
     L += ["---", "", "## Jüri soruları (en olası 10)", ""]
     for i, (q, ans) in enumerate(QA, 1):
         L += [f"**{i}. {q}**", "", ans, ""]
