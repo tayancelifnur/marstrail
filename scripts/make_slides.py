@@ -472,8 +472,8 @@ def slides_content():
     S = []
 
     # 1 · Hikâye
-    els = chrome(1, "Hikâye", "21 metre kalmıştı", "Kaynaklar: Apollo 14 görev raporu; NASA/JPL-Caltech, PIA07999 (Opportunity), Spirit")
-    cards = [("1971", "Apollo 14 · Ay", "Krater kenarını bulamadılar. Nabız 150, oksijen azalıyor; Houston geri çağırdı. Kenara ~21 m kalmıştı."),
+    els = chrome(1, "Hikâye", "~30 metre kalmıştı", "Kaynaklar: Apollo 14 görev raporu; LROC/ASU (PIA12897); NASA/JPL-Caltech, PIA07999 (Opportunity), Spirit")
+    cards = [("1971", "Apollo 14 · Ay", "Krater kenarını bulamadılar. Nabız 150, oksijen azalıyor; Houston geri çağırdı. Kenara ~30 m kalmıştı (LROC/ASU)."),
              ("2005", "Opportunity · Mars", "~30 cm yüksekliğinde bir kum dalgasında 5 haftadan fazla mahsur kaldı."),
              ("2009", "Spirit · Mars", "Sert kabuğun altındaki yumuşak kuma gömüldü; bir daha hareket edemedi.")]
     for k, (yr, who, txt) in enumerate(cards):
@@ -577,7 +577,7 @@ def slides_content():
     # 7 · Etki + YZ beyanı
     els = chrome(7, "Etki · YZ beyanı", "Nerede olduklarını bilecekler", "Kod: github.com/tayancelifnur/marstrail · Veri: NASA/JPL-Caltech, USGS, ASU, University of Arizona")
     impact = [("Artemis ve Mars", "Gecikmeli iletişimde “geri dön” kararını sistem veriyor; telefon görünümü hazır, kask içi ekrana uyarlanabilir."),
-              ("Dünya'da afet", "Aynı arama mantığı: kayıp kişi + kalan süre + arazi → arama alanı ve İHA rotası."),
+              ("Ay · Artemis", "Aynı sistem Ay güney kutbu yürüyüşlerine uyarlanabilir."),
               ("Açık", "Açık veri, açık kod; tarayıcıda çalışır, sunucu gerekmez.")]
     for k, (h, t) in enumerate(impact):
         y = 1.65 + k * 1.3

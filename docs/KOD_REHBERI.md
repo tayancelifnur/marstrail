@@ -37,6 +37,7 @@ web/ (tarayıcı, backend yok) ─ index.html + app.js (arayüz) + walkback.js, 
 | `validate.py` | E10 | D2 rotası hücrelerinin skor dağılımı ile rota dışını karşılaştırır (AUC, bootstrap) | grid + D2 → `e10_validation.png/json` |
 | `pipeline_stats.py` | E3 | Her veri adımının ham/atılan/son sayıları ve önce/sonra görselleri | → `pipeline_stats.json`, `figures/d*.png` |
 | `make_previews.py` | – | Veri seti önizlemeleri | → `figures/onizleme/` |
+| `sunum_v2/rec_scenes.py`, `sunum_v2/edit_video.py`, `sunum_v2/cdp.py` | E15 | 5:00'lık sunum videosunun v2'si: uygulamadan iki sahneyi (rota çiz, not pini) headless Edge ile kaydeder; videoda Apollo 14 sayacını ~30 m'ye ve Etki kartını Artemis'e çevirir, veri bölümünden 9 sn kesip demoya ekler (süre 5:00 kalır) | kaynak video + `web/` → `docs/sunum/MarsTrail_sunum_v2.mp4` |
 | `make_data_examples.py` | – | Jüri için veri örnekleri sayfası: tüm alanlar + ilk 5 satır (kullanılan yeşil, kullanılmayan gri, gerekçeleriyle), ham/işlenmiş görüntü, önce/sonra histogram, NoData ve min/maks/ortalama, D8 örnek karoları | D1–D8, Mars Trek, `layers_1024.npz`, `dataset_merged` → `docs/VERI_ORNEKLERI.html` |
 | `audit_numbers.py` | E15 | Sunum ve teslimdeki sayıları JSON'lardan ve uygulama testlerinden yeniden hesaplar | → `docs/SAYI_DENETIMI.md` |
 | `make_slides.py` | E15 | 7 slaytlık PPTX: koyu tema, Calibri, hareket (OOXML), gömülü demo, taşma kontrolü | `SLAYTLAR.md`, `figures/` → `docs/sunum/MarsTrail.pptx` |

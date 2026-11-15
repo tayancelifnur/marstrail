@@ -93,7 +93,7 @@ REGIONS = [
 
 STORIES = [
     {"id": "apollo14", "title": "Apollo 14 – Cone Krateri", "date": "1971-02-06",
-     "body": "Shepard ve Mitchell, Cone Krateri'nin kenarını ararken konumlarını kaybetti. Shepard'ın nabzı 150'ye çıktı; oksijen ve dönüş yolu nedeniyle Houston aramayı durdurdu. Sonradan krater kenarının ~21 m yakınına kadar geldikleri anlaşıldı.",
+     "body": "Shepard ve Mitchell, Cone Krateri'nin kenarını ararken konumlarını kaybetti. Shepard'ın nabzı 150'ye çıktı; oksijen ve dönüş yolu nedeniyle Houston aramayı durdurdu. LRO uydusunun 2009 görüntüsü, kenara ~30 m kala döndüklerini gösterdi (LROC/ASU, Saddle Rock).",
      "location_text": "Ay, Fra Mauro", "lesson": "Konum, nabız ve dönüş sınırı: MarsTrail'in O₂ bölgeleri ve dönüş noktası", "layer": None,
      "source": "https://www.astronomy.com/space-exploration/50-years-since-apollo-14-mission-to-fra-mauro/"},
     {"id": "opportunity", "title": "Opportunity – Purgatory Kumulu", "date": "2005-04-26",

@@ -156,7 +156,8 @@ def claims(tests):
 
 
 EXTERNAL = [
-    ("1971 · ~21 m", "Apollo 14: Cone Krateri kenarına kalan mesafe", "https://www.astronomy.com/space-exploration/50-years-since-apollo-14-mission-to-fra-mauro/", "kaynak metni (PLAN.md bölüm 2)"),
+    ("1971 · ~30 m", "Apollo 14: Cone Krateri kenarına kalan mesafe", "https://science.nasa.gov/photojournal/trail-of-discovery-at-fra-mauro (NASA PIA12897; LROC, NASA/GSFC/Arizona State University, 19 Ağu 2009)",
+     "15 Kas 2026'da sayfadan doğrulandı: \"the astronauts just barely missed (30 meters) the rim of Cone crater\"; \"Saddle Rock … can be discerned in the LROC image\". Eski metindeki ~21 m düzeltildi."),
     ("~30 cm · 2,5 m", "Opportunity'yi tutan kum dalgası: yükseklik ve genişlik", "https://science.nasa.gov/photojournal/looking-back-at-purgatory-dune (PIA07999)",
      "15 Kas 2026'da sayfadan doğrulandı: \"about one-third meter (one foot) tall and 2.5 meters (8 feet) wide\". Eski metindeki 10–15 cm düzeltildi."),
     ("5 haftadan fazla", "Opportunity'nin mahsur kalma süresi (26 Nis – Haz 2005)", "PIA07999 aynı sayfa", "\"Getting the rover out of the dunes took more than five weeks\""),
@@ -166,7 +167,7 @@ EXTERNAL = [
 ]
 # Güncellenmiş eski sayılar: sunum dosyalarında yalnızca "v1 / ilk taslak / 1. parti modeli" bağlamında kalabilir
 STALE = {"0,626": "AUC (v1 modeli)", "%3,8": "kumlu rota hücresi (v1)", "%52,6": "kumlu çevre (v1)",
-         "15 cm": "Opportunity kum dalgası (yanlış)", "15 santim": "Opportunity kum dalgası (yanlış)", "278 dk": "Cheyava (E10 öncesi)"}
+         "15 cm": "Opportunity kum dalgası (yanlış)", "21 m": "Apollo 14 kenar mesafesi (yanlış)", "21 metre": "Apollo 14 kenar mesafesi (yanlış)", "afet": "Etki kartı (kaldırıldı)", "15 santim": "Opportunity kum dalgası (yanlış)", "278 dk": "Cheyava (E10 öncesi)"}
 STALE_OK = re.compile(r"v1|ilk taslak|1\. parti model|önceki|eski", re.I)
 
 

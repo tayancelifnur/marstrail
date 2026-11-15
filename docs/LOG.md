@@ -578,3 +578,22 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Kontrol:** Headless Edge'de açıldı: 9 bölüm, 23 görsel. Dar ekranda yatay taşma bulundu (satır içi max-width, grid min-content); düzeltildi, scrollWidth = viewport.
 - **Çalıştırma:** `venv\Scripts\python scripts\make_data_examples.py`. ~30 sn. İnternet gerekli (D7 API, Mars Trek). HiRISE önizlemesi ilk seferde `data/processed/d8_preview_dec16.npz`'ye yazılır.
 - **Dosyalar:** `scripts/make_data_examples.py`, `docs/VERI_ORNEKLERI.html`, `README.md`, `docs/KOD_REHBERI.md`, `docs/LOG.md`
+
+## E15 (son) · Sunum videosu v2, Apollo 14 ~30 m, Artemis kartı, konuşma metni · Paz 15 Kas 2026, 15:10
+
+- **Apollo 14 düzeltmesi:**
+  - Kenara kalan mesafe 21 m değil, ~30 m. Kaynak NASA PIA12897 (LROC, NASA/GSFC/ASU, 2009), sayfadan doğrulandı: "the astronauts just barely missed (30 meters) the rim of Cone crater"; Saddle Rock da görüntüde.
+  - Düzeltilen dosyalar: SLAYTLAR, PLAN, TESLIM, `stories.json`, `build_regions.py`, `make_dummies.py`, `make_slides.py`, `make_video.py`.
+  - Kaynak `audit_numbers.py` ile SAYI_DENETIMI'ne girdi; "21 m" ve "afet" eski sayı taramasına eklendi.
+- **Etki kartı:** "Dünya'da afet" yerine "Ay · Artemis: Aynı sistem Ay güney kutbu yürüyüşlerine uyarlanabilir" (video, slaytlar, belgeler).
+- **Sunum videosu v2** (`scripts/sunum_v2/`): 5:00'lık videodan `docs/sunum/MarsTrail_sunum_v2.mp4` üretildi; 5:00, 22,3 MB.
+  - Apollo sayacı orijinalin eğrisiyle ~30'a iniyor, altında kaynak satırı var.
+  - Veri tablosundan 9 sn kesildi (1:46–1:55, durağan bölüm).
+  - Demoya 9 sn eklendi: 5,5 sn rota çiz (engeller, zorluk, yükseklik profili) ve 3,5 sn yürürken not pini + bildirim. Sahneler uygulamadan headless Edge ile kaydedildi; ek paket kullanılmadı, CDP istemcisi yalnız standart kütüphaneyle yazıldı.
+  - Etki kartı yeniden çizildi.
+- **Uygulama özellik kontrolü** (sunumda söylenecekler için):
+  - Var: nokta tarihçesi; rota çizme (analiz ve "test edilmemiş rota" uyarısıyla); yürürken metin notu pini ve olay bildirimleri.
+  - Yok: çizilen rotanın kalıcı kaydı, fotoğraf yükleme, rota inceleme ve onay. Konuşma metninde bunlar "sonraki adım" olarak geçiyor.
+- **Konuşma metni:** `docs/KONUSMA_METNI.md`, v2 videosuna saniye saniye; bölüm başına kelime/saniye ölçüldü (ortalama ~2,1).
+- **Yeniden üretilenler:** `MarsTrail.pptx` (taşma yok), `MarsTrail_sunum.mp4` (2:24), SAYI_DENETIMI (46/46, eski sayı 0). E8/E11/E13: 24/24 ✔.
+- **Dosyalar:** `scripts/sunum_v2/{cdp,rec_scenes,edit_video}.py`, `docs/sunum/{MarsTrail_sunum_v2.mp4, MarsTrail.pptx, MarsTrail_sunum.mp4}`, `docs/{KONUSMA_METNI, SLAYTLAR, PLAN, TESLIM, SAYI_DENETIMI, KOD_REHBERI, LOG}.md`, `README.md`, `web/data/stories.json`, `scripts/{audit_numbers, build_regions, make_dummies, make_slides, make_video}.py`

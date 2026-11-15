@@ -41,7 +41,7 @@ DUR = {1: 20, 2: 19, 3: 22, 4: 22, 5: DEMO_INTRO + DEMO_LEN, 6: 22, 7: 17}   # t
 # Konuşma metninden (docs/SLAYTLAR.md) kısaltılmış altyazılar; slayt süresine eşit bölünür.
 SUBS = {
     1: ["1971, Ay: iki astronot bir krateri arıyor. Nabız 150, oksijen azalıyor.",
-        "Houston “geri dönün” diyor. Yıllar sonra anlaşıldı: hedefe 21 metre kalmıştı.",
+        "Houston “geri dönün” diyor. Yıllar sonra anlaşıldı: hedefe ~30 metre kalmıştı.",
         "2005'te Opportunity 30 santimlik bir kum dalgasında 5 haftadan fazla mahsur kaldı; 2009'da Spirit kuma gömüldü.",
         "Mars'ta Houston dakikalarca uzakta. Kim “geri dön” diyecek?"],
     2: ["MarsTrail, Mars'taki bir yürüyüşü hazırlıktan acil duruma kadar yönetiyor.",
@@ -61,7 +61,7 @@ SUBS = {
         "Görüntü verisi olmadan skor rotayı ayırt edemiyordu: AUC 0,50. Kendi YOLO modelimizle 0,65.",
         "Rotadaki hücrelerin hiçbiri kumlu değil, çevredekilerin yarısı kumlu. Kayada aynı sinyali bulamadık."],
     7: ["Apollo 14 astronotları nerede olduklarını bilmedikleri için döndü.",
-        "MarsTrail ile bilecekler. Aynı sistem Dünya'da bir afet bölgesinde de çalışabilir.",
+        "MarsTrail ile bilecekler. Aynı sistem Ay'ın güney kutbunda da çalışabilir.",
         "Kodu yapay zekâ desteğiyle yazdık; etiketleri, kararları ve doğrulamayı biz yaptık. Teşekkürler."],
 }
 NUM = re.compile(r"\d+(?:,\d+)?")

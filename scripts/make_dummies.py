@@ -280,7 +280,7 @@ def make_poi(regions):
 
 
 STORIES = [
-    {"id": "apollo14", "title": "Apollo 14 – Cone Krateri", "date": "1971-02-06", "body": "Shepard ve Mitchell Cone Krateri'nde konumlarını kaybetti; Shepard'ın nabzı 150'ye çıktı. Oksijen ve dönüş yolu nedeniyle arama durduruldu. Krater kenarının ~21 m yakınına geldikleri sonradan anlaşıldı.",
+    {"id": "apollo14", "title": "Apollo 14 – Cone Krateri", "date": "1971-02-06", "body": "Shepard ve Mitchell Cone Krateri'nde konumlarını kaybetti; Shepard'ın nabzı 150'ye çıktı. Oksijen ve dönüş yolu nedeniyle arama durduruldu. LRO uydusunun 2009 görüntüsü, kenara ~30 m kala döndüklerini gösterdi (LROC/ASU).",
      "location_text": "Ay, Fra Mauro", "lesson": "Konum, nabız ve dönüş sınırı", "layer": None,
      "source": "https://www.astronomy.com/space-exploration/50-years-since-apollo-14-mission-to-fra-mauro/"},
     {"id": "opportunity", "title": "Opportunity – Purgatory Kumulu", "date": "2005-04-26", "body": "~30 cm yüksekliğinde bir kum dalgasında beş haftadan fazla mahsur kaldı.",

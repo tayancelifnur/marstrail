@@ -30,17 +30,17 @@
 
 ---
 
-## Slayt 1 · Hikâye: "21 metre" (0:45, Elif)
+## Slayt 1 · Hikâye: "~30 metre" (0:45, Elif)
 
-**Başlık:** 21 metre kalmıştı
+**Başlık:** ~30 metre kalmıştı
 
-- 1971, Apollo 14: Shepard ve Mitchell, Cone Krateri'nin kenarını bulamadı. Nabız 150, oksijen azalıyor, Houston geri çağırdı. Kenara yaklaşık 21 m kalmıştı.
+- 1971, Apollo 14: Shepard ve Mitchell, Cone Krateri'nin kenarını bulamadı. Nabız 150, oksijen azalıyor, Houston geri çağırdı. Kenara yaklaşık 30 m kalmıştı (LROC/ASU: Saddle Rock, kenara ~30 m; NASA PIA12897).
 - 2005, Opportunity: ~30 cm yüksekliğinde bir kum dalgasında 5 haftadan fazla mahsur kaldı.
 - 2009, Spirit: Sert kabuğun altındaki yumuşak kuma gömüldü, bir daha hareket edemedi.
 - Mars'ta Houston'a bir mesaj 3 ila 22 dakikada gidiyor (bugün 10,9 dk).
 
 **Konuşma metni:**
-> "1971. Ay. İki astronot bir krateri arıyor. Haritadaki işaretleri bulamıyorlar, kalpleri dakikada 150 atıyor, oksijen azalıyor. Houston 'geri dönün' diyor ve dönüyorlar. Yıllar sonra fotoğraflar gösterdi ki hedeflerine 21 metre kalmıştı.
+> "1971. Ay. İki astronot bir krateri arıyor. Haritadaki işaretleri bulamıyorlar, kalpleri dakikada 150 atıyor, oksijen azalıyor. Houston 'geri dönün' diyor ve dönüyorlar. Yıllar sonra uydu fotoğrafları gösterdi ki hedeflerine yaklaşık 30 metre kalmıştı.
 > 2005. Mars. Opportunity otuz santimlik bir kum dalgasına takılıyor, beş hafta çıkamıyor. 2009'da Spirit kuma gömülüyor ve bir daha hiç hareket edemiyor.
 > Şimdi bunları Mars'ta bir insanın başına getirin. Houston on dakika uzakta. Kim 'geri dön' diyecek?"
 
@@ -197,7 +197,7 @@ Yedek ekran görüntüleri (video açılmazsa): `docs/figures/ui_1_plan_go.png`,
 **Başlık:** Nerede olduklarını bilecekler
 
 - **Artemis ve Mars:** Telefon görünümü hazır, kask içi ekrana uyarlanabilir. Gecikmeli iletişimde kararı sistem veriyor.
-- **Dünya'da:** Aynı arama ve kurtarma mantığı afet bölgesinde de çalışıyor: kayıp kişi + kalan süre + arazi → arama alanı ve İHA rotası.
+- **Ay · Artemis:** Aynı sistem Ay güney kutbu yürüyüşlerine uyarlanabilir.
 - **Açık:** Açık veri, açık kod, backend gerekmiyor.
 - **YZ beyanı:**
   - Kod ve veri işleme betikleri ekip denetiminde Claude Code ile yazıldı.
@@ -206,7 +206,7 @@ Yedek ekran görüntüleri (video açılmazsa): `docs/figures/ui_1_plan_go.png`,
 - **Ekip:** Elif (veri, model, algoritmalar), Gözde (arayüz).
 
 **Konuşma metni:**
-> "Apollo 14 astronotları nerede olduklarını bilmedikleri için döndü. MarsTrail ile bilecekler: nerede olduklarını, ne kadar ileri gidebileceklerini ve ne zaman dönmeleri gerektiğini. Aynı sistem bugün Dünya'da bir afet bölgesinde de çalışabilir. Kodu ve betikleri yapay zekâ desteğiyle yazdık; etiketleri, kararları ve doğrulamayı biz yaptık. Teşekkürler."
+> "Apollo 14 astronotları nerede olduklarını bilmedikleri için döndü. MarsTrail ile bilecekler: nerede olduklarını, ne kadar ileri gidebileceklerini ve ne zaman dönmeleri gerektiğini. Aynı sistem Artemis'le Ay'ın güney kutbunda da kullanılabilir. Kodu ve betikleri yapay zekâ desteğiyle yazdık; etiketleri, kararları ve doğrulamayı biz yaptık. Teşekkürler."
 
 **Görsel:**
 - Telefon görünümünde kurtarma ekranı: `docs/figures/ui_6_phone_rescue.png`.

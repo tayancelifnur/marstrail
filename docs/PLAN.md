@@ -27,7 +27,7 @@ Hikâye üç gerçek olay ve bir eski kural üzerine kurulu. Soyuz 11, Apollo 1 
 
 | Olay | Ne oldu | Bizim katmanımız |
 | --- | --- | --- |
-| [Apollo 14, 1971](https://www.astronomy.com/space-exploration/50-years-since-apollo-14-mission-to-fra-mauro/) | Shepard ve Mitchell Cone Krateri'nde konumlarını kaybetti; Shepard'ın nabzı 150'ye çıktı, oksijen ve dönüş yolu nedeniyle arama durduruldu. Sonradan krater kenarının yaklaşık 21 m yakınına geldikleri anlaşıldı | Konum, nabız ve dönüş sınırı |
+| [Apollo 14, 1971](https://www.astronomy.com/space-exploration/50-years-since-apollo-14-mission-to-fra-mauro/), [LROC · PIA12897](https://science.nasa.gov/photojournal/trail-of-discovery-at-fra-mauro) | Shepard ve Mitchell Cone Krateri'nde konumlarını kaybetti; Shepard'ın nabzı 150'ye çıktı, oksijen ve dönüş yolu nedeniyle arama durduruldu. LRO uydusunun 2009 görüntüsü, kenara yaklaşık 30 m kala döndüklerini gösterdi (LROC/ASU, Saddle Rock) | Konum, nabız ve dönüş sınırı |
 | [Opportunity, 2005](https://science.nasa.gov/photojournal/looking-back-at-purgatory-dune) | ~30 cm yüksekliğinde (2,5 m genişliğinde) bir kum dalgasında beş haftadan fazla mahsur kaldı | YOLO kum dalgası tespiti |
 | [Spirit, 2009](https://www.space.com/18766-spirit-rover.html) | Sert kabuğun altındaki yumuşak kuma gömüldü, görevini kaybetti | Termal eylemsizlik + batma riski |
 | [Walkback kuralı](https://ttu-ir.tdl.org/handle/2346/74208) | Apollo'da dönüş mesafesi sabit hız ve ortalama tüketim varsayımıyla hesaplandı | Dinamik dönüş bölgeleri |
@@ -36,7 +36,7 @@ Mars'ta bir mesaj tek yönde 3–22 dakika sürüyor; Apollo 14'teki gibi kararl
 
 ### Sunum açılışı (45 sn)
 
-> "1971. Ay. İki astronot bir krateri arıyor. Haritadaki işaretleri bulamıyorlar, kalpleri dakikada 150 atıyor, oksijen azalıyor. Houston 'geri dönün' diyor. Dönüyorlar. Yıllar sonra uydu fotoğrafları gösterdi ki hedeflerine 21 metre kalmıştı.
+> "1971. Ay. İki astronot bir krateri arıyor. Haritadaki işaretleri bulamıyorlar, kalpleri dakikada 150 atıyor, oksijen azalıyor. Houston 'geri dönün' diyor. Dönüyorlar. Yıllar sonra uydu fotoğrafları gösterdi ki hedeflerine yaklaşık 30 metre kalmıştı.
 >
 > 2005. Mars. Opportunity otuz santimlik bir kum dalgasına takılıyor, beş hafta çıkamıyor. 2009'da Spirit kuma gömülüyor ve bir daha hiç hareket edemiyor.
 >
@@ -48,7 +48,7 @@ Mars'ta bir mesaj tek yönde 3–22 dakika sürüyor; Apollo 14'teki gibi kararl
 
 ### Kapanış (15 sn)
 
-> "Apollo 14 astronotları nerede olduklarını bilmedikleri için döndü. MarsTrail ile bilecekler. Ve aynı sistem bugün Dünya'da bir afet bölgesinde de çalışabilir."
+> "Apollo 14 astronotları nerede olduklarını bilmedikleri için döndü. MarsTrail ile bilecekler. Ve aynı sistem Artemis ile Ay'ın güney kutbundaki yürüyüşlere de uyarlanabilir."
 
 ## 3. Proje: MarsTrail modülleri
 
@@ -217,7 +217,7 @@ Saatlik plan, kontrol noktaları ve kesme sırası: docs/GOREV_KARTLARI.md.
    - Grid'deki süreler (üs → Three Forks 73 dk, Cheyava Falls 278 dk: kırmızı bölge).
 7. **Etki ve YZ beyanı (0:30):**
    - Kask içi ekran, Artemis'e uyarlama.
-   - Dünya'da afet araması: aynı kurtarma mantığı.
+   - Ay · Artemis: aynı sistem Ay güney kutbu yürüyüşlerine uyarlanabilir.
    - YZ kullanım beyanı: Claude Code, insan denetiminde kod ve veri işleme. Ekip adları.
 
 ### Demo videosu senaryosu (en fazla 30 sn)

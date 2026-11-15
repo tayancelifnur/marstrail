@@ -28,7 +28,7 @@ Kum ve kayayı, 250 HiRISE karosunu kendimiz etiketleyerek eğittiğimiz bir YOL
 ### Etkisi
 
 - **Artemis ve gelecekteki Mars görevleri:** EVA planlama ve kask içi ekran için hafif, açık veriyle çalışan bir prototip.
-- **Dünya:** Aynı mantık bir afet bölgesinde kayıp kişi araması için kullanılabilir. Son konum ve kalan süreden ulaşılabilir alan, arazi maliyetine göre olasılık, İHA tarama rotası.
+- **Ay · Artemis:** Aynı sistem Ay güney kutbu yürüyüşlerine uyarlanabilir: uzun gölgeler, düşük güneş açısı ve sınırlı iletişimde dönüş sınırı ve kurtarma planı aynı mantıkla hesaplanır.
 - **Erişim:** Backend gerektirmiyor, telefonda açılıyor. Veri cihazda olduğu için bağlantı kopsa da çalışmaya devam ediyor.
 
 ### Kullanılan araçlar
