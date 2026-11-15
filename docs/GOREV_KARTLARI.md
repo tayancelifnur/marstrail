@@ -57,7 +57,7 @@ Bu tablo `regions.json` ve `stories.json` dosyalarının ham içeriği. Koordina
 | Delta (Kodiak) | 7 Eki 2021 | Rover görüntüleri göl ve nehir deltasını ve ani sel izlerini doğruladı (Science) | [EarthSky](https://earthsky.org/space/ancient-martian-lake-delta-floods-perseverance/) |
 | Three Forks depo | 21 Ara 2022 – 28 Oca 2023 | Başka bir gezegende ilk numune deposu; 10 tüp bırakıldı | [Space Odyssey Hub](https://spaceodysseyhub.com/replays/perseverance) |
 | Cheyava Falls (Neretva Vallis) | 18 Tem 2024 | "Leopar benekli" kaya; olası biyoimza | [Sky at Night](https://skyatnightmagazine.com/space-missions/perseverance-jezero-crater) |
-| Tarihi kart: Opportunity, Purgatory Kumulu | 26 Nis 2005 | 10–15 cm'lik kum dalgasında 5 haftadan fazla mahsur | [NASA](https://science.nasa.gov/photojournal/looking-back-at-purgatory-dune) |
+| Tarihi kart: Opportunity, Purgatory Kumulu | 26 Nis 2005 | ~30 cm yüksekliğinde, 2,5 m genişliğinde bir kum dalgasında 5 haftadan fazla mahsur (PIA07999) | [NASA](https://science.nasa.gov/photojournal/looking-back-at-purgatory-dune) |
 | Tarihi kart: Spirit, Troy | Mayıs 2009 | Yumuşak kuma gömüldü, görevini kaybetti | [Space.com](https://www.space.com/18766-spirit-rover.html) |
 
 Opportunity ve Spirit Jezero'da değil. Haritada "bu kum türü buna benziyor" bilgi kartı olarak gösterilir; konumları Jezero'da bir pin olarak değil, kartın içinde verilir.

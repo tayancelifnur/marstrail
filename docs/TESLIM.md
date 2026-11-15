@@ -186,7 +186,8 @@ Bu projede **Claude Code** (Anthropic, Claude Opus 5.5) kodlama asistanı olarak
 
 - [ ] Klasör paylaşımı: "Bağlantıya sahip herkes görüntüleyebilir". Gizli pencerede açılıp denendi.
 - [ ] `MarsTrail_Sunum.pdf` ve düzenlenebilir kaynağı. 7 slayt.
-- [ ] `MarsTrail_Demo.mp4`. **En fazla 30 sn**, süresi kontrol edildi. Sesli ya da altyazılı.
+- [ ] `MarsTrail_Demo.mp4` (= `docs/sunum/demo.mp4`, 29,9 sn, 1920x1080). **En fazla 30 sn** ✔. Altyazılı.
+- [ ] `MarsTrail_sunum.mp4` (`docs/sunum/`, 2:24, sessiz, altyazılı): seslendirme eklenince Drive'a.
 - [ ] Uygulama linki (GitHub Pages / Vercel). Telefonda açılıyor.
 - [ ] GitHub repo linki. README güncel, YZ notu var.
 - [ ] `TESLIM.md` (bu dosya) ya da PDF'i: form cevapları, NASA verileri, diğer kaynaklar, YZ beyanı.
@@ -205,9 +206,10 @@ MarsTrail_SpaceApps_Konya_2026/
 ├── 00_OKU_BENI.txt                  uygulama linki, repo linki, ekip ve roller, klasörün içeriği (5–6 satır)
 ├── 01_Sunum/
 │   ├── MarsTrail_Sunum.pdf          7 slayt: docs/sunum/MarsTrail.pdf (scripts/make_slides.py --pdf)
-│   └── MarsTrail_Sunum.pptx         docs/sunum/MarsTrail.pptx (video slayt 5'e eklenecek; konuşma metni notlarda)
+│   ├── MarsTrail_Sunum.pptx         docs/sunum/MarsTrail.pptx (hareketli; demo slayt 5'te gömülü, tıklamayla oynar; konuşma metni notlarda)
+│   └── MarsTrail_sunum.mp4          docs/sunum/MarsTrail_sunum.mp4 (2:24 sunum videosu; seslendirilecek)
 ├── 02_Demo/
-│   └── MarsTrail_Demo.mp4           ≤ 30 sn
+│   └── MarsTrail_Demo.mp4           docs/sunum/demo.mp4 (29,9 sn)
 ├── 03_Belgeler/
 │   ├── TESLIM.pdf                   form cevapları, NASA verileri, kaynaklar, YZ beyanı (bu dosya)
 │   ├── DATA_PIPELINE.pdf            veri hattı: 8 veri seti, atılanlar, normalizasyon, model, doğrulama
@@ -235,6 +237,6 @@ Seçim ölçütü: jürinin baktığı dört konuya (temizleme, normalizasyon, �
 
 **Linkler** (`00_OKU_BENI.txt` ve formda):
 - Repo: https://github.com/tayancelifnur/marstrail
-- Uygulama (canlı): https://tayancelifnur.github.io/marstrail/ — Pages kaynağı "GitHub Actions" seçilip `pages.yml` bir kez çalışınca açılır (15 Kas 09:55 itibarıyla henüz 404). Telefonda denenecek.
+- Uygulama (canlı): https://tayancelifnur.github.io/marstrail/. 15 Kas'ta kontrol edildi: 200 dönüyor; grid, katmanlar, fotoğraflar ve en son `rescue.js` yayında. Cesium yerel kopyadan yükleniyor. Her `web/**` push'unda yeniden yayınlanıyor. Telefonda denenecek.
 
 **PDF'e çevirme:** `TESLIM.md` ve `DATA_PIPELINE.md`, VS Code'un Markdown önizlemesinden ya da GitHub'daki görünümden yazdırılarak PDF yapılabilir. Görseller göreli yol (`figures/…`) kullandığı için PDF'i repo içinden üretin.

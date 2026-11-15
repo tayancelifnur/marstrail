@@ -7,7 +7,15 @@
 **Kurallar:**
 - NASA logosu, bayrağı ya da görev arması kullanılmaz.
 - Görsellerin altına kaynak metin olarak yazılır, ör. "Veri: NASA/JPL-Caltech, USGS, University of Arizona (HiRISE)".
-- Sayıların hepsi betiklerden geliyor: `docs/DATA_PIPELINE.md` ve `docs/figures/*.json`. Slayta elle sayı yazılmaz; buradan kopyalanır.
+- Sayıların hepsi betiklerden geliyor: `docs/DATA_PIPELINE.md` ve `docs/figures/*.json`. Slayta elle sayı yazılmaz; buradan kopyalanır. Denetim: [SAYI_DENETIMI.md](SAYI_DENETIMI.md) (`scripts/audit_numbers.py`).
+
+**Dosyalar:**
+- **`docs/sunum/MarsTrail.pptx`** (`scripts/make_slides.py`): Calibri yazı tipi, konuşma metinleri notlarda.
+  - Her slaytta geçiş var: 3. ve 6. slaytta push, diğerlerinde fade.
+  - Grafikler slayt açılınca yakınlaşarak gelir; büyük sayılar ve kartlar tıklamayla sırayla belirir.
+  - Slayt 5'te `docs/sunum/demo.mp4` gömülü; ilk tıklamada baştan oynar, ikinci tıklama kartları getirir. Bu düzen Gözde'nin `MarsTrail_Elif_demo.pptx` dosyasıyla aynı.
+  - Tıklama sayısı: slayt 1'de 2, slayt 2'de 3, slayt 3'te 1, slayt 4'te 1, slayt 5'te 2 (video + kartlar), slayt 6'da 3, slayt 7'de 3.
+- **`docs/sunum/MarsTrail_sunum.mp4`** (`scripts/make_video.py`): 2:24, 1920x1080, sessiz, Türkçe altyazılı. Demo bölümü 20 sn. Seslendirme sonra eklenecek.
 
 | # | Slayt | Süre | Konuşmacı | Birikimli |
 | --- | --- | --- | --- | --- |
@@ -27,13 +35,13 @@
 **Başlık:** 21 metre kalmıştı
 
 - 1971, Apollo 14: Shepard ve Mitchell, Cone Krateri'nin kenarını bulamadı. Nabız 150, oksijen azalıyor, Houston geri çağırdı. Kenara yaklaşık 21 m kalmıştı.
-- 2005, Opportunity: 10–15 cm'lik bir kum dalgasında 5 haftadan fazla mahsur kaldı.
+- 2005, Opportunity: ~30 cm yüksekliğinde bir kum dalgasında 5 haftadan fazla mahsur kaldı.
 - 2009, Spirit: Sert kabuğun altındaki yumuşak kuma gömüldü, bir daha hareket edemedi.
 - Mars'ta Houston'a bir mesaj 3 ila 22 dakikada gidiyor (bugün 10,9 dk).
 
 **Konuşma metni:**
 > "1971. Ay. İki astronot bir krateri arıyor. Haritadaki işaretleri bulamıyorlar, kalpleri dakikada 150 atıyor, oksijen azalıyor. Houston 'geri dönün' diyor ve dönüyorlar. Yıllar sonra fotoğraflar gösterdi ki hedeflerine 21 metre kalmıştı.
-> 2005. Mars. Opportunity 15 santimlik bir kum dalgasına takılıyor, beş hafta çıkamıyor. 2009'da Spirit kuma gömülüyor ve bir daha hiç hareket edemiyor.
+> 2005. Mars. Opportunity otuz santimlik bir kum dalgasına takılıyor, beş hafta çıkamıyor. 2009'da Spirit kuma gömülüyor ve bir daha hiç hareket edemiyor.
 > Şimdi bunları Mars'ta bir insanın başına getirin. Houston on dakika uzakta. Kim 'geri dön' diyecek?"
 
 **Görsel:**
@@ -140,12 +148,12 @@ Formül slaytın altında tek satır olarak yazılır.
 >
 > Video sırasında (kısa vurgular): "O₂ bölgeleri her zaman açık… plan yeşil, GO… nabız 150: bölgeler daralıyor, dönüş noktası öne geliyor… telsiz koptu: arama alanı, İHA rotası, Ali'nin kurtarma rotası."
 
-**Görsel:** 30 sn video. Senaryo `docs/PLAN.md` bölüm 7'de.
+**Görsel:** Video slayta gömülü (`docs/sunum/demo.mp4`, 29,9 sn, ilk tıklamada oynar). Senaryo `docs/PLAN.md` bölüm 7'de.
 
 | Süre | Ekran |
 | --- | --- |
 | 0–5 sn | Küre → Jezero. Üst barda Sol, saat, gecikme. |
-| 5–10 sn | Ayşe'nin profili, O₂ bölgeleri, delta pini ve fotoğrafı. |
+| 5–10 sn | Nokta kartı, O₂ bölgeleri: delta pininin tarihçesi ve Perseverance fotoğrafı. |
 | 10–16 sn | YOLO katmanı (`hazard_ml`). Plan, zaman çizelgesi, GO. |
 | 16–24 sn | Yürüyüş × 60. Nabız 150, bölgeler daralır, dönüş noktası uyarısı. |
 | 24–30 sn | Telsiz koptu: arama alanı, İHA zikzak rotası, Ali'nin rotası. |

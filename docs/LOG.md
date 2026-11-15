@@ -497,3 +497,18 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
   - **"▶ Bu rotada yürü":** Çizilen noktalar plana durak olur (hazır durağa yakınsa o durak, değilse "⚠ Nokta N", kalma 0 dk; üsse 300 m'den yakın ilk/son nokta atlanır). Eva.plan güvenli yolu, dönüş noktasını ve Go/No-Go'yu hesaplar; Go/No-Go'nun başına "Test edilmemiş rota · DİKKAT" eklenir (plan GO kalabilir, karar astronotun). Yürüyüş plan kartından başlar.
 - **Kontrol (headless Chrome):** Üsten batıya iki serbest nokta → KOLAY (skor 0,21), kum yok, en dik 13,8°, uyarı var → plan GO, 3 sa 57 dk, 7,1 km, Go/No-Go'da "Test edilmemiş rota" → yürüyüş başladı. Delta önü + Three Forks üzerinden çizilen rota → uyarı yok, hazır duraklara çevrildi. Demo planı aynı (GO, 243 dk, 5,52 km), telsiz akışı aynı. JS hatası yok.
 - **Dosyalar:** `web/app.js`, `web/style.css`
+## E15 (devam) · Hareketli sunum, sunum videosu, sayı denetimi, rehberler · Paz 15 Kas 2026, 11:30
+
+- **Opportunity düzeltmesi:** Kum dalgası 10–15 cm değil, ~30 cm yüksek ve 2,5 m genişmiş (NASA/JPL PIA07999; sayfadan doğrulandı). SLAYTLAR, PLAN, GOREV_KARTLARI, DATA_PIPELINE, `stories.json`, `build_regions.py`, `make_dummies.py` ve `make_slides.py`'de düzeltildi.
+- **PPTX** (`scripts/make_slides.py`):
+  - Yazı tipi Calibri. Arial'de "₂" karakteri yok. Taşma kontrolü Calibri ölçüleriyle tekrarlandı; 3 kutu düzeltildi, şimdi taşma yok.
+  - Hareket OOXML ile yazıldı: geçişler fade/push, grafikler zoom ile girer (presetID 53), sayılar ve kartlar tıklama gruplarıyla fade ile belirir (presetID 10).
+  - `docs/sunum/demo.mp4`, Gözde'nin `MarsTrail_Elif_demo.pptx` dosyasından çıkarıldı (29,9 sn, 1920x1080). Slayt 5'e `add_movie` ile gömüldü; ilk tıklamada `playFrom(0)`. Gözde'nin düzeni korundu (video yer tutucunun yerinde; 2. etiket "Nokta kartı").
+- **Video** (`scripts/make_video.py`): `docs/sunum/MarsTrail_sunum.mp4`, 2:24, 1920x1080, 25 fps, H.264 veryfast, sessiz, 10,5 MB.
+  - Slaytlar PIL ile kare kare çiziliyor: 0,6 sn geçişler, sayarak artan sayılar, Ken Burns %5, alt bantta Türkçe altyazı.
+  - Demo bölümünde `demo.mp4`'ün 7,5–27,5 sn aralığı kullanıldı.
+  - ffmpeg, `imageio-ffmpeg` paketiyle geldi.
+- **Sayı denetimi** (`scripts/audit_numbers.py` → `docs/SAYI_DENETIMI.md`): 46 sayı JSON'lardan ve E8/E11/E13 test çıktılarından yeniden hesaplandı; uyuşmazlık 0. Eski sayı taraması temiz. Not: Edge, Git Bash'ten boş çıktı veriyor; betik PowerShell ya da cmd'den çalıştırılmalı.
+- **Belgeler:** `docs/KOD_REHBERI.md`, `docs/JURI_SORULARI.md` (17 soru) yazıldı. README yeniden yazıldı. TESLIM'de Drive listesi ve canlı link güncellendi.
+- **Pages:** https://tayancelifnur.github.io/marstrail/ 200 dönüyor; veri ve son kod yayında. Headless yüklemede JS hatası yok.
+- **Dosyalar:** `scripts/make_slides.py`, `scripts/make_video.py`, `scripts/audit_numbers.py`, `docs/sunum/{MarsTrail.pptx, MarsTrail_sunum.mp4, demo.mp4}`, `docs/{SAYI_DENETIMI, KOD_REHBERI, JURI_SORULARI, SLAYTLAR, TESLIM}.md`, `README.md`, `requirements.txt`

@@ -28,7 +28,7 @@ Hikâye üç gerçek olay ve bir eski kural üzerine kurulu. Soyuz 11, Apollo 1 
 | Olay | Ne oldu | Bizim katmanımız |
 | --- | --- | --- |
 | [Apollo 14, 1971](https://www.astronomy.com/space-exploration/50-years-since-apollo-14-mission-to-fra-mauro/) | Shepard ve Mitchell Cone Krateri'nde konumlarını kaybetti; Shepard'ın nabzı 150'ye çıktı, oksijen ve dönüş yolu nedeniyle arama durduruldu. Sonradan krater kenarının yaklaşık 21 m yakınına geldikleri anlaşıldı | Konum, nabız ve dönüş sınırı |
-| [Opportunity, 2005](https://science.nasa.gov/photojournal/looking-back-at-purgatory-dune) | 10–15 cm'lik bir kum dalgasında beş haftadan fazla mahsur kaldı | YOLO kum dalgası tespiti |
+| [Opportunity, 2005](https://science.nasa.gov/photojournal/looking-back-at-purgatory-dune) | ~30 cm yüksekliğinde (2,5 m genişliğinde) bir kum dalgasında beş haftadan fazla mahsur kaldı | YOLO kum dalgası tespiti |
 | [Spirit, 2009](https://www.space.com/18766-spirit-rover.html) | Sert kabuğun altındaki yumuşak kuma gömüldü, görevini kaybetti | Termal eylemsizlik + batma riski |
 | [Walkback kuralı](https://ttu-ir.tdl.org/handle/2346/74208) | Apollo'da dönüş mesafesi sabit hız ve ortalama tüketim varsayımıyla hesaplandı | Dinamik dönüş bölgeleri |
 
@@ -38,7 +38,7 @@ Mars'ta bir mesaj tek yönde 3–22 dakika sürüyor; Apollo 14'teki gibi kararl
 
 > "1971. Ay. İki astronot bir krateri arıyor. Haritadaki işaretleri bulamıyorlar, kalpleri dakikada 150 atıyor, oksijen azalıyor. Houston 'geri dönün' diyor. Dönüyorlar. Yıllar sonra uydu fotoğrafları gösterdi ki hedeflerine 21 metre kalmıştı.
 >
-> 2005. Mars. Opportunity 15 santimlik bir kum dalgasına takılıyor, beş hafta çıkamıyor. 2009'da Spirit kuma gömülüyor ve bir daha hiç hareket edemiyor.
+> 2005. Mars. Opportunity otuz santimlik bir kum dalgasına takılıyor, beş hafta çıkamıyor. 2009'da Spirit kuma gömülüyor ve bir daha hiç hareket edemiyor.
 >
 > Şimdi bunları Mars'ta bir insanın başına getirin. Houston 14 dakika uzakta. Kim 'geri dön' diyecek?"
 

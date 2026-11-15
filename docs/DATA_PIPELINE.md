@@ -216,7 +216,7 @@ Ham NASA/USGS verisinden tarayıcıdaki haritaya kadar her adım: ne aldık, ney
 
 ## D8 · HiRISE ortogörüntü mozaiği → YOLO karoları (E5, scripts/tile_for_yolo.py)
 
-- **Neden bu veri:** Opportunity'yi 5 hafta tutan kum dalgası 10–15 cm yüksekliğindeydi. Kayalar da metre ölçeğinde. 20 m'lik DEM ve 100 m'lik termal veri bunları göremez; 25 cm/piksel HiRISE görebilir. Kendi tespit modelimizin (YOLOv8) eğitim verisi bu.
+- **Neden bu veri:** Opportunity'yi 5 haftadan uzun tutan kum dalgası ~30 cm yüksekliğinde ve 2,5 m genişliğindeydi (NASA/JPL PIA07999). Kayalar da metre ölçeğinde. 20 m'lik DEM ve 100 m'lik termal veri bunları göremez; 25 cm/piksel HiRISE görebilir. Kendi tespit modelimizin (YOLOv8) eğitim verisi bu.
 - **Ham içerik:**
   - Zip 5,47 GB, 17 dosya.
   - Ortogörüntü: 76.576 × 107.264 piksel, uint8, 0,25 m, NoData = 0, Equirectangular_MARS projeksiyonu. Kapsam 77,058–77,381°D, 18,136–18,588°K. Dosya 4,68 GB (LZW).

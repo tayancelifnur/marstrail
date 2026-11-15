@@ -5,3 +5,9 @@ shapely
 pillow
 requests
 ultralytics
+pyproj
+matplotlib
+lxml
+python-pptx
+pymupdf
+imageio-ffmpeg

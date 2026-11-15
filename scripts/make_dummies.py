@@ -283,7 +283,7 @@ STORIES = [
     {"id": "apollo14", "title": "Apollo 14 – Cone Krateri", "date": "1971-02-06", "body": "Shepard ve Mitchell Cone Krateri'nde konumlarını kaybetti; Shepard'ın nabzı 150'ye çıktı. Oksijen ve dönüş yolu nedeniyle arama durduruldu. Krater kenarının ~21 m yakınına geldikleri sonradan anlaşıldı.",
      "location_text": "Ay, Fra Mauro", "lesson": "Konum, nabız ve dönüş sınırı", "layer": None,
      "source": "https://www.astronomy.com/space-exploration/50-years-since-apollo-14-mission-to-fra-mauro/"},
-    {"id": "opportunity", "title": "Opportunity – Purgatory Kumulu", "date": "2005-04-26", "body": "10–15 cm'lik bir kum dalgasında beş haftadan fazla mahsur kaldı.",
+    {"id": "opportunity", "title": "Opportunity – Purgatory Kumulu", "date": "2005-04-26", "body": "~30 cm yüksekliğinde bir kum dalgasında beş haftadan fazla mahsur kaldı.",
      "location_text": "Meridiani Planum (Jezero'da değil; ~2°K, 354°D)", "lesson": "Küçük kum dalgaları bile tuzak olabilir", "layer": "hazard_ml",
      "source": "https://science.nasa.gov/photojournal/looking-back-at-purgatory-dune"},
     {"id": "spirit", "title": "Spirit – Troy", "date": "2009-05", "body": "Sert kabuğun altındaki yumuşak kuma gömüldü ve görevini kaybetti.",

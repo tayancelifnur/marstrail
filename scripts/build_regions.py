@@ -97,7 +97,7 @@ STORIES = [
      "location_text": "Ay, Fra Mauro", "lesson": "Konum, nabız ve dönüş sınırı: MarsTrail'in O₂ bölgeleri ve dönüş noktası", "layer": None,
      "source": "https://www.astronomy.com/space-exploration/50-years-since-apollo-14-mission-to-fra-mauro/"},
     {"id": "opportunity", "title": "Opportunity – Purgatory Kumulu", "date": "2005-04-26",
-     "body": "Opportunity 10–15 cm yüksekliğinde bir kum dalgasına saplandı ve beş haftadan fazla çıkamadı.",
+     "body": "Opportunity ~30 cm yüksekliğinde, 2,5 m genişliğinde bir kum dalgasına saplandı ve beş haftadan fazla çıkamadı.",
      "location_text": "Meridiani Planum (Jezero'da değil)", "lesson": "Küçük kum dalgaları bile tuzaktır: eolyen birim ve YOLO kum dalgası katmanı",
      "layer": "geology", "source": "https://science.nasa.gov/photojournal/looking-back-at-purgatory-dune"},
     {"id": "spirit", "title": "Spirit – Troy", "date": "2009-05",
