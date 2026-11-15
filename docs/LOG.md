@@ -520,3 +520,10 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Düzeltme:** Çizgi 150 m'de bir görünmez ara noktaya bölünüp sırayla planlayıcıya veriliyor (`evaPlan.drawn`). 150 m ≈ 2 hücre: Dijkstra çizgiden ancak geçilmez hücre varsa sapar. Ara noktalar başlıkta, haritadaki durak işaretlerinde ve zaman çizelgesinde görünmez; ara noktada numune yükü eklenmez. Dönüş bacağı en güvenli yoldan. Durak listesi elle değişince (sırala, sil, ekle, demo sıfırla) çizim sırası bırakılır.
 - **Kontrol:** Kıvrımlı 4 noktalı çizim → gidiş yolunun çizgiye en büyük uzaklığı 56 m (30 ara nokta, 34 bacak), plan 118 ms, GO, 279 dk, 8,33 km; başlık "Üs → Nokta 1 → Nokta 2 → Nokta 3 → Üs"; yürüyüş başladı; demo planı aynı (243 dk, 5,52 km). JS hatası yok.
 - **Dosyalar:** `web/app.js`
+
+## G-ek · Soldaki "Yürüyüşü başlat" çizilen rotayı yürütür · Paz 15 Kas 2026, 11:05
+
+- **Sorun (Gözde, ekran görüntüsü):** Rota çizip sol paneldeki "Yürüyüşü başlat"a basınca eski demo planı (Delta önü → Three Forks) yürüyordu; çizilen rota yalnız rota kartındaki "Bu rotada yürü" ile yürünüyordu.
+- **Düzeltme:** Haritada 2+ noktalı çizilmiş rota varsa (çizim bitmiş ya da sürüyor) sol paneldeki düğme önce rotayı plana çevirir (çizgiyi izleyen plan, Go/No-Go'da "Test edilmemiş rota"), sonra yürüyüşü başlatır. Plan yokken de çizimde 2 nokta olunca düğme açılır. Yürüyüş başlarken test edilmemiş rotada sarı uyarı da çıkar. Rota yoksa eskisi gibi mevcut plan yürür.
+- **Kontrol (gerçek fare tıklamasıyla):** (a) çizim sürerken → "Üs → Nokta 1 → Nokta 2 → Nokta 3 → Üs" yürünüyor, çizgiyi izliyor; (b) çizim bitince → aynı; (c) rota yokken → demo planı. JS hatası yok.
+- **Dosyalar:** `web/app.js`

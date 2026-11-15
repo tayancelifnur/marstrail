@@ -1354,6 +1354,8 @@
       }));
     }
     document.getElementById("routeClearBtn").disabled = route.pts.length === 0;
+    // Çizimde 2+ nokta varsa sol paneldeki "Yürüyüşü başlat" bu rotayı yürütebilir (plan olmasa da)
+    if (route.pts.length >= 2 && !walk.active) document.getElementById("walkBtn").disabled = false;
   }
 
   function setDrawing(on) {
@@ -1377,6 +1379,8 @@
       clearRoute();
       return;
     }
+    // Plan yokken de çizilen rota yürünebilsin: sol paneldeki düğme rotayı plana çevirip başlatır
+    if (!walk.active) document.getElementById("walkBtn").disabled = false;
     showRouteCard();
   }
 
@@ -2031,6 +2035,7 @@
     closeDrawer();
     flyToPlan(p);
     walkAlert("info", "Yürüyüş başladı: " + a.name + ", O₂ " + Math.round(walk.o2) + " dk" + (p.go ? "" : " · plan NO-GO!"));
+    if (p.untested) walkAlert("warn", "Dikkat: daha önce test edilmemiş bir rotada yürüyorsunuz.");
     walk.raf = requestAnimationFrame(walkFrame);
   }
 
@@ -2286,7 +2291,20 @@
     walk.entities.splice(0).forEach((e) => viewer.entities.remove(e));
   }
 
-  $("walkBtn").addEventListener("click", startWalk);
+  // Sol paneldeki "Yürüyüşü başlat": haritada çizilmiş bir rota varsa (çizim bitmiş ya da sürüyor) önce o rota plana
+  // çevrilir ve o yürünür; yoksa mevcut plan. Gözde'nin testi: rota çizip buna basınca eski demo planı yürüyordu.
+  function startWalkFromPanel() {
+    if (walk.active) return;
+    if (route.pts.length >= 2) {
+      const conv = routeToStops(route.pts);
+      if (conv.stops.length) planFromRoute(conv);
+    } else if (route.drawing) {
+      setDrawing(false);
+      clearRoute();
+    }
+    startWalk();
+  }
+  $("walkBtn").addEventListener("click", startWalkFromPanel);
   $("walkPause").addEventListener("click", () => {
     walk.paused = !walk.paused;
     $("walkPause").textContent = walk.paused ? "Devam" : "Duraklat";
