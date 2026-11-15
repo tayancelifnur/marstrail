@@ -553,3 +553,10 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Ne yapıldı (yalnız animasyon, app.js):** İHA'nın kamera şeridinin yarısı (swath/2 = 57 m) son bilinen konumu ilk kez kapsadığı an "gördü" sayılır (demoda astronot son konumda bekliyor kabul). O andan sonra İHA astronotun üstünde bekler, "%50/%90 taradı" bildirimleri çıkmaz, "İHA Ayşe'yi gördü: tarama durdu, konum Ali'ye iletildi" bildirimi çıkar. Olay özetinde "İHA gördü" ve "Planlanan bulma (%90, karar buna göre)" ayrı satır. rescue.js'in kararı ve süreleri değişmedi.
 - **Kontrol:** Demo: İHA rotası 24,2 dk; animasyonun 9,1. dk'sında gördü (kopmadan T+29), İHA Ayşe'ye 0 m uzaklıkta bekliyor; özet: İHA gördü T+29, planlanan bulma T+42, üste T+159. JS hatası yok.
 - **Dosyalar:** `web/app.js`
+
+## G-ek · "Planla" da çizilen rotayı kullanır · Paz 15 Kas 2026, 12:10
+
+- **Sorun (Gözde):** Rota çizip "Planla"ya basınca durak listesindeki demo planı çıkıyor, "Yürüyüşü başlat" ise çizilen rotayı yürüyordu (11:05 düzeltmesi yalnız yürüyüş düğmesini çizime bağlamıştı).
+- **Düzeltme:** "Planla" aynı kuralı izliyor: haritada 2+ noktalı çizim varsa önce o plana çevrilir; yoksa durak listesi.
+- **Kontrol (gerçek fare tıklamasıyla):** Demo planı yüklüyken rota çiz → Planla → "Üs → Nokta 1 → Nokta 2 → Nokta 3 → Üs" (çizimi izliyor) → Yürüyüşü başlat → aynı plan nesnesi. Rota yokken Planla → demo planı. JS hatası yok.
+- **Dosyalar:** `web/app.js`

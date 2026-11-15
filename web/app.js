@@ -1974,7 +1974,16 @@
     return el("div", { class: "card plan-card" }, parts);
   }
 
-  document.getElementById("planBtn").addEventListener("click", () => runPlan(true));
+  // "Planla" da "Yürüyüşü başlat" ile aynı kuralı izler: haritada çizilmiş rota varsa o planlanır
+  // (önceden Planla durak listesini, Yürü çizimi kullanıyordu; iki farklı rota görünüyordu)
+  document.getElementById("planBtn").addEventListener("click", () => {
+    if (!walk.active && route.pts.length >= 2) {
+      const conv = routeToStops(route.pts);
+      if (conv.stops.length) return planFromRoute(conv);
+    }
+    if (route.drawing) { setDrawing(false); clearRoute(); }
+    runPlan(true);
+  });
   document.getElementById("planDepart").addEventListener("change", replanIfActive);
   document.getElementById("planClearBtn").addEventListener("click", () => {
     if (walk.active) return;
