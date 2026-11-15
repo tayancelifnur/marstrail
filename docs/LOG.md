@@ -456,3 +456,16 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
   - `docs/figures/e8_zones.png` güncel grid ile yeniden çekildi (Cheyava Falls 279 dk).
 - **Dosyalar:** `docs/TESLIM.md`, `docs/figures/e8_zones.png`
 - **Açık kalanlar:** Pages linki (repo ayarı), Gözde'nin YZ satırı (bölüm 4), sunum PDF'i ve video.
+
+## E15 · Slaytlar (python-pptx) · Paz 15 Kas 2026, 10:00
+
+- **Ne yapıldı:** `scripts/make_slides.py`, `docs/SLAYTLAR.md`'den 7 slaytlık `docs/sunum/MarsTrail.pptx` üretiyor.
+  - Biçim: 16:9, uygulamanın renkleri (zemin #0d0b0a, vurgu #ff7a2f), Segoe UI. Az metin, büyük sayılar.
+  - Görseller: TESLIM'deki en iyi 8 görsel; demo slaytında video yer tutucusu + `ui_1_plan_go.png`.
+  - Konuşma metinleri slayt notlarında. NASA logosu, bayrağı ya da arması yok; kaynaklar alt bilgide metin olarak.
+- **Taşma kontrolü:** Her metin kutusu Segoe UI ile PIL'de ölçülüyor (satır = 1,33 × punto); sığmazsa betik duruyor. İlk koşuda 12 kutu taştı; düzeltildi, şimdi 0.
+  - Önizleme PNG'lerinde düzeltilenler: ▶ karakteri Segoe UI'da yok → şekil olarak üçgen; O₂ bölge görseli test yazısından kırpıldı; slayt 2, 4 ve 7'de yerleşim düzeltildi.
+- **PDF:** LibreOffice bu makinede kurulu değil. `--pdf` seçeneği hazır: soffice ile PDF üretiyor, ardından PyMuPDF ile PDF'ten `docs/sunum/png/` altına slayt PNG'leri çıkarıyor.
+- **Pages:** gh CLI yok ve site hâlâ 404 (`has_pages: false`). Adımlar Elif'e verildi; canlı link TESLIM.md'de.
+- **Dosyalar:** `scripts/make_slides.py`, `docs/sunum/MarsTrail.pptx`, `docs/TESLIM.md`, `.gitignore`
+- **Nasıl çalıştırılır:** `venv\Scripts\python scripts\make_slides.py [--pdf]`

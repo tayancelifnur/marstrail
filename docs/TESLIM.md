@@ -200,8 +200,8 @@ Klasör adı: `MarsTrail_SpaceApps_Konya_2026`. Büyük ham veri (D1–D8 zip ve
 MarsTrail_SpaceApps_Konya_2026/
 ├── 00_OKU_BENI.txt                  uygulama linki, repo linki, ekip ve roller, klasörün içeriği (5–6 satır)
 ├── 01_Sunum/
-│   ├── MarsTrail_Sunum.pdf          7 slayt (docs/SLAYTLAR.md'den)
-│   └── MarsTrail_Sunum.pptx         düzenlenebilir kaynak (ya da Google Slides linki)
+│   ├── MarsTrail_Sunum.pdf          7 slayt: docs/sunum/MarsTrail.pdf (scripts/make_slides.py --pdf)
+│   └── MarsTrail_Sunum.pptx         docs/sunum/MarsTrail.pptx (video slayt 5'e eklenecek; konuşma metni notlarda)
 ├── 02_Demo/
 │   └── MarsTrail_Demo.mp4           ≤ 30 sn
 ├── 03_Belgeler/
@@ -231,6 +231,6 @@ Seçim ölçütü: jürinin baktığı dört konuya (temizleme, normalizasyon, �
 
 **Linkler** (`00_OKU_BENI.txt` ve formda):
 - Repo: https://github.com/tayancelifnur/marstrail
-- Uygulama: https://tayancelifnur.github.io/marstrail/ [repo ayarında Pages açılınca çalışır; G9 notu. Telefonda denenecek]
+- Uygulama (canlı): https://tayancelifnur.github.io/marstrail/ — Pages kaynağı "GitHub Actions" seçilip `pages.yml` bir kez çalışınca açılır (15 Kas 09:55 itibarıyla henüz 404). Telefonda denenecek.
 
 **PDF'e çevirme:** `TESLIM.md` ve `DATA_PIPELINE.md`, VS Code'un Markdown önizlemesinden ya da GitHub'daki görünümden yazdırılarak PDF yapılabilir. Görseller göreli yol (`figures/…`) kullandığı için PDF'i repo içinden üretin.
