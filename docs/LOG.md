@@ -560,3 +560,11 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Düzeltme:** "Planla" aynı kuralı izliyor: haritada 2+ noktalı çizim varsa önce o plana çevrilir; yoksa durak listesi.
 - **Kontrol (gerçek fare tıklamasıyla):** Demo planı yüklüyken rota çiz → Planla → "Üs → Nokta 1 → Nokta 2 → Nokta 3 → Üs" (çizimi izliyor) → Yürüyüşü başlat → aynı plan nesnesi. Rota yokken Planla → demo planı. JS hatası yok.
 - **Dosyalar:** `web/app.js`
+
+## Belge · TEKNIK_ANLATIM.md · Paz 15 Kas 2026, 12:05
+
+- **Ne yapıldı:** `docs/TEKNIK_ANLATIM.md` yazıldı: büyük resim (akış şeması, klasörler), veri hattı betik betik (kod alıntıları satır satır), model (YOLO, etiketleme, bitişik grup bölmesi, v1 ıraksaması, mAP/recall/AUC günlük dille), web algoritmaları (walkback, eva, marstime, rescue; her biri formül + adım adım örnek + kod), doğrulama, varsayımlar tablosu, sözlük. Her bölüm sonunda "Jüri sorarsa" kutusu.
+- **Sayıların kaynağı:** `docs/figures/*.json`, `grid.json`, `data/processed/grid_256.npz` (üs hücresinin füzyon terimleri) ve E8/E11/E13 testlerinin bugünkü çıktısı (hepsi ✔).
+- **Yeni ölçüm:** O₂ bölgeleri hesabı Edge'de gerçek saatle ölçüldü: ilk hesap 69 ms, sonrakiler ~30 ms. Test sayfalarındaki "0 ms", headless testin sanal zamanından geliyor (gerçek değil).
+- **Küçük düzeltme:** `web/walkback.js` başlık yorumunda hücre boyu ~44 m → ~70 m (v2 alanı).
+- **Dosyalar:** `docs/TEKNIK_ANLATIM.md`, `README.md`, `web/walkback.js`, `docs/LOG.md`

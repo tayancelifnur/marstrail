@@ -4,7 +4,7 @@
  * Apollo'nun "walkback" kuralının araziye bağlı hali: astronot nereye kadar gidip
  * üsse yürüyerek dönebilir? Daire değil; eğim, kum ve zemine göre şekil alır.
  *
- * Veri: web/data/grid.json (256×256, ~44 m hücre; elev, score, blocked, bounds) – scripts/prep_layers.py
+ * Veri: web/data/grid.json (256×256, ~70 m hücre; elev, score, blocked, bounds) – scripts/prep_layers.py
  * Formüller: docs/PLAN.md §5. Katsayılar VARSAYIMDIR (gerçek EVA verisiyle kalibre edilmedi).
  *
  * Kullanım:
