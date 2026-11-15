@@ -497,6 +497,7 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
   - **"▶ Bu rotada yürü":** Çizilen noktalar plana durak olur (hazır durağa yakınsa o durak, değilse "⚠ Nokta N", kalma 0 dk; üsse 300 m'den yakın ilk/son nokta atlanır). Eva.plan güvenli yolu, dönüş noktasını ve Go/No-Go'yu hesaplar; Go/No-Go'nun başına "Test edilmemiş rota · DİKKAT" eklenir (plan GO kalabilir, karar astronotun). Yürüyüş plan kartından başlar.
 - **Kontrol (headless Chrome):** Üsten batıya iki serbest nokta → KOLAY (skor 0,21), kum yok, en dik 13,8°, uyarı var → plan GO, 3 sa 57 dk, 7,1 km, Go/No-Go'da "Test edilmemiş rota" → yürüyüş başladı. Delta önü + Three Forks üzerinden çizilen rota → uyarı yok, hazır duraklara çevrildi. Demo planı aynı (GO, 243 dk, 5,52 km), telsiz akışı aynı. JS hatası yok.
 - **Dosyalar:** `web/app.js`, `web/style.css`
+
 ## E15 (devam) · Hareketli sunum, sunum videosu, sayı denetimi, rehberler · Paz 15 Kas 2026, 11:30
 
 - **Opportunity düzeltmesi:** Kum dalgası 10–15 cm değil, ~30 cm yüksek ve 2,5 m genişmiş (NASA/JPL PIA07999; sayfadan doğrulandı). SLAYTLAR, PLAN, GOREV_KARTLARI, DATA_PIPELINE, `stories.json`, `build_regions.py`, `make_dummies.py` ve `make_slides.py`'de düzeltildi.
@@ -512,3 +513,10 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Belgeler:** `docs/KOD_REHBERI.md`, `docs/JURI_SORULARI.md` (17 soru) yazıldı. README yeniden yazıldı. TESLIM'de Drive listesi ve canlı link güncellendi.
 - **Pages:** https://tayancelifnur.github.io/marstrail/ 200 dönüyor; veri ve son kod yayında. Headless yüklemede JS hatası yok.
 - **Dosyalar:** `scripts/make_slides.py`, `scripts/make_video.py`, `scripts/audit_numbers.py`, `docs/sunum/{MarsTrail.pptx, MarsTrail_sunum.mp4, demo.mp4}`, `docs/{SAYI_DENETIMI, KOD_REHBERI, JURI_SORULARI, SLAYTLAR, TESLIM}.md`, `README.md`, `requirements.txt`
+
+## G-ek · Çizilen rota izleniyor · Paz 15 Kas 2026, 10:50
+
+- **Sorun (Gözde):** "Bu rotada yürü" sonrası yürüyüş çizilen yoldan değil başka yoldan gidiyordu. Neden: çizilen noktalar durak oluyor, planlayıcı duraklar arasında kendi en güvenli yolunu buluyordu.
+- **Düzeltme:** Çizgi 150 m'de bir görünmez ara noktaya bölünüp sırayla planlayıcıya veriliyor (`evaPlan.drawn`). 150 m ≈ 2 hücre: Dijkstra çizgiden ancak geçilmez hücre varsa sapar. Ara noktalar başlıkta, haritadaki durak işaretlerinde ve zaman çizelgesinde görünmez; ara noktada numune yükü eklenmez. Dönüş bacağı en güvenli yoldan. Durak listesi elle değişince (sırala, sil, ekle, demo sıfırla) çizim sırası bırakılır.
+- **Kontrol:** Kıvrımlı 4 noktalı çizim → gidiş yolunun çizgiye en büyük uzaklığı 56 m (30 ara nokta, 34 bacak), plan 118 ms, GO, 279 dk, 8,33 km; başlık "Üs → Nokta 1 → Nokta 2 → Nokta 3 → Üs"; yürüyüş başladı; demo planı aynı (243 dk, 5,52 km). JS hatası yok.
+- **Dosyalar:** `web/app.js`

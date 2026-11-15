@@ -1479,21 +1479,37 @@
   // sayılır; üsse 300 m'den yakın ilk/son nokta atlanır (plan zaten üsten çıkıp üsse döner).
   const M_PER_DEG_MARS = 59274.7; // Mars 2000 küresi: 2πR/360 (rescue.js ile aynı)
   const distM = (a, b) => Math.hypot((a.lon - b.lon) * Math.cos((a.lat * Math.PI) / 180), a.lat - b.lat) * M_PER_DEG_MARS;
+  // Yürüyüş çizilen yolu izlesin: çizgi VIA_STEP_M'de bir görünmez ara noktaya bölünür (seq). Planlayıcı ara noktalar
+  // arasında da güvenli yol arar; 150 m (~2 hücre) aralıkta bu, çizgiden yalnız geçilmez hücre varsa sapmak demek.
+  const VIA_STEP_M = 150;
   function routeToStops(pts) {
-    const base = Walkback.BASE, stops = [], custom = [];
+    const base = Walkback.BASE, stops = [], custom = [], seq = [];
     pts.forEach(([lon, lat], i) => {
       const p = { lon, lat };
+      if (i > 0) { // önceki noktadan buraya ara noktalar (uçlar hariç)
+        const q = { lon: pts[i - 1][0], lat: pts[i - 1][1] };
+        const n = Math.floor(distM(q, p) / VIA_STEP_M);
+        for (let k = 1; k <= n; k++) {
+          const f = k / (n + 1);
+          seq.push({ via: true, lon: q.lon + (p.lon - q.lon) * f, lat: q.lat + (p.lat - q.lat) * f });
+        }
+      }
       if ((i === 0 || i === pts.length - 1) && distM(p, base) < 300) return;
       const safe = regions.filter(canBeStop).find((r) => distM(p, r) < 150);
-      if (safe) { if (!stops.some((s) => s.id === safe.id)) stops.push({ id: safe.id, dwellMin: DEFAULT_DWELL_MIN }); return; }
+      if (safe) {
+        if (!stops.some((s) => s.id === safe.id)) stops.push({ id: safe.id, dwellMin: DEFAULT_DWELL_MIN });
+        seq.push({ ref: safe.id });
+        return;
+      }
       const s = { id: "pt_" + Date.now().toString(36) + "_" + i, custom: true, name: "Nokta " + (custom.length + 1), lon, lat, dwellMin: 0 };
-      custom.push(s); stops.push(s);
+      custom.push(s); stops.push(s); seq.push({ ref: s.id });
     });
-    return { stops, custom };
+    return { stops, custom, seq };
   }
   function planFromRoute(conv) {
     if (walk.active) return;
     evaPlan.stops = conv.stops.map((s) => ({ ...s }));
+    evaPlan.drawn = conv.seq; // runPlan bu sırayla (ara noktalarla) planlar; durak listesi elle değişince silinir
     renderPlanStops();
     setDrawing(false);
     clearRoute();
@@ -1600,12 +1616,14 @@
         up.disabled = i === 0;
         up.addEventListener("click", () => {
           evaPlan.stops.splice(i - 1, 0, evaPlan.stops.splice(i, 1)[0]);
+          evaPlan.drawn = null; // sıra elle değişti: çizilen yol artık geçerli değil
           renderPlanStops();
           replanIfActive();
         });
         const del = el("button", { type: "button", class: "icon", title: "Duraktan çıkar" }, "×");
         del.addEventListener("click", () => {
           evaPlan.stops.splice(i, 1);
+          evaPlan.drawn = null;
           renderPlanStops();
           replanIfActive();
         });
@@ -1624,6 +1642,7 @@
   function addPlanStop(id) {
     if (!canBeStop(regionById(id)) || evaPlan.stops.some((s) => s.id === id)) return;
     evaPlan.stops.push({ id, dwellMin: DEFAULT_DWELL_MIN });
+    evaPlan.drawn = null;
     renderPlanStops();
     replanIfActive();
   }
@@ -1684,7 +1703,7 @@
       }));
     });
     // Durak işaretleri (etiketsiz: adı pin yazıyor, sırası sol panelde)
-    p.legs.filter((l) => !l.isReturn).forEach((leg) => {
+    p.legs.filter((l) => !l.isReturn && !l.via).forEach((leg) => {
       const end = leg.coords[leg.coords.length - 1];
       evaPlan.entities.push(planMarker(end[0], end[1], PLAN_COLORS.out, "", 9));
     });
@@ -1736,10 +1755,21 @@
       box.replaceChildren(el("p", { class: "muted small" }, "Önce en az bir durak ekle."));
       return;
     }
-    const stops = evaPlan.stops.map((s) => {
+    let stops = evaPlan.stops.map((s) => {
       const r = stopInfo(s);
-      return { id: s.id, name: shortName(r), lon: r.lon, lat: r.lat, dwellMin: s.dwellMin };
+      // Serbest nokta numune durağı değil, yol noktası: yük artmasın (Eva varsayılanı durak başına 1 kg)
+      return { id: s.id, name: shortName(r), lon: r.lon, lat: r.lat, dwellMin: s.dwellMin, ...(s.custom ? { sampleKg: 0 } : {}) };
     });
+    // Çizilen rotadan gelen plan: duraklar çizim sırasıyla, aralarında görünmez ara noktalar (yol çizgiyi izler)
+    const viaIds = new Set();
+    if (evaPlan.drawn) {
+      const byId = new Map(stops.map((s) => [s.id, s]));
+      stops = evaPlan.drawn.map((d, k) => {
+        if (!d.via) return byId.get(d.ref);
+        viaIds.add("via_" + k);
+        return { id: "via_" + k, name: "·", lon: d.lon, lat: d.lat, dwellMin: 0, sampleKg: 0 };
+      }).filter(Boolean);
+    }
     const depart = document.getElementById("planDepart").value === "now" ? new Date() : Eva.nextWindow(new Date());
     // Profil formundaki değerler metin olabilir: sayıya çevir
     const astro = { ...a };
@@ -1760,6 +1790,12 @@
     }
     p.astronaut = a.name;
     p.astronautId = a.id;
+    if (viaIds.size) {
+      // Ara noktalar kullanıcıya görünmez: bacakları işaretle (başlık ve durak işaretinden çıkar), zaman çizelgesinden at
+      p.legs.forEach((l, k) => { if (k < stops.length && viaIds.has(stops[k].id)) l.via = true; });
+      p.timeline = p.timeline.filter((e) => !viaIds.has(e.stopId));
+      p.followsDrawn = true;
+    }
     // Serbest nokta varsa Go/No-Go'nun başına DİKKAT satırı (plan yine yürünebilir; karar astronotun)
     const custom = evaPlan.stops.filter((s) => s.custom);
     p.untested = custom.length > 0;
@@ -1842,7 +1878,8 @@
     const first = p.timeline[0], last = p.timeline[p.timeline.length - 1];
     const parts = [
       el("span", { class: "chip", style: "--chip:" + PLAN_COLORS.out }, "EVA planı"),
-      el("h3", null, p.astronaut + ": " + ["Üs", ...p.legs.filter((l) => !l.isReturn).map((l) => l.to), "Üs"].join(" → ")),
+      el("h3", null, p.astronaut + ": " + ["Üs", ...p.legs.filter((l) => !l.isReturn && !l.via).map((l) => l.to), "Üs"].join(" → ")),
+      p.followsDrawn ? el("p", { class: "muted small" }, "Gidiş çizdiğin yolu izliyor (geçilmez hücrede etrafından dolaşır); dönüş en güvenli yoldan.") : null,
       el("div", { class: "verdict-row" }, verdictEl(p),
         el("span", { class: "small muted" }, p.go ? "Kırmızı madde yok; DİKKAT maddelerini oku." : "En az bir madde kırmızı: plan bu haliyle yapılmaz.")),
       startWalkButton(),
@@ -2705,6 +2742,7 @@
     try { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(EXTRA_KEY); } catch { /* gizli pencere: zaten kayıt yok */ }
     astronauts = JSON.parse(JSON.stringify(defaultAstronauts));
     evaPlan.stops = [{ id: "delta_front", dwellMin: 40 }, { id: "three_forks", dwellMin: 30 }]; // evaPlan'daki demo planıyla aynı
+    evaPlan.drawn = null;
     $("planDepart").value = "window";
     clearPlan();
     renderPlanStops();
