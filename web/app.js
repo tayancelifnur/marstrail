@@ -2149,7 +2149,7 @@
     if (walk.active) {
       lostAstro = walk.astro;
       last = { lon: walk.pos.lon, lat: walk.pos.lat };
-      lost = { o2LeftMin: walk.o2, heart_rate: walk.hr, load_kg: currentLoad() };
+      lost = { name: lostAstro.name, o2LeftMin: walk.o2, heart_rate: walk.hr, load_kg: currentLoad() };
       route = walk.plan.coords;
       label = "Yürüyüşte " + fmtT(walk.t);
       endWalk("lost");
@@ -2161,7 +2161,7 @@
       const tLoss = Math.min(RESCUE_DEMO.tLoss, p.totals.minutes);
       const pos = Eva.positionAt(p, tLoss);
       last = { lon: pos.lon, lat: pos.lat };
-      lost = { o2LeftMin: pos.o2Left, heart_rate: RESCUE_DEMO.hr, load_kg: Number(lostAstro.load_kg) };
+      lost = { name: lostAstro.name, o2LeftMin: pos.o2Left, heart_rate: RESCUE_DEMO.hr, load_kg: Number(lostAstro.load_kg) };
       route = p.coords;
       label = "Demo: plan " + fmtT(tLoss) + ", nabız " + RESCUE_DEMO.hr;
     }
@@ -2326,14 +2326,10 @@
     return p;
   }
 
-  // rescue.js mesajları adları sabit yazıyor (kurtarıcı "Ali", kayıp "Ayşe"). Ali kaybolup Ayşe kurtarınca
-  // "Ali vardığında Ayşe'nin O₂'si…" yanlış kişiyi gösteriyordu: rolleri gerçek adlarla değiştir.
-  // Türkçe ekler ikisinde de aynı (Ali'nin / Ayşe'nin, ünlüyle biten ad), metin bozulmuyor.
+  // rescue.js artık adları profilden alıyor (rescuer.name, lost.name; E13 düzeltmesi). Eski Ali/Ayşe takası
+  // kaldırıldı: doğru adlı mesajı yeniden takas etmek, Ali kaybolunca adları ters çevirirdi.
   function rescueNames(msg) {
-    const R = rescue.rescuerName, L = rescue.lostName;
-    if (R === "Ali" && L === "Ayşe") return msg;
-    return String(msg).replace(/Ali|Ayşe/g, (n) => (n === "Ali" ? "@@R@@" : "@@L@@"))
-      .replace(/@@R@@/g, R).replace(/@@L@@/g, L);
+    return String(msg);
   }
 
   // İHA + arkadaş birlikte: rescue.js arkadaşın varışını "son bilinen konum biliniyor" kabulüyle hesaplıyor

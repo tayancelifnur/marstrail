@@ -9,14 +9,16 @@
  *   const r = Rescue.respond({
  *     last: {lon, lat},          // son bilinen konum (telsiz koptuğu an; ör. Eva.positionAt(plan, t))
  *     elapsedMin: 20,            // telsiz koptuğundan bu yana geçen süre (canlı artar → alan büyür)
- *     lost: {o2LeftMin: 380, heart_rate: 150, load_kg: 6},   // kopma anındaki değerler
- *     rescuer: ali,              // astronauts.json kaydı (o2_min, heart_rate, load_kg, position)
+ *     lost: {name: "Ayşe", o2LeftMin: 380, heart_rate: 150, load_kg: 6},   // kopma anındaki değerler (ad profilden)
+ *     rescuer: ali,              // astronauts.json kaydı (name, o2_min, heart_rate, load_kg, position)
  *   });
  *   r.area.canvas()            → 256×256 olasılık ısı haritası (Cesium'da bbox'a serilir)
  *   r.area.outlines.p50 / p90  → en olası %50 ve %90 alanların sınır çizgileri [[lon,lat],…]
  *   r.drone.waypoints          → [[lon,lat],…] İHA zikzak rotası (üsten kalkış ve dönüş dahil)
  *   r.drone.t50, r.drone.t90   → olasılığın %50'sini / %90'ını taramak için gereken dakika
- *   r.buddy                    → {to, back, status, messages…} Ali'nin kurtarma rotası ve O₂ kontrolü
+ *   r.buddy                    → {to, back, status, messages…} kurtarıcının rotası ve O₂ kontrolü
+ *   r.buddy.survivable         → kurtarılabilir mi: İHA'nın bulma süresi DAHİL (buluşma = max(İHA %90, kurtarıcı varışı))
+ * Mesajlardaki adlar profilden (rescuer.name, lost.name); sabit "Ali/Ayşe" yok.
  */
 (function (root) {
   "use strict";
@@ -38,6 +40,17 @@
   const M_PER_DEG = 59274.7;      // Mars 2000 küresi: 2πR/360
 
   const W = () => root.Walkback;
+
+  // Türkçe tamlayan eki, ünlü uyumuyla: Ayşe'nin, Ali'nin, Mehmet'in, Oğuz'un, Ümit'in. Ad yoksa fallback.
+  function genitive(name, fallback) {
+    if (!name) return fallback;
+    const low = name.toLocaleLowerCase("tr-TR");
+    const vowels = "aıoueiöü";
+    let last = "e";
+    for (let i = low.length - 1; i >= 0; i--) if (vowels.includes(low[i])) { last = low[i]; break; }
+    const v = "aı".includes(last) ? "ı" : "ei".includes(last) ? "i" : "ou".includes(last) ? "u" : "ü";
+    return name + "'" + (vowels.includes(low[low.length - 1]) ? "n" : "") + v + "n";
+  }
 
   // ---- 1) Arama alanı ----------------------------------------------------------------------
   /*
@@ -214,11 +227,11 @@
 
   // ---- 3) Arkadaşın kurtarma rotası --------------------------------------------------------
   /*
-   * Ali (kurtarıcı) üsten/konumundan hedefe (son bilinen konum) gider, ikisi birlikte üsse döner.
-   *   Ali gerekli O₂ = (gidiş + dönüş·1,2) · çarpan_Ali      (giyinme süresi üste, O₂ harcamaz)
-   *     YEŞİL ≤ O₂_Ali/1,25 · SARI ≤ O₂_Ali · KIRMIZI üstü  (yedek tüp hesaba katılmaz, o kayıp için)
-   *   Kayıp astronotun varışta O₂'si = kalan − (geçen + giyinme + Ali'nin gidişi) · çarpan_kayıp
-   *   Üsse varışta = varıştaki − dönüş·1,2 · çarpan_kayıp; yetmezse Ali'nin 60 dk yedek tüpü bağlanır
+   * Kurtarıcı üsten/konumundan hedefe (son bilinen konum) gider, ikisi birlikte üsse döner.
+   *   Kurtarıcının gerekli O₂'si = (gidiş + dönüş·1,2) · çarpan_k      (giyinme süresi üste, O₂ harcamaz)
+   *     YEŞİL ≤ O₂_k/1,25 · SARI ≤ O₂_k · KIRMIZI üstü  (yedek tüp hesaba katılmaz, o kayıp için)
+   *   Kurtarıcının varışı (kopmadan itibaren) = geçen + giyinme + gidiş
+   * Kayıp astronotun O₂'si ve "kurtarılabilir" kararı timeline() içinde (İHA'nın bulma süresiyle birlikte).
    */
   function buddyRoute(input) {
     const base = input.base || W().BASE;
@@ -227,31 +240,62 @@
     const target = input.target;
     const to = W().path(from, target, { loadKg: res.load_kg });
     const back = W().path(target, base, { loadKg: res.load_kg });
-    if (!to.ok || !back.ok) return { ok: false, status: "red", messages: ["Hedefe güvenli rota yok"] };
+    if (!to.ok || !back.ok) return { ok: false, status: "red", survivable: false, messages: ["Hedefe güvenli rota yok"] };
     const backMin = back.minutes * CARRY_FACTOR;
     const mR = W().o2Multiplier(res.heart_rate);
     const needR = (to.minutes + backMin) * mR;
     const status = needR <= res.o2_min / GREEN_MARGIN ? "green" : needR <= res.o2_min ? "yellow" : "red";
-
-    const mL = W().o2Multiplier(input.lost.heart_rate);
     const arriveAfter = (input.elapsedMin || 0) + DISPATCH_MIN + to.minutes;   // kopmadan bu yana dk
-    const lostAtArrival = input.lost.o2LeftMin - arriveAfter * mL;
-    const lostAtBase = lostAtArrival - backMin * mL;
-    const spareNeeded = lostAtBase < 0;
-    const lostAtBaseWithSpare = lostAtBase + (spareNeeded ? SPARE_O2_MIN : 0);
-    const messages = [];
-    messages.push(`Ali: ${Math.round(to.minutes)} dk gidiş + ${Math.round(backMin)} dk birlikte dönüş; O₂ ihtiyacı ${Math.round(needR)} / ${res.o2_min} dk → ${status === "green" ? "YEŞİL" : status === "yellow" ? "SARI (pay yok)" : "KIRMIZI (Ali de dönemez)"}`);
-    if (lostAtArrival <= 0) messages.push(`Ayşe'nin O₂'si Ali varmadan biter (${Math.round(lostAtArrival)} dk) → İHA bulsa bile yetişilemez`);
-    else messages.push(`Ali vardığında Ayşe'nin O₂'si ${Math.round(lostAtArrival)} dk`);
-    if (lostAtArrival > 0) messages.push(spareNeeded
-      ? `Dönüşe yetmez (${Math.round(lostAtBase)} dk); yedek tüp (${SPARE_O2_MIN} dk) bağlanınca üste ${Math.round(lostAtBaseWithSpare)} dk ile varır`
-      : `Birlikte üste vardıklarında Ayşe'de ${Math.round(lostAtBase)} dk O₂ kalır`);
-    return {
+    const buddy = {
       ok: true, status, from, target, to: to.coords, back: back.coords,
+      rescuerName: res.name || "Kurtarıcı", lostName: input.lost.name || "",
       toMin: Math.round(to.minutes), backMin: Math.round(backMin), distanceM: Math.round(to.distanceM + back.distanceM),
-      rescuerNeedMin: Math.round(needR), rescuerO2: res.o2_min,
-      arriveAfterMin: Math.round(arriveAfter), lostO2AtArrival: Math.round(lostAtArrival), lostO2AtBase: Math.round(lostAtBase),
-      spareNeeded, survivable: lostAtArrival > 0 && lostAtBaseWithSpare >= 0 && status !== "red", messages,
+      rescuerNeedMin: Math.round(needR), rescuerO2: res.o2_min, arriveAfterMin: Math.round(arriveAfter),
+      // Zaman çizelgesi kartta gösterilen yuvarlanmış dakikalarla hesaplanır (app.js rescueTimeline ile aynı sayı çıksın)
+      _arrive: Math.round(arriveAfter), _back: Math.round(backMin),
+    };
+    // İHA bilgisi yoksa (tek başına çağrı) konum biliniyor kabul edilir: bulma anı = kurtarıcının varışı
+    return Object.assign(buddy, timeline(buddy, input, null));
+  }
+
+  /*
+   * Kurtarılabilir mi? (G8 notu: önceki karar İHA'nın bulma süresini atlıyordu.)
+   * Geç fark edilince kayıp astronot arama alanının herhangi bir yerinde olabilir; önce İHA bulmalı.
+   *   bulma   = geçen + İHA'nın olasılığın %90'ını taradığı süre   (muhafazakâr: %90'da bulunmuş kabul)
+   *   buluşma = max(bulma, kurtarıcının varışı)                    (kopmadan itibaren dk)
+   *   Kayıp O₂ (buluşmada) = kopmadaki O₂ − buluşma · çarpan_kayıp
+   *   Üste varışta          = buluşmadaki − dönüş·1,2 · çarpan_kayıp; yetmezse 60 dk yedek tüp bağlanır
+   *   Kurtarılabilir ⇔ kurtarıcı KIRMIZI değil ∧ buluşmada O₂ > 0 ∧ üste varışta O₂ ≥ 0
+   * Formül arayüzdeki (app.js rescueTimeline, G8) hesapla aynı; artık tek kaynak burası.
+   */
+  function timeline(buddy, input, foundAfter) {
+    const arriveAfter = buddy._arrive, backMin = buddy._back;
+    const mL = W().o2Multiplier(input.lost.heart_rate);
+    const found = foundAfter == null ? arriveAfter : foundAfter;
+    const meet = Math.max(found, arriveAfter);
+    const atMeet = input.lost.o2LeftMin - meet * mL;
+    const atBase = atMeet - backMin * mL;
+    const spareNeeded = atBase < 0;
+    const atBaseWithSpare = atBase + (spareNeeded ? SPARE_O2_MIN : 0);
+    const survivable = buddy.status !== "red" && atMeet > 0 && atBaseWithSpare >= 0;
+    const droneLimits = found > arriveAfter;
+    const R = buddy.rescuerName, Lg = genitive(buddy.lostName, "kayıp astronotun");
+    const Lgc = Lg.charAt(0).toLocaleUpperCase("tr-TR") + Lg.slice(1);
+    const zone = buddy.status === "green" ? "YEŞİL" : buddy.status === "yellow" ? "SARI (pay yok)" : `KIRMIZI (${R} de dönemez)`;
+    const messages = [`${R}: ${buddy.toMin} dk gidiş + ${buddy.backMin} dk birlikte dönüş; O₂ ihtiyacı ${buddy.rescuerNeedMin} / ${buddy.rescuerO2} dk → ${zone}`];
+    if (droneLimits) messages.push(`İHA %90 olasılıkla kopmadan ${Math.round(found)} dk sonra bulur; ${R} ${Math.round(arriveAfter)}. dakikadan beri yakında bekliyor`);
+    if (atMeet <= 0) messages.push(`${Lgc} O₂'si buluşmadan önce biter (${Math.round(atMeet)} dk) → yetişilemez`);
+    else {
+      messages.push(`Buluşmada (kopmadan ${Math.round(meet)} dk sonra) ${Lg} O₂'si ${Math.round(atMeet)} dk`);
+      messages.push(spareNeeded
+        ? `Dönüşe yetmez (${Math.round(atBase)} dk); yedek tüp (${SPARE_O2_MIN} dk) bağlanınca üste ${Math.round(atBaseWithSpare)} dk ile varılır`
+        : `Birlikte üste varınca ${Lg} ${Math.round(atBase)} dk O₂'si kalır`);
+    }
+    return {
+      foundAfterMin: Math.round(found), meetAfterMin: Math.round(meet), droneLimits,
+      lostO2AtArrival: Math.round(input.lost.o2LeftMin - arriveAfter * mL), lostO2AtMeet: Math.round(atMeet),
+      lostO2AtBase: Math.round(atBase), lostO2AtBaseWithSpare: Math.round(atBaseWithSpare),
+      spareNeeded, survivable, messages,
     };
   }
 
@@ -262,11 +306,14 @@
     const drone = droneRoute(area, input.drone);
     const buddy = input.rescuer ? buddyRoute({ rescuer: input.rescuer, lost: input.lost, elapsedMin: input.elapsedMin,
                                                 target: input.last, base: input.base, from: input.rescuerFrom }) : null;
+    // Kararı İHA'nın bulma süresiyle yeniden ver (konum bilinmiyor; önce bulunmalı)
+    if (buddy && buddy.ok && drone && drone.t90 != null)
+      Object.assign(buddy, timeline(buddy, input, (input.elapsedMin || 0) + drone.t90));
     return { area, drone, buddy, ms: (typeof performance !== "undefined" ? performance : Date).now() - t0 };
   }
 
   root.Rescue = {
-    respond, searchArea, droneRoute, buddyRoute,
+    respond, searchArea, droneRoute, buddyRoute, genitive,
     ASSUMPTIONS: { ROUTE_BONUS, ROUTE_NEAR_M, DRONE, DISPATCH_MIN, CARRY_FACTOR, SPARE_O2_MIN, GREEN_MARGIN },
   };
   if (typeof module !== "undefined") module.exports = root.Rescue;

@@ -34,7 +34,7 @@ Promise.all([Walkback.load("../data/grid.json"), fetch("../data/astronauts.json"
   // Senaryo: çıkıştan 60 dk sonra (deltaya yürürken) telsiz koptu; Ayşe paniğe kapıldı (nabız 150, Apollo 14).
   const T_LOSS = 60, ELAPSED = 20;
   const p = Eva.positionAt(plan, T_LOSS);
-  const lost = { o2LeftMin: p.o2Left, heart_rate: 150, load_kg: ayse.load_kg };
+  const lost = { name: ayse.name, o2LeftMin: p.o2Left, heart_rate: 150, load_kg: ayse.load_kg };
   out.push(`<h3>Telsiz koptu: çıkıştan ${T_LOSS} dk sonra (${p.phase}, ${p.lon.toFixed(5)}, ${p.lat.toFixed(5)}), O₂ ${p.o2Left} dk, nabız 150; geçen süre ${ELAPSED} dk</h3>`);
 
   const r = Rescue.respond({ last: p, elapsedMin: ELAPSED, lost, rescuer: ali, route: plan.coords });
@@ -54,11 +54,36 @@ Promise.all([Walkback.load("../data/grid.json"), fetch("../data/astronauts.json"
   log(`Kurtarma mümkün: ${B.survivable ? "EVET" : "HAYIR"} (Ali ${B.status}, toplam ${B.distanceM} m)`, B.ok);
 
   // Zor durum: geç fark edildi, O₂ az
-  const late = Rescue.respond({ last: p, elapsedMin: 90, lost: { o2LeftMin: 120, heart_rate: 150, load_kg: 6 }, rescuer: ali });
+  const late = Rescue.respond({ last: p, elapsedMin: 90, lost: { name: ayse.name, o2LeftMin: 120, heart_rate: 150, load_kg: 6 }, rescuer: ali });
   out.push("<h3>Zor durum: kopmadan 90 dk sonra fark edildi, Ayşe'nin O₂'si 120 dk</h3>");
   for (const m of late.buddy.messages) out.push("  • " + m);
   log(`Alan ${late.area.areaKm2} km² (bütçe O₂ ile sınırlı: ${late.area.budgetMin.toFixed(0)} dk), İHA %50: ${late.drone.t50} dk; kurtarma ${late.buddy.survivable ? "mümkün" : "MÜMKÜN DEĞİL"}`,
       late.area.budgetMin === late.area.o2BudgetMin && !late.buddy.survivable);
+
+  // --- Adlar profilden (G8 notu): roller ters → mesajlar doğru kişiyi göstermeli ---
+  out.push("<h3>Adlar profilden: Ali kayıp, Ayşe kurtarıyor</h3>");
+  const swap = Rescue.respond({ last: p, elapsedMin: ELAPSED, lost: { name: ali.name, o2LeftMin: p.o2Left, heart_rate: 150, load_kg: ali.load_kg },
+                                rescuer: { ...ayse, position: null }, route: plan.coords });
+  for (const m of swap.buddy.messages) out.push("  • " + m);
+  const gens = ["Ayşe", "Ali", "Mehmet", "Oğuz", "Ümit", "Burak"].map((n) => Rescue.genitive(n));
+  log(`Mesajlar: kurtarıcı "${swap.buddy.messages[0].split(":")[0]}", kayıp ekli ad "Ali'nin"; ekler: ${gens.join(", ")}`,
+      swap.buddy.messages[0].startsWith("Ayşe:") && swap.buddy.messages.some((m) => m.includes("Ali'nin")) &&
+      !swap.buddy.messages.some((m) => m.includes("Ayşe'nin")) &&
+      gens.join(",") === "Ayşe'nin,Ali'nin,Mehmet'in,Oğuz'un,Ümit'in,Burak'ın");
+
+  // --- İHA'nın bulma süresi karara giriyor (G8): geç fark etmede önce İHA bulmalı ---
+  out.push("<h3>Fark edilme gecikmesi → İHA %90 bulma + arkadaş varışı = buluşma</h3>");
+  const rows = [0, 20, 40, 60, 90, 120].map((el) => {
+    const x = Rescue.respond({ last: p, elapsedMin: el, lost, rescuer: ali, route: plan.coords });
+    const b = x.buddy;
+    out.push(`  ${String(el).padStart(3)} dk: İHA %90 ${x.drone.t90} dk → bulma T+${b.foundAfterMin}, Ali T+${b.arriveAfterMin}, buluşma T+${b.meetAfterMin}` +
+             `${b.droneLimits ? " (İHA belirliyor)" : ""}; O₂ buluşmada ${b.lostO2AtMeet}, üste ${b.lostO2AtBaseWithSpare}${b.spareNeeded ? " (yedek tüple)" : ""} → ${b.survivable ? "KURTARILABİLİR" : "MÜMKÜN DEĞİL"}`);
+    return { el, b, t90: x.drone.t90 };
+  });
+  const r120 = rows.find((q) => q.el === 120).b;
+  log(`Karar İHA süresini içeriyor: 120 dk geç fark etmede buluşma T+${r120.meetAfterMin} (İHA), ${r120.survivable ? "kurtarılabilir" : "MÜMKÜN DEĞİL"}; ` +
+      `eski kural (yalnız Ali'nin varışı) ${rows.find((q) => q.el === 120).b.lostO2AtArrival > 0 ? "kurtarılabilir derdi" : "de mümkün değil derdi"}`,
+      r120.droneLimits && !r120.survivable && rows[0].b.survivable && rows.every((q) => q.b.meetAfterMin >= q.b.foundAfterMin && q.b.meetAfterMin >= q.b.arriveAfterMin));
 
   // --- Harita: üs ile kayıp noktayı kapsayan yakın görünüm ---
   const g = Walkback.grid, cv = document.getElementById("cv"), ctx = cv.getContext("2d"), S = 600;

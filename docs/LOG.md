@@ -432,3 +432,18 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Ne yapıldı:** 7 slayt hazırlandı: hikâye, MarsTrail, veri hattı, yöntemler, demo, doğrulama, etki + YZ. Her slaytta başlık, 3–4 madde, konuşma metni (toplam 4:40 + 0:20 pay) ve görsel yolu var. Sonuna jüri için 10 soru ve cevap eklendi.
 - **Dosyalar:** `docs/SLAYTLAR.md`, `docs/figures/e6v2_compare.png` (slayt 4)
 - **Not:** Doğrulama slaytında güncel modelin sayıları kullanılıyor (0,649; %0 / %49). İlk taslaktaki 0,626 ve %3,8 / %52,6, 1. parti modelinin sayılarıydı.
+
+## E13 (düzeltme) · Kurtarma: adlar profilden, karar İHA'nın bulma süresiyle · Paz 15 Kas 2026, 09:40
+
+- **Ne yapıldı** (Gözde'nin G8 notu):
+  - `rescue.js` mesajları kurtarıcı ve kayıp astronotun adını profilden alıyor (`rescuer.name`, `lost.name`). Türkçe tamlayan eki ünlü uyumuyla üretiliyor: Ayşe'nin, Ali'nin, Mehmet'in, Burak'ın.
+  - `survivable` artık İHA'nın bulma süresini içeriyor: `buluşma = max(geçen + İHA t90, kurtarıcının varışı)`. Kayıp astronotun O₂'si buluşmada ve üste varışta hesaplanıyor; gerekirse 60 dk yedek tüp ekleniyor. Formül `app.js` `rescueTimeline` ile aynı; aynı yuvarlanmış dakikalar kullanıldığı için kartta tek sayı görünüyor.
+  - Yeni alanlar: `foundAfterMin`, `meetAfterMin`, `droneLimits`, `lostO2AtMeet`, `lostO2AtBaseWithSpare`.
+- **app.js (Gözde'nin dosyası, 3 satır):** `lost` nesnesine `name` eklendi. `rescueNames` Ali/Ayşe takası etkisiz yapıldı; doğru adla gelen mesajı yeniden takas etmek, Ali kaybolduğunda adları ters çevirirdi.
+- **Dosyalar:** `web/rescue.js`, `web/app.js`, `web/tests/e13.html`
+- **Kontrol:**
+  - E8 11/11, E11 5/5, E13 8/8. Yeni testler: roller ters olduğunda adlar doğru; 0/20/40/60/90/120 dk gecikme.
+  - Demo sayıları aynı: alan 1,07 km², İHA 24,2 dk, Ali 116/480 YEŞİL, üste 169 dk.
+  - Mesajdaki "168 dk", yuvarlama hizalanınca karttaki 169 dk ile aynı oldu.
+  - Geç fark etme: 0/20/40 dk → üste 201/169/136 dk; 60 dk → yedek tüple 21 dk; 90 ve 120 dk → MÜMKÜN DEĞİL (eski kural 120 dk'da "kurtarılabilir" diyordu).
+  - Ana sayfa headless yüklendi, JS hatası yok.
