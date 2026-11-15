@@ -191,6 +191,9 @@ button.icon:hover { color: var(--text); }
   border-radius: 8px;
 }
 .astro.selected { border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.astro-add { display: block; width: 100%; padding: 8px; background: transparent; border: 1px dashed var(--border); border-radius: 8px; color: var(--muted); }
+.astro-add:hover { color: var(--text); border-color: var(--accent); }
+button.danger-ghost { border-color: var(--red); color: var(--red); background: transparent; }
 .astro-top {
   display: flex;
   justify-content: space-between;

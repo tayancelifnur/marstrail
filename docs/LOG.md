@@ -478,3 +478,12 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **TESLIM.md bölüm 4:** Arayüz, gözden geçirme, test, sunum ve demo videosunda Claude Code kullanımı yazıldı; "Sunum" maddesi içerik/akış kararı olarak netleştirildi.
 - **Sunum (repo dışında, `C:\Users\gozde\marstrail-presentation`):** v2 sayıları (250 karo, 1033 kutu, dengeli doğruluk 0,78, AUC 0,498 → 0,649, rota %0 / çevre %49 kum, kaya AUC 0,51) ve yeni hazard_ml/traversability katmanları. Demo videosu yeniden çekildi: YOLO sahnesi HiRISE kum şeridine yaklaşıyor, süre 29,87 sn.
 - **Dosyalar:** `web/app.js`, `docs/TESLIM.md`, `docs/LOG.md`
+
+## G-ek · Astronot ekleme / ekipten çıkarma · Paz 15 Kas 2026, 10:30
+
+- **Karar:** Ekip kararıyla 08:30 kod dondurmasından sonra eklendi (Gözde: "projenin bir eksiği"). Varsayılan iki kişi (Ayşe, Ali) ve demo akışı değişmedi.
+- **Ne yapıldı:** Astronot listesinin altında "+ Astronot ekle": varsayılan değerlerle (xEMU, O₂ 480 dk, nabız 80, yük 4 kg, konum üs; Ali'ninkilerle aynı varsayım) yeni üye eklenir, profil formu açılır, ad ve değerler oradan değişir. Eklenenlerde "Ekipten çıkar" (planı varsa silinir; yürüyüş ya da acil durum sürerken çıkarılamaz). Ayşe ve Ali silinemez.
+- **Kayıt:** Eklenenler `marstrail.extraAstronauts.v1` anahtarında tüm alanlarıyla; "Demo'yu sıfırla" bunu da temizler.
+- **Hayatta Kal:** 3+ kişide kurtarıcı = kaybolan dışındaki ekipten O₂'si en yüksek olan (eşitlikte listede önce gelen). 2 kişide davranış aynı.
+- **Kontrol (headless Chrome):** ekle → 3 kart, formdan ad "Zeynep", O₂ 300 → yeniden yüklemede kalıcı; Ayşe kayıp → Ali kurtarıyor (480 > 300); Zeynep kayıp → Ayşe kurtarıyor, mesajlarda "Zeynep'in" (rescue.js eki); ekipten çıkar → 2 kişi, planı silindi; Demo'yu sıfırla → 2 kişi, kayıt temiz; eski demo akışı aynı. JS hatası yok.
+- **Dosyalar:** `web/app.js`, `web/style.css`

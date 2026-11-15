@@ -656,14 +656,29 @@
     }
   }
 
+  // Sonradan eklenen astronotlar (astronauts.json'da olmayanlar) tüm alanlarıyla ayrı anahtarda saklanır;
+  // varsayılan iki kişi (Ayşe, Ali) eskisi gibi yalnız profil alanlarıyla STORAGE_KEY'de.
+  const EXTRA_KEY = "marstrail.extraAstronauts.v1";
+  const isDefaultAstro = (a) => defaultAstronauts.some((d) => d.id === a.id);
+  function loadExtras() {
+    try {
+      const x = JSON.parse(localStorage.getItem(EXTRA_KEY));
+      return Array.isArray(x) ? x : [];
+    } catch {
+      return [];
+    }
+  }
+
   function saveAll() {
     const data = {};
     astronauts.forEach((a) => {
       data[a.id] = {};
       PROFILE_FIELDS.forEach((f) => (data[a.id][f.key] = a[f.key]));
     });
+    const extras = astronauts.filter((a) => !isDefaultAstro(a)).map(({ zone, _z, ...rest }) => rest);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      localStorage.setItem(EXTRA_KEY, JSON.stringify(extras));
       return true;
     } catch {
       return false; // gizli pencere vb.: kaydedilemedi ama uygulama çalışmaya devam eder
@@ -702,7 +717,10 @@
 
     const status = el("p", { class: "pstatus muted small" }, "");
     const saveBtn = el("button", { type: "submit", class: "primary" }, "Güncelle");
-    const resetBtn = el("button", { type: "button" }, "Varsayılana dön");
+    // Varsayılan iki kişide "Varsayılana dön", sonradan eklenenlerde "Ekipten çıkar"
+    const resetBtn = isDefaultAstro(a)
+      ? el("button", { type: "button" }, "Varsayılana dön")
+      : el("button", { type: "button", class: "danger-ghost" }, "Ekipten çıkar");
 
     form.append(
       el("h3", null, a.name),
@@ -732,7 +750,7 @@
 
     resetBtn.addEventListener("click", () => {
       const def = defaultAstronauts.find((x) => x.id === a.id);
-      if (!def) return;
+      if (!def) { removeAstronaut(a); return; }
       PROFILE_FIELDS.forEach((f) => (a[f.key] = def[f.key]));
       saveAll();
       emitAstronautChange(a);
@@ -779,8 +797,45 @@
         );
         card.addEventListener("click", () => selectAstronaut(a.id, true));
         return card;
-      })
+      }),
+      (() => {
+        const add = el("button", { type: "button", class: "astro-add" }, "+ Astronot ekle");
+        add.addEventListener("click", addAstronaut);
+        return add;
+      })()
     );
+  }
+
+  // Yeni ekip üyesi: varsayılan değerler (xEMU, 480 dk O₂, nabız 80; Ali'ninkilerle aynı varsayım), konum üs.
+  // Ad ve diğer alanlar hemen açılan profil formundan değiştirilir.
+  function addAstronaut() {
+    const base = defaultAstronauts[0] || {};
+    const n = astronauts.length + 1;
+    const a = {
+      id: "astro_" + Date.now().toString(36),
+      name: "Astronot " + n, role: "Ekip üyesi", suit: "xEMU (varsayım)",
+      mass_kg: 70, o2_min: 480, o2_capacity_min: 480, battery_pct: 100, water_pct: 100,
+      heart_rate: 80, load_kg: 4, radiation_msv: 0.3,
+      position: { ...(base.position || { lat: 18.4447, lon: 77.4508 }) },
+    };
+    astronauts.push(a);
+    saveAll();
+    computeZones();
+    selectAstronaut(a.id, true);
+    showToast("info", "Ekip", a.name + " eklendi. Adını ve değerlerini profilden değiştirebilirsin.");
+  }
+
+  function removeAstronaut(a) {
+    if ((walk.active && walk.astro && walk.astro.id === a.id) || rescue.active) {
+      showToast("warn", "Ekip", "Yürüyüş ya da acil durum sürerken ekipten çıkarılamaz.");
+      return;
+    }
+    if (evaPlan.result && evaPlan.result.astronautId === a.id) clearPlan();
+    astronauts = astronauts.filter((x) => x.id !== a.id);
+    saveAll();
+    hideDetail();
+    selectAstronaut(astronauts[0] && astronauts[0].id, false);
+    showToast("info", "Ekip", a.name + " ekipten çıkarıldı.");
   }
 
   function selectAstronaut(id, openDetail) {
@@ -798,7 +853,8 @@
       defaultAstronauts = JSON.parse(JSON.stringify(d));
       // Kayıtlı profil varsa onun alanları JSON'daki varsayılanın üstüne yazılır
       const saved = loadSaved();
-      astronauts = d.map((a) => ({ ...a, ...(saved[a.id] || {}) }));
+      astronauts = d.map((a) => ({ ...a, ...(saved[a.id] || {}) }))
+        .concat(loadExtras().filter((x) => x && x.id && !d.some((a) => a.id === x.id)).map((x) => ({ ...x, ...(saved[x.id] || {}) })));
       selectAstronaut(astronauts[0] && astronauts[0].id, false);
       computeZones(); // grid önce geldiyse bölgeler şimdi hesaplanır
     })
@@ -2165,7 +2221,10 @@
       route = p.coords;
       label = "Demo: plan " + fmtT(tLoss) + ", nabız " + RESCUE_DEMO.hr;
     }
-    const rescuer = astronauts.find((x) => x.id !== lostAstro.id);
+    // Kurtarıcı: kaybolan dışındaki ekipten O₂'si en yüksek olan (eşitlikte listede önce gelen; 2 kişide hep diğeri)
+    const rescuer = astronauts.filter((x) => x.id !== lostAstro.id)
+      .reduce((best, x) => (!best || Number(x.o2_min) > Number(best.o2_min) ? x : best), null);
+    if (!rescuer) { showToast("warn", "Hayatta Kal", "Kurtarmaya gidecek ikinci bir astronot yok."); return; }
     const r = { ...rescuer };
     ["o2_min", "heart_rate", "load_kg"].forEach((k) => (r[k] = Number(r[k])));
     rescue.input = { last, lost, route, rescuer: r, label };
@@ -2550,7 +2609,7 @@
     clearWalkEntities();
     setDrawing(false);
     clearRoute();
-    try { localStorage.removeItem(STORAGE_KEY); } catch { /* gizli pencere: zaten kayıt yok */ }
+    try { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(EXTRA_KEY); } catch { /* gizli pencere: zaten kayıt yok */ }
     astronauts = JSON.parse(JSON.stringify(defaultAstronauts));
     evaPlan.stops = [{ id: "delta_front", dwellMin: 40 }, { id: "three_forks", dwellMin: 30 }]; // evaPlan'daki demo planıyla aynı
     $("planDepart").value = "window";
