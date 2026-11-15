@@ -1,8 +1,8 @@
 # MarsTrail – Teslim
 
-Teslim formu için taslak cevaplar, kaynak listeleri, YZ beyanı ve Drive kontrol listesi. `[...]` ile işaretli yerler son gün doldurulacak (YOLO sonuçları, linkler).
+Teslim formu için cevaplar, kaynak listeleri, YZ beyanı ve Drive klasörü. Model ve doğrulama sayıları v2 modelinin (`e6v2_s2`, 250 karo); hepsi `docs/figures/*.json` dosyalarından. `[...]` ile işaretli yerler (linkler) teslimden önce doldurulacak.
 
-## 1. Form cevapları (taslak)
+## 1. Form cevapları
 
 ### Proje ne yapıyor?
 
@@ -13,14 +13,16 @@ MarsTrail, Mars'ta yüzeyde yürüyen bir astronotun yürüyüşünü hazırlık
 - **Yürüyüş:** Canlı O₂ takibi.
 - **Acil durum:** Telsiz koparsa arama alanı ve İHA tarama rotası.
 
-Haritada her zaman açık duran yeşil/sarı/kırmızı O₂ bölgeleri, astronotun nereye gidip güvenle dönebileceğini gösteriyor. Bölgeler daire değil; eğime, kuma ve zemine göre şekil alıyor. Nabız ya da yük değiştikçe canlı olarak daralıyor.
+Haritada her zaman açık duran yeşil/sarı/kırmızı O₂ bölgeleri, astronotun nereye gidip güvenle dönebileceğini gösteriyor. Bölgeler daire değil; eğime, kuma ve zemine göre şekil alıyor. Nabız ya da yük değiştikçe canlı olarak daralıyor: Ayşe'nin nabzı 85'ten 150'ye çıkınca yeşil bölge 130 km²'den 47 km²'ye iniyor.
+
+Kum ve kayayı, 250 HiRISE karosunu kendimiz etiketleyerek eğittiğimiz bir YOLOv8 modeliyle 25 cm çözünürlükte buluyoruz. Haritayı Perseverance'ın gerçekten sürdüğü yolla doğruladık. Bu yol modele hiç verilmedi.
 
 ### Faydaları
 
 - Apollo'daki "walkback" kuralını sabit hız varsayımından çıkarıp araziye ve astronotun anlık durumuna bağlı hale getiriyor.
 - Dünya 3–22 dakika uzaktayken "geri dön" kararını yerinde, veriye dayanarak veriyor.
 - Onlarca göreve dağılmış yörünge ve yüzey verisini (CTX, HiRISE, THEMIS, USGS jeoloji, Perseverance konumları ve fotoğrafları) tek ekranda birleştiriyor.
-- Kum tuzaklarını önceden işaretliyor: termal eylemsizlik, eolyen birim ve kendi YOLO modelimiz. Opportunity ve Spirit'in başına gelen buydu.
+- Kum tuzaklarını önceden işaretliyor: termal eylemsizlik, eolyen birim ve kendi YOLO modelimiz. Opportunity ve Spirit'in başına gelen buydu. Doğrulamada rover'ın geçtiği 52 hücrenin hiçbiri modelimize göre kumlu değil; çevrede bu oran %49.
 - Her noktanın tarihçesi ve Perseverance'ın o noktadaki gerçek fotoğrafı, astronota "oraya varınca ne göreceğini" gösteriyor.
 
 ### Etkisi
@@ -32,7 +34,12 @@ Haritada her zaman açık duran yeşil/sarı/kırmızı O₂ bölgeleri, astrono
 ### Kullanılan araçlar
 
 - **Veri işleme:** Python, rasterio/GDAL, geopandas, shapely, pyproj, numpy, Pillow, matplotlib.
-- **Öğrenme:** Ultralytics YOLOv8 ve PyTorch (CUDA, RTX 5090); etiketleme Roboflow'da.
+- **Öğrenme:**
+  - Ultralytics YOLOv8 ve PyTorch (CUDA, RTX 5090); etiketleme Roboflow'da.
+  - 250 karo (640 × 640, 0,25 m/piksel), 2 sınıf: kaya ve kum dalgası.
+  - 5 kurulumluk ablation (yolov8m/s × 3/2 sınıf + karo sınıflandırıcı). Seçilen: YOLOv8s, 2 sınıf.
+  - Val'de (51 karo, eğitimde görülmemiş, komşusu da yok) mAP50 0,33; hücre düzeyinde dengeli doğruluk 0,78.
+  - 1146 karoda çıkarım 17 sn.
 - **Web:** CesiumJS (3D Mars küresi), Chart.js, saf JavaScript. Mars Trek WMTS karoları.
 - **Algoritmalar:**
   - Tobler yürüme hızı (Mars ve giysi düzeltmesiyle)
@@ -49,7 +56,11 @@ Haritada her zaman açık duran yeşil/sarı/kırmızı O₂ bölgeleri, astrono
   - Opportunity'de kum dalgası (YOLO)
   - Spirit'te gevşek zemin (termal eylemsizlik)
 - O₂ bölgeleri sabit bir yarıçap değil; arazi maliyetine göre şekillenen ve astronotun nabzıyla nefes alan bir harita.
-- Kendi tehlike modelimiz, rover'ın gerçek yoluyla doğrulanıyor: Perseverance'ın geçtiği yer bizim haritamızda geçilebilir mi?
+- Kendi tehlike modelimizi rover'ın gerçek yoluyla doğruladık. Rover ekibi tehlikeli yerden geçmez; skorumuz araziyi doğru okuyorsa rotanın geçtiği hücreler daha kolay görünmeli.
+  - Görüntü verisi olmadan skor, HiRISE kapsamındaki rotayı ayırt edemiyordu (AUC 0,50, yazı-tura).
+  - YOLO eklenince AUC 0,65'e çıktı. Bootstrap'ta farkın aralığı +0,12…+0,18.
+  - Rotanın %100'ü haritamızda geçilebilir.
+- Modeli kutu çizmek için değil, 70 m'lik hücrede kum ve kaya yoğunluğu çıkarmak için kullanıyoruz: harita ölçeğinde ölçülen bir model.
 - Her pin bir zaman çizgisi: 2005'teki yörünge keşfinden Perseverance'ın o noktadaki Sol'üne ve fotoğrafına kadar.
 
 ### Dikkate alınan faktörler
@@ -64,10 +75,16 @@ Haritada her zaman açık duran yeşil/sarı/kırmızı O₂ bölgeleri, astrono
 - **İletişim:** Dünya–Mars gecikmesi, habitat ağı bağlantısı.
 - **Veri kalitesi:**
   - 3 farklı projeksiyon tek sisteme getirildi.
-  - NoData temizliği, %2–98 normalizasyon.
+  - NoData temizliği: HiRISE'ta 2590 karonun 1444'ü boştu, atıldı. Termal veri %2–98 dilimleriyle 0–1'e normalize edildi.
   - Kaynak haritadaki 2 hata düzeltildi.
+  - **Veri sızıntısı önlendi:** Komşu karolar train/val'de aynı tarafa kondu. İlk bölmede 30 val karosunun 8'inin bir train karosuna bitişik olduğu bulundu ve düzeltildi. Perseverance rotası (D2) yalnızca doğrulamada kullanıldı.
+  - Model seçimi için karar kuralı, sonuçlar görülmeden yazıldı.
   - Ayrıntı: [DATA_PIPELINE.md](DATA_PIPELINE.md).
-- **Sınırlar:** Formüllerdeki katsayılar varsayım; gerçek EVA verisiyle kalibre edilmedi. Demoda konum simüle ediliyor.
+- **Sınırlar:**
+  - Formüllerdeki katsayılar varsayım; gerçek EVA verisiyle kalibre edilmedi. Demoda konum simüle ediliyor.
+  - YOLO yalnızca 25 cm'lik mozaiğin kapsadığı ~29 km²'de çalışıyor. Rotanın 397 hücresinin 52'si bu kapsamda.
+  - Kaya tespiti rotayı ayırt etmiyor (AUC 0,51).
+  - 1. parti etiketlerde küçük çukur kümeleri tutarlı değil.
 
 ## 2. NASA verileri ve kaynakları
 
@@ -174,3 +191,46 @@ Bu projede **Claude Code** (Anthropic, Claude Opus 5.5) kodlama asistanı olarak
 - [ ] Logo kontrolü: slaytlarda, videoda ve uygulamada NASA logosu, bayrağı veya görev arması **yok**. Kaynaklar metin olarak var.
 - [ ] Ekip adları ve rolleri (Elif: veri, model, algoritmalar · Gözde: arayüz).
 - [ ] Formdaki bütün alanlar dolduruldu. 13:30'da teslim edildi (son saat 14:00).
+
+## 6. Drive klasörüne konacak dosyalar
+
+Klasör adı: `MarsTrail_SpaceApps_Konya_2026`. Büyük ham veri (D1–D8 zip ve tif dosyaları, model ağırlıkları, etiketli karolar) konmaz; linkleri bölüm 2'de, betikler repoda.
+
+```
+MarsTrail_SpaceApps_Konya_2026/
+├── 00_OKU_BENI.txt                  uygulama linki, repo linki, ekip ve roller, klasörün içeriği (5–6 satır)
+├── 01_Sunum/
+│   ├── MarsTrail_Sunum.pdf          7 slayt (docs/SLAYTLAR.md'den)
+│   └── MarsTrail_Sunum.pptx         düzenlenebilir kaynak (ya da Google Slides linki)
+├── 02_Demo/
+│   └── MarsTrail_Demo.mp4           ≤ 30 sn
+├── 03_Belgeler/
+│   ├── TESLIM.pdf                   form cevapları, NASA verileri, kaynaklar, YZ beyanı (bu dosya)
+│   ├── DATA_PIPELINE.pdf            veri hattı: 8 veri seti, atılanlar, normalizasyon, model, doğrulama
+│   └── SLAYTLAR.md                  konuşma metni ve jüri soruları (isteğe bağlı)
+├── 04_Gorseller/                    en iyi 8 görsel (aşağıdaki tablo)
+└── 05_Ekran_Goruntuleri/            ui_1 … ui_6 (docs/figures/ui_*.png)
+```
+
+**En iyi 8 görsel** (`docs/figures/` içinden; klasörde numaralı adlarla):
+
+| # | Klasördeki ad | Kaynak dosya | Ne gösteriyor | Sunum |
+| --- | --- | --- | --- | --- |
+| 1 | `1_dogrulama_perseverance.png` | `e10_validation.png` | Perseverance rotası ile doğrulama: HiRISE AUC 0,498 → 0,649, kum yoğunluğu rota/rota dışı | Slayt 6 |
+| 2 | `2_model_v1_v2.png` | `e6v2_compare.png` | v1 ve v2 modeli aynı val'de: mAP50 0,31 → 0,33, hücre dengeli doğruluk 0,69 → 0,78 | Slayt 4 |
+| 3 | `3_ornek_tespitler.jpg` | `e6v2_s2_val_batch0_pred.jpg` | Val karolarında kaya ve kum dalgası tespitleri | Slayt 4 |
+| 4 | `4_fuzyon_skoru.png` | `fusion.png` | Dört girdi ve ağırlıkları → geçilebilirlik skoru | Slayt 4 |
+| 5 | `5_o2_bolgeleri.png` | `e8_zones.png` | O₂ bölgeleri: nabız 85 → 150, yeşil 130 → 47 km² | Slayt 4 |
+| 6 | `6_termal_normalizasyon.png` | `d4_thermal_normalize.png` | Önce/sonra: ham termal eylemsizlik → %2–98 normalizasyon | Slayt 3 |
+| 7 | `7_jeoloji_kirpma.png` | `d6_geology_crop.png` | Önce/sonra: 1304 poligon → 118 poligon, 1024² ızgara | Slayt 3 |
+| 8 | `8_sizintisiz_bolme.png` | `e6v2_split.png` | Train/val bölmesi: bitişik karolar aynı tarafta (sızıntı yok) | Soru-cevap |
+
+Seçim ölçütü: jürinin baktığı dört konuya (temizleme, normalizasyon, öğrenme yöntemi, doğrulama) birer kanıt ve ürünün iki çekirdek çıktısı (füzyon skoru, O₂ bölgeleri). `e8_zones.png` güncel grid ile yeniden çekildi (Cheyava Falls 279 dk).
+
+**Ekran görüntüleri** (`05_Ekran_Goruntuleri/`): `ui_1_plan_go.png`, `ui_2_plan_nogo.png`, `ui_3_walk.png`, `ui_4_rescue.png`, `ui_5_phone_plan.png`, `ui_6_phone_rescue.png`.
+
+**Linkler** (`00_OKU_BENI.txt` ve formda):
+- Repo: https://github.com/tayancelifnur/marstrail
+- Uygulama: https://tayancelifnur.github.io/marstrail/ [repo ayarında Pages açılınca çalışır; G9 notu. Telefonda denenecek]
+
+**PDF'e çevirme:** `TESLIM.md` ve `DATA_PIPELINE.md`, VS Code'un Markdown önizlemesinden ya da GitHub'daki görünümden yazdırılarak PDF yapılabilir. Görseller göreli yol (`figures/…`) kullandığı için PDF'i repo içinden üretin.

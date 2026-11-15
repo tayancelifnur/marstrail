@@ -447,3 +447,12 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
   - Mesajdaki "168 dk", yuvarlama hizalanınca karttaki 169 dk ile aynı oldu.
   - Geç fark etme: 0/20/40 dk → üste 201/169/136 dk; 60 dk → yedek tüple 21 dk; 90 ve 120 dk → MÜMKÜN DEĞİL (eski kural 120 dk'da "kurtarılabilir" diyordu).
   - Ana sayfa headless yüklendi, JS hatası yok.
+
+## Teslim · Form cevapları v2 sayılarıyla + Drive dosya listesi · Paz 15 Kas 2026, 09:50
+
+- **Ne yapıldı:**
+  - `docs/TESLIM.md` bölüm 1'deki form cevaplarına v2 modelinin sayıları eklendi: 250 karo, mAP50 0,33, hücre dengeli doğruluk 0,78, HiRISE AUC 0,50 → 0,65, rotada kumlu hücre %0'a karşı çevrede %49. Ayrıca sızıntı önleme ve önceden yazılmış karar kuralı eklendi; sınırlar genişletildi.
+  - Yeni bölüm 6: Drive klasör yapısı, en iyi 8 görsel (numaralı adlarla), ekran görüntüleri ve linkler.
+  - `docs/figures/e8_zones.png` güncel grid ile yeniden çekildi (Cheyava Falls 279 dk).
+- **Dosyalar:** `docs/TESLIM.md`, `docs/figures/e8_zones.png`
+- **Açık kalanlar:** Pages linki (repo ayarı), Gözde'nin YZ satırı (bölüm 4), sunum PDF'i ve video.
