@@ -470,7 +470,7 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Dosyalar:** `scripts/make_slides.py`, `docs/sunum/MarsTrail.pptx`, `docs/TESLIM.md`, `.gitignore`
 - **Nasıl çalıştırılır:** `venv\Scripts\python scripts\make_slides.py [--pdf]`
 
-## G-ek · E13 sonrası arayüz kontrolü, YZ beyanı, sunum v2 sayıları · Paz 15 Kas 2026, 10:10
+## G-ek · E13 sonrası arayüz kontrolü, YZ beyanı, sunum v2 sayıları · Paz 15 Kas 2026, 09:50
 
 - **Kontrol (Elif'in 73e2eec'i):** `lost.name` iki yerde rescue.js'e gidiyor, `rescuer` profilin kopyası (adı içeriyor), eski Ali/Ayşe takası kapalı. E13 testi headless Chrome'da "E13 OK". Uygulamada iki senaryo denendi: Ayşe kayıp → "Ali kurtarmaya gidiyor", "Ayşe'nin O₂'si 279 dk"; Ali kayıp → "Ayşe kurtarmaya gidiyor", "Ali'nin O₂'si 280 dk". JS hatası yok.
 - **Düzeltildi:** Acil durum kartının dipnotunda kurtarıcı adı sabit "Ali" yazıyordu → `rescue.rescuerName`.
