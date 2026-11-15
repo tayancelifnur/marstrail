@@ -54,6 +54,7 @@ Hangi dosyanın ne yaptığı: [docs/KOD_REHBERI.md](docs/KOD_REHBERI.md).
 | --- | --- |
 | [docs/DATA_PIPELINE.md](docs/DATA_PIPELINE.md) | Ham veriden haritaya her adım: atılanlar, temizleme, normalizasyon, model, doğrulama |
 | [docs/TEKNIK_ANLATIM.md](docs/TEKNIK_ANLATIM.md) | Projenin baştan sona öğretici anlatımı: kod parçaları, örnek hesaplar, ölçüler, sözlük |
+| [docs/VERI_ORNEKLERI.html](docs/VERI_ORNEKLERI.html) | Her veri setinin ham hali: tüm alanlar ve ilk 5 satır (kullanılan yeşil), ham/işlenmiş görüntü, histogramlar (tarayıcıda aç) |
 | [docs/KOD_REHBERI.md](docs/KOD_REHBERI.md) | Dosyalar, veri akışı, çalıştırma |
 | [docs/SAYI_DENETIMI.md](docs/SAYI_DENETIMI.md) | Sunumdaki sayıların kaynakları (betikle üretilir) |
 | [docs/JURI_SORULARI.md](docs/JURI_SORULARI.md) | Olası jüri soruları ve cevapları |

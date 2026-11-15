@@ -568,3 +568,13 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Yeni ölçüm:** O₂ bölgeleri hesabı Edge'de gerçek saatle ölçüldü: ilk hesap 69 ms, sonrakiler ~30 ms. Test sayfalarındaki "0 ms", headless testin sanal zamanından geliyor (gerçek değil).
 - **Küçük düzeltme:** `web/walkback.js` başlık yorumunda hücre boyu ~44 m → ~70 m (v2 alanı).
 - **Dosyalar:** `docs/TEKNIK_ANLATIM.md`, `README.md`, `web/walkback.js`, `docs/LOG.md`
+
+## Belge · VERI_ORNEKLERI.html · Paz 15 Kas 2026, 13:10
+
+- **Ne yapıldı:** `scripts/make_data_examples.py` → `docs/VERI_ORNEKLERI.html` (tek dosya, 2,8 MB, 23 görsel base64 gömülü, koyu tema). En üstte 9 satırlık özet tablo (D1–D8 + Mars Trek: ham boyut, atılan, son boyut, yöntem, kullanıldığı yer).
+- **Tablo verileri (D1, D2, D3, D6, D7):** Bütün alanlar ve gerçek ilk 5 satır. Kullanılan alanlar yeşil, kullanılmayanlar gri. Her alan için tek satır: kullanılan → hangi dosya/fonksiyon, kullanılmayan → neden. Gerekçesi yazılmamış alan varsa betik `assert` ile durur. D7 örneği Sol 415 API cevabından, sayfa üretilirken çekiliyor.
+- **Rasterler (D4, D5, D8, Mars Trek):** Ham önizleme ile işlenmiş hal yan yana, önce/sonra histogram, NoData oranı, min/maks/ortalama. D8 için 4 karo: NoData yüzünden atılan, dokusuz, kum dalgası kutulu ve kaya + kaya alanı kutulu.
+- **Bulunamayan değerler "yok" yazıldı:** bütün HiRISE mozaiğinin NoData oranı (yalnızca karolama penceresi ölçüldü), Mars Trek kayıt sayısı.
+- **Kontrol:** Headless Edge'de açıldı: 9 bölüm, 23 görsel. Dar ekranda yatay taşma bulundu (satır içi max-width, grid min-content); düzeltildi, scrollWidth = viewport.
+- **Çalıştırma:** `venv\Scripts\python scripts\make_data_examples.py`. ~30 sn. İnternet gerekli (D7 API, Mars Trek). HiRISE önizlemesi ilk seferde `data/processed/d8_preview_dec16.npz`'ye yazılır.
+- **Dosyalar:** `scripts/make_data_examples.py`, `docs/VERI_ORNEKLERI.html`, `README.md`, `docs/KOD_REHBERI.md`, `docs/LOG.md`
