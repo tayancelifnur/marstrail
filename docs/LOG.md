@@ -487,3 +487,13 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Hayatta Kal:** 3+ kişide kurtarıcı = kaybolan dışındaki ekipten O₂'si en yüksek olan (eşitlikte listede önce gelen). 2 kişide davranış aynı.
 - **Kontrol (headless Chrome):** ekle → 3 kart, formdan ad "Zeynep", O₂ 300 → yeniden yüklemede kalıcı; Ayşe kayıp → Ali kurtarıyor (480 > 300); Zeynep kayıp → Ayşe kurtarıyor, mesajlarda "Zeynep'in" (rescue.js eki); ekipten çıkar → 2 kişi, planı silindi; Demo'yu sıfırla → 2 kişi, kayıt temiz; eski demo akışı aynı. JS hatası yok.
 - **Dosyalar:** `web/app.js`, `web/style.css`
+
+## G-ek · Serbest rotada yürüyüş, rota zorluğu ve "test edilmemiş rota" uyarısı · Paz 15 Kas 2026, 10:35
+
+- **Karar:** Ekip kararıyla kod dondurmasından sonra eklendi. Hazır duraklar (regions.json) "güvenli, önceden belirlenmiş" duraklar olarak kaldı.
+- **Ne yapıldı:** "Rota çiz" kartına:
+  - **Engeller ve zorluk:** çizgi boyunca grid hücrelerinden kum alanı (m, %), geçilmez hücre (m), en dik eğim, en zor kesim; ortalama füzyon skoruna göre KOLAY / ORTA / ZOR. Eşikler: < 0,30 kolay, 0,30–0,45 orta, ≥ 0,45 zor (tipik hücre ~0,22 = E10 medyanı, 0,8 geçilmez sınırı; göz kararı).
+  - **Uyarı:** Hazır bir durağa 150 m'den (~2 hücre) uzak nokta varsa "Dikkat: daha önce test edilmemiş bir rotada yürümek istiyorsunuz" + güvenli durakların listesi.
+  - **"▶ Bu rotada yürü":** Çizilen noktalar plana durak olur (hazır durağa yakınsa o durak, değilse "⚠ Nokta N", kalma 0 dk; üsse 300 m'den yakın ilk/son nokta atlanır). Eva.plan güvenli yolu, dönüş noktasını ve Go/No-Go'yu hesaplar; Go/No-Go'nun başına "Test edilmemiş rota · DİKKAT" eklenir (plan GO kalabilir, karar astronotun). Yürüyüş plan kartından başlar.
+- **Kontrol (headless Chrome):** Üsten batıya iki serbest nokta → KOLAY (skor 0,21), kum yok, en dik 13,8°, uyarı var → plan GO, 3 sa 57 dk, 7,1 km, Go/No-Go'da "Test edilmemiş rota" → yürüyüş başladı. Delta önü + Three Forks üzerinden çizilen rota → uyarı yok, hazır duraklara çevrildi. Demo planı aynı (GO, 243 dk, 5,52 km), telsiz akışı aynı. JS hatası yok.
+- **Dosyalar:** `web/app.js`, `web/style.css`

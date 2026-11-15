@@ -1413,11 +1413,92 @@
         el("span", { class: "muted small" }, "Rotanın sonu " + a.name + " için " + { green: "YEŞİL", yellow: "SARI", red: "KIRMIZI" }[endZone] + " bölgede")));
     }
     if (r.outside) parts.push(el("p", { class: "warn-line" }, "⚠ Rotanın bir kısmı çalışma alanı dışında; orada arazi düz kabul edildi."));
+
+    // Engeller ve zorluk: çizgi boyunca grid hücreleri (füzyon skoru, eolyen kum, geçilmez hücre, eğim)
+    const h = routeHazards(r.samples);
+    if (h) {
+      parts.push(el("h4", null, "Engeller ve zorluk"));
+      parts.push(el("div", { class: "zone-line" },
+        el("span", { class: "difficulty " + h.level.cls }, h.level.text),
+        el("span", { class: "muted small" }, "ortalama zorluk skoru " + h.meanScore.toFixed(2) + " (0 kolay – 1 zor)")));
+      parts.push(kvList([
+        ["Kum alanı", h.sandM > 0 ? fmt(h.sandM) + " m (rotanın %" + fmt((h.sandM / r.distanceM) * 100) + "'i)" : "yok"],
+        ["Geçilmez hücre", h.blockedM > 0 ? fmt(h.blockedM) + " m (eğim > 25° ya da skor > 0,8)" : "yok"],
+        ["En dik eğim", fmt(h.maxSlope, 1) + "°" + (h.maxSlope > 15 ? " (15° üstü: dikkat)" : "")],
+        ["En zor kesim", h.worstAtKm != null ? fmt(h.worstAtKm, 2) + " km'de, skor " + h.worstScore.toFixed(2) : "–"],
+      ]));
+    }
+    // Hazır güvenli durakların dışındaki nokta = test edilmemiş rota
+    const conv = routeToStops(route.pts);
+    if (conv.custom.length) {
+      parts.push(el("p", { class: "warn-line" }, "⚠ Dikkat: daha önce test edilmemiş bir rotada yürümek istiyorsunuz. " +
+        "Güvenli duraklarımız: " + regions.filter(canBeStop).map(shortName).join(", ") + "."));
+    }
+    const go = el("button", { type: "button", class: "primary" }, "▶ Bu rotada yürü");
+    go.disabled = !conv.stops.length || walk.active;
+    go.addEventListener("click", () => planFromRoute(conv));
+    parts.push(el("div", { class: "controls" }, go));
+    parts.push(el("p", { class: "muted small" }, "Plana çevrilince noktalar arasında güvenli yol (Dijkstra), dönüş noktası ve Go/No-Go hesaplanır; yürüyüş plan kartından başlar."));
+
     parts.push(el("h4", null, "Yükseklik profili (m)"));
     parts.push(el("div", { class: "chart-box" }, canvas));
     parts.push(el("p", { class: "muted small" }, "Süre: Tobler formülü × 0,6 (Mars + giysi) × (1 − yük/100). Düz çizgi boyunca; güvenli rota planlayıcıda."));
     showDetail(el("div", { class: "card" }, parts));
     drawProfile(canvas, r.samples);
+  }
+
+  // Zorluk sınıfı ortalama füzyon skorundan. Eşikler göz kararı: alanın tipik hücresi ~0,22 (E10 medyanı),
+  // 0,8 geçilmez sınırı; < 0,30 tipik arazi = kolay, 0,30–0,45 orta, ≥ 0,45 zor.
+  const DIFFICULTY = [
+    { max: 0.30, text: "KOLAY", cls: "easy" },
+    { max: 0.45, text: "ORTA", cls: "mid" },
+    { max: Infinity, text: "ZOR", cls: "hard" },
+  ];
+  function routeHazards(samples) {
+    const G = window.Walkback && Walkback.grid;
+    if (!G) return null;
+    let sandM = 0, blockedM = 0, scoreSum = 0, len = 0, maxSlope = 0, worst = -1, worstAt = null;
+    for (let i = 1; i < samples.length; i++) {
+      const s0 = samples[i - 1], s1 = samples[i], dd = s1.d - s0.d;
+      const c = Walkback.cellOf({ lon: (s0.lon + s1.lon) / 2, lat: (s0.lat + s1.lat) / 2 });
+      if (c < 0 || dd <= 0) continue;
+      len += dd;
+      scoreSum += G.score[c] * dd;
+      if (G.sand[c]) sandM += dd;
+      if (G.blocked[c]) blockedM += dd;
+      if (G.score[c] > worst) { worst = G.score[c]; worstAt = s1.d / 1000; }
+      if (s0.elev != null && s1.elev != null) maxSlope = Math.max(maxSlope, (Math.atan(Math.abs(s1.elev - s0.elev) / dd) * 180) / Math.PI);
+    }
+    if (!len) return null;
+    const meanScore = scoreSum / len;
+    return { sandM, blockedM, meanScore, maxSlope, worstScore: worst, worstAtKm: worstAt,
+      level: DIFFICULTY.find((d) => meanScore < d.max) };
+  }
+
+  // Çizilen noktaları plan duraklarına çevir. Hazır bir durağa 150 m'den (~2 grid hücresi) yakın nokta o durak
+  // sayılır; üsse 300 m'den yakın ilk/son nokta atlanır (plan zaten üsten çıkıp üsse döner).
+  const M_PER_DEG_MARS = 59274.7; // Mars 2000 küresi: 2πR/360 (rescue.js ile aynı)
+  const distM = (a, b) => Math.hypot((a.lon - b.lon) * Math.cos((a.lat * Math.PI) / 180), a.lat - b.lat) * M_PER_DEG_MARS;
+  function routeToStops(pts) {
+    const base = Walkback.BASE, stops = [], custom = [];
+    pts.forEach(([lon, lat], i) => {
+      const p = { lon, lat };
+      if ((i === 0 || i === pts.length - 1) && distM(p, base) < 300) return;
+      const safe = regions.filter(canBeStop).find((r) => distM(p, r) < 150);
+      if (safe) { if (!stops.some((s) => s.id === safe.id)) stops.push({ id: safe.id, dwellMin: DEFAULT_DWELL_MIN }); return; }
+      const s = { id: "pt_" + Date.now().toString(36) + "_" + i, custom: true, name: "Nokta " + (custom.length + 1), lon, lat, dwellMin: 0 };
+      custom.push(s); stops.push(s);
+    });
+    return { stops, custom };
+  }
+  function planFromRoute(conv) {
+    if (walk.active) return;
+    evaPlan.stops = conv.stops.map((s) => ({ ...s }));
+    renderPlanStops();
+    setDrawing(false);
+    clearRoute();
+    runPlan(true); // plan kartı açılır: güvenli yol, dönüş noktası, Go/No-Go ve "Yürüyüşü başlat"
+    if (conv.custom.length) showToast("warn", "Rota", "Dikkat: daha önce test edilmemiş bir rotada yürümek istiyorsunuz.");
   }
 
   function drawProfile(canvas, samples) {
@@ -1500,6 +1581,9 @@
   // Panelde ve kartta kısa ad: "Delta önü (Hawksbill…)" → "Delta önü"; ayırıcısı olmayan uzun adlar elle
   const SHORT_NAMES = { three_forks: "Three Forks", airfield: "Ingenuity alanı" };
   const shortName = (r) => (r ? SHORT_NAMES[r.id] || r.name.split(/ [–(]/)[0] : "?");
+  // Haritadan seçilen serbest noktalar planda "custom" durak olarak durur (id, name, lon, lat kendisinde);
+  // hazır duraklar regions.json'dan gelir. Serbest nokta = önceden test edilmemiş rota.
+  const stopInfo = (s) => (s.custom ? s : regionById(s.id));
   const fmtMin = (m) => (m >= 60 ? Math.floor(m / 60) + " sa " + Math.round(m % 60) + " dk" : Math.round(m) + " dk");
   const hhmm = (iso) => iso.slice(11, 16);
 
@@ -1525,7 +1609,8 @@
           renderPlanStops();
           replanIfActive();
         });
-        return el("li", null, el("span", { class: "pname" }, shortName(regionById(s.id))), dwell, el("span", { class: "punit" }, "dk"), up, del);
+        return el("li", s.custom ? { class: "custom", title: "Serbest nokta: test edilmemiş rota" } : null,
+          el("span", { class: "pname" }, (s.custom ? "⚠ " : "") + shortName(stopInfo(s))), dwell, el("span", { class: "punit" }, "dk"), up, del);
       })
     );
     if (!evaPlan.stops.length) list.append(el("li", { class: "muted small empty" }, "Durak yok: aşağıdan ya da nokta kartından ekle."));
@@ -1652,7 +1737,7 @@
       return;
     }
     const stops = evaPlan.stops.map((s) => {
-      const r = regionById(s.id);
+      const r = stopInfo(s);
       return { id: s.id, name: shortName(r), lon: r.lon, lat: r.lat, dwellMin: s.dwellMin };
     });
     const depart = document.getElementById("planDepart").value === "now" ? new Date() : Eva.nextWindow(new Date());
@@ -1675,6 +1760,14 @@
     }
     p.astronaut = a.name;
     p.astronautId = a.id;
+    // Serbest nokta varsa Go/No-Go'nun başına DİKKAT satırı (plan yine yürünebilir; karar astronotun)
+    const custom = evaPlan.stops.filter((s) => s.custom);
+    p.untested = custom.length > 0;
+    if (p.untested) {
+      p.goNoGo.unshift({ id: "untested", label: "Test edilmemiş rota", status: "warn",
+        detail: "Dikkat: daha önce test edilmemiş bir rotada yürümek istiyorsunuz (" + custom.map((s) => s.name).join(", ") +
+          "). Güvenli duraklarımız: " + regions.filter(canBeStop).map(shortName).join(", ") + "." });
+    }
     evaPlan.result = p;
     drawPlan(p);
     document.getElementById("planClearBtn").disabled = false;
