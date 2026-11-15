@@ -1486,6 +1486,23 @@
   // Yürüyüş çizilen yolu izlesin: çizgi VIA_STEP_M'de bir görünmez ara noktaya bölünür (seq). Planlayıcı ara noktalar
   // arasında da güvenli yol arar; 150 m (~2 hücre) aralıkta bu, çizgiden yalnız geçilmez hücre varsa sapmak demek.
   const VIA_STEP_M = 150;
+  const VIA_MAX_SLOPE_DEG = 15; // eva.js STEEP_WARN_DEG ile aynı
+  // Hücre eğimi (derece): merkezi fark, grid yüksekliğinden (walkback.js ile aynı veri)
+  function cellSlopeDeg(i) {
+    const G = Walkback.grid, w = G.w, x = i % w, y = (i / w) | 0;
+    if (x < 1 || y < 1 || x >= w - 1 || y >= G.h - 1) return 0;
+    const e = G.elev, dx = (e[i + 1] - e[i - 1]) / (2 * G.cell), dy = (e[i + w] - e[i - w]) / (2 * G.cell);
+    return (Math.atan(Math.hypot(dx, dy)) * 180) / Math.PI;
+  }
+  function steepNear(p) {
+    const G = Walkback.grid, c = Walkback.cellOf(p);
+    if (!G || c < 0) return false;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const j = c + dy * G.w + dx;
+      if (j >= 0 && j < G.w * G.h && (cellSlopeDeg(j) > VIA_MAX_SLOPE_DEG || G.blocked[j])) return true;
+    }
+    return false;
+  }
   function routeToStops(pts) {
     const base = Walkback.BASE, stops = [], custom = [], seq = [];
     pts.forEach(([lon, lat], i) => {
@@ -1495,7 +1512,12 @@
         const n = Math.floor(distM(q, p) / VIA_STEP_M);
         for (let k = 1; k <= n; k++) {
           const f = k / (n + 1);
-          seq.push({ via: true, lon: q.lon + (p.lon - q.lon) * f, lat: q.lat + (p.lat - q.lat) * f });
+          const v = { lon: q.lon + (p.lon - q.lon) * f, lat: q.lat + (p.lat - q.lat) * f };
+          // Krater duvarı / dik yamaç: ara nokta atılır, yol o kesimde en kolay yolu kendisi bulur (etrafından dolaşır).
+          // 70 m'lik grid küçük kraterleri yumuşatıyor (en derin kraterlerde bile en çok ~22°), 25° geçilmez sınırına
+          // takılmıyorlar; bu yüzden eva.js'in "dikkat" sınırı 15° kullanılıyor (çevre 1 hücre dahil).
+          if (steepNear(v)) continue;
+          seq.push({ via: true, ...v });
         }
       }
       if ((i === 0 || i === pts.length - 1) && distM(p, base) < 300) return;
@@ -1799,6 +1821,19 @@
       p.legs.forEach((l, k) => { if (k < stops.length && viaIds.has(stops[k].id)) l.via = true; });
       p.timeline = p.timeline.filter((e) => !viaIds.has(e.stopId));
       p.followsDrawn = true;
+    }
+    // Çizilen rota dik yamaç / krater duvarından geçiyorsa açıkça söyle. walkback.js 25°'ye kadar geçilebilir sayıyor;
+    // 70 m'lik gridde küçük kraterlerin duvarı ~20° çıkıyor (en derin kraterde 21°), yani "geçilebilir ama dik".
+    if (p.followsDrawn || evaPlan.stops.some((s) => s.custom)) {
+      let steepM = 0, maxS = 0;
+      p.legs.filter((l) => !l.isReturn).forEach((l) => l.coords.forEach((c, k) => {
+        const s = cellSlopeDeg(Walkback.cellOf({ lon: c[0], lat: c[1] }));
+        maxS = Math.max(maxS, s);
+        if (k && s > VIA_MAX_SLOPE_DEG) steepM += distM({ lon: c[0], lat: c[1] }, { lon: l.coords[k - 1][0], lat: l.coords[k - 1][1] });
+      }));
+      if (steepM > 0) p.goNoGo.unshift({ id: "steep_drawn", label: "Dik yamaç / krater", status: "warn",
+        detail: "Gidiş " + Math.round(steepM) + " m boyunca 15° üstü eğimden geçiyor (en dik " + maxS.toFixed(0) +
+          "°). 25° altı olduğu için geçilebilir sayıldı; krater duvarıysa yavaş ve dikkatli in, mümkünse rotayı kraterin dışından çiz." });
     }
     // Serbest nokta varsa Go/No-Go'nun başına DİKKAT satırı (plan yine yürünebilir; karar astronotun)
     const custom = evaPlan.stops.filter((s) => s.custom);

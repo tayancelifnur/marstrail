@@ -538,3 +538,11 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
   - Başarısızsa "✗ Kurtarma başarısız · KAYIP", son konum kırmızı, telsiz kopuk kalır; "üste dönüş" ve kurtarıcı O₂ satırları gösterilmez.
 - **Kontrol:** Demo kurtarma → GÜVENDE, ağ bağlı; Tekrar oynat → acil görünüm + animasyon → yine sonuç; Haritayı temizle → çizim kalmadı; 120 dk geç fark etme → KAYIP. JS hatası yok.
 - **Dosyalar:** `web/app.js`
+
+## G-ek · Çizilen rota ve krater · Paz 15 Kas 2026, 12:00
+
+- **Sorun (Gözde, ekran görüntüsü):** Çizilen rota küçük bir kraterin içinden geçiyordu.
+- **Ölçüm (grid.json):** 70 m hücrede küçük kraterlerin duvarı yumuşuyor: 202 çukurun en derinlerinde (50–74 m) en büyük eğim 20–22°; 25° sınırını tüm alanda yalnız 59 hücre aşıyor. Bu yüzden kraterler "dik ama geçilebilir". En derin kraterin (77,4356 / 18,4978) ortasından geçen çizimde: eski davranış 521 m 15° üstü eğim; planlayıcının kendi yolu da kraterden geçiyor (281 m), çünkü walkback.js'te 21°'lik duvardan geçmek dolaşmaktan kısa sürüyor.
+- **Ne yapıldı (app.js):** Çizilen rotada 15°'den dik hücreye (ya da komşusuna) düşen ara noktalar atılıyor → 281 m (planlayıcınınkiyle aynı, daha kötü değil). Çizilen/serbest rotada 15° üstü kesim varsa Go/No-Go'nun başına "Dik yamaç / krater · DİKKAT: X m boyunca 15° üstü (en dik N°)" ekleniyor. Demo planı aynı (243 dk, 5,52 km).
+- **Elif'e (walkback.js):** Krater duvarlarından kaçınmak için hücre maliyetine eğim cezası (ör. 15° üstü ×3) ya da geçilmez sınırını 20°'ye çekmek düşünülebilir. Teslimden önce değiştirilirse demo sayıları (E8/E11/E13) yeniden ölçülmeli.
+- **Dosyalar:** `web/app.js`
