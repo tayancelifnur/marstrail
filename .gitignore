@@ -32,3 +32,6 @@ ml/dataset_merged/
 ml/dataset_merged_2cls/
 docs/sunum/onizleme/
 docs/sunum/img/
+
+# Kişisel ses taslağı ve transkripti (repoya girmez)
+docs/sunum/ses_taslak*

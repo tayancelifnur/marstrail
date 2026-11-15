@@ -597,3 +597,30 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Konuşma metni:** `docs/KONUSMA_METNI.md`, v2 videosuna saniye saniye; bölüm başına kelime/saniye ölçüldü (ortalama ~2,1).
 - **Yeniden üretilenler:** `MarsTrail.pptx` (taşma yok), `MarsTrail_sunum.mp4` (2:24), SAYI_DENETIMI (46/46, eski sayı 0). E8/E11/E13: 24/24 ✔.
 - **Dosyalar:** `scripts/sunum_v2/{cdp,rec_scenes,edit_video}.py`, `docs/sunum/{MarsTrail_sunum_v2.mp4, MarsTrail.pptx, MarsTrail_sunum.mp4}`, `docs/{KONUSMA_METNI, SLAYTLAR, PLAN, TESLIM, SAYI_DENETIMI, KOD_REHBERI, LOG}.md`, `README.md`, `web/data/stories.json`, `scripts/{audit_numbers, build_regions, make_dummies, make_slides, make_video}.py`
+
+## E15 (final) · Hackathon sunumu: 10 × 30 sn video + PPTX + konuşma metni · Paz 15 Kas 2026, 17:10
+
+- **Konuşma hızı:** `docs/sunum/ses_taslak.mp4` faster-whisper small (tr, GPU) ile yazıya döküldü: 1088 kelime, 518 sn konuşma, 2,10 kelime/sn. Transkript ve ses kişisel taslak olduğu için repoya girmiyor (`.gitignore`).
+- **Yapı** (ses taslağındaki istek: "10 sayfa, her biri ~30 sn, rakip analizi, hedef, teşekkür"):
+  1. Hikâye
+  2. Sorun
+  3. Çözüm
+  4. Uygulama: hazırlan, planla
+  5. Uygulama: yürü, hayatta kal
+  6. Veri
+  7. Model
+  8. Doğrulama
+  9. Rakip analizi
+  10. Hedef ve kapanış
+- **Tek kaynak** (`scripts/final/make_final.py`):
+  - Cümleler, ekran öğeleri ve zamanlama tek yerde tanımlı. Video, PPTX ve KONUSMA_METNI.md buradan üretiliyor; konuşma ile görüntü bu yüzden kayamaz.
+  - Her bölümün konuşması 30 sn'ye sığıyor (26,9–28,8 sn); taşma kontrolü temiz.
+- **Varlıklar** (`scripts/final/assets.py`):
+  - `demo.mp4`'ten 6 klip (4–6 sn), rota çiz ve not pini klipleri.
+  - Uygulamadan profil formu ve delta önü nokta kartı (CDP).
+  - Etiketli karolar; üç örnek karo (NoData, dokusuz, kullanılır).
+  - Ay, Mars ve QR görselleri; QR çözüldü, canlı adrese gidiyor.
+- **Rakip analizi** (kaynaklı): SEXTANT (MIT DSpace), xGDS/Minerva (NASA NTRS), SPOC (NASA JPL), NOAH-H (Open University), NASA Mars Trek. Tabloya yalnızca bu kaynaklarda doğrulanan bilgiler girdi.
+- **Kapanış alıntısı:** Dr. James Rice (NASA Goddard, LRO), NASA/JPL haberi 2011: "they probably would have made it to the rim". Ölçüm değil, uzman görüşü olarak sunuluyor.
+- **Özellik envanteri:** `docs/OZELLIKLER.md`. Olmayanlar (rota kaydı, fotoğraf/ses yükleme, inceleme/onay, gerçek sensör, internetsiz harita) ayrıca listelendi ve metinde "var" denmiyor.
+- **Dosyalar:** `scripts/final/{assets,make_final}.py`, `docs/sunum/MarsTrail_final.{mp4,pptx}`, `docs/{KONUSMA_METNI, OZELLIKLER, KOD_REHBERI, LOG}.md`, `README.md`, `.gitignore`

@@ -1,85 +1,169 @@
-# Konuşma metni · MarsTrail_sunum_v2.mp4 (5:00)
+# Konuşma metni · MarsTrail final sunumu (5:00)
 
-Video sessiz akarken okunacak metin. Zaman kodları videonun kendisinden ölçüldü (`scripts/sunum_v2/edit_video.py` kare numaraları). Her bölümün yanında kelime sayısı ve saniyede düşen kelime var; rahat, net bir sunum için hedef saniyede 2,0–2,5 kelime.
+Bu dosya `scripts/final/make_final.py` ile üretilir. Metin, slaytlar ve video aynı kaynaktan geliyor; zamanlar birebir aynı.
 
-**Okuma kuralları**
-- **Kalın** yazılanlar vurgu. `/` kısa nefes, `//` ekrandaki değişikliği bekle.
-- Sayıları ekranda görünmeden önce söyleme. Her bölümün ilk cümlesi, ekrandaki başlıkla aynı anda başlasın.
-- Geride kalırsan önce *(kısaltılabilir)* işaretli cümleyi atla. Asıl sayıları atlama.
+- **Video:** `docs/sunum/MarsTrail_final.mp4`. 10 bölüm × 30 sn, sessiz. Her cümlenin görseli, cümlenin başladığı saniyede belirir.
+- **PPTX:** `docs/sunum/MarsTrail_final.pptx`. Her cümle bir tıklama; metin slayt notlarında.
+- **Hız:** Ses taslağından ölçüldü (faster-whisper): 2.10 kelime/sn, cümle arasında 0.45 sn nefes. Toplam 520 kelime.
+- **Okurken:** Cümleye ekrandaki görsel belirince başla. Geride kalırsan bölümün son cümlesini kısalt; bölüm sınırını kaçırma.
 
-**Sayıların kaynağı**
-- Hepsi [SAYI_DENETIMI.md](SAYI_DENETIMI.md)'de kaynağıyla eşleştirildi.
-- Apollo 14 ~30 m: NASA PIA12897 (LROC/ASU, 2009).
-- Houston 10,9 dk: bugünkü uzaklık (`marstime.js`).
+## 1 · Hikâye: Üç görev, aynı son (0:00,0–0:30,0)
+
+| # | Zaman | Söyle | Ekranda |
+| --- | --- | --- | --- |
+| 1.1 | 0:00,8 | 1971, Ay: Shepard ve Mitchell, Cone Krateri'nin kenarını arıyor. | Ay görseli; “1971 · Apollo 14” kartı |
+| 1.2 | 0:05,5 | İşaretleri bulamıyorlar, Shepard'ın nabzı 150'ye çıkıyor ve Houston diyor ki: geri dönün. | Kırmızı “150” ve “Houston: Geri dönün.” |
+| 1.3 | 0:11,7 | Dönüyorlar. Yıllar sonra uydu fotoğrafı gösterdi: kenara yalnızca 30 metre kalmış. | “~30 m” (LROC/ASU kaynağıyla) |
+| 1.4 | 0:17,4 | 2005'te Opportunity, 30 santimlik bir kum dalgasına saplanıp beş haftadan fazla kaldı. | Mars görseli; “2005 · Opportunity” kartı |
+| 1.5 | 0:23,6 | 2009'da Spirit yumuşak kuma gömüldü ve bir daha hiç kıpırdayamadı. | “2009 · Spirit” kartı |
+
+*Konuşma 28.8 / 30 sn.*
+
+## 2 · Sorun: Durum değişiyor, plan değişmiyor (0:30,0–1:00,0)
+
+| # | Zaman | Söyle | Ekranda |
+| --- | --- | --- | --- |
+| 2.1 | 0:30,8 | Senaryolar farklı, sonuç hep aynı: başarısız görev. | Üç olay kartı, “Sonuç hep aynı: başarısız görev” |
+| 2.2 | 0:34,6 | Sebep teknik yetersizlik değil; durum değişince plan anında güncellenemedi. | Sebep cümlesi |
+| 2.3 | 0:39,3 | Rover saplanırsa yenisi gönderilir. Peki ya o bir astronotsa? | “Ya o bir astronotsa?” |
+| 2.4 | 0:44,1 | Mars'tan Houston'a bir mesaj 3 ile 22 dakika sürüyor; bugün 10,9 dakika. | “3–22 dk · bugün 10,9 dk” |
+| 2.5 | 0:50,2 | Üssün kuralı ise sabit: dönebileceğin kadar uzaklaş; ama bu kural araziyi, nabzı, kalan oksijeni bilmiyor. | “Üssün sabit kuralı” kartı |
+
+*Konuşma 27.8 / 30 sn.*
+
+## 3 · Çözüm: Dünya'yı beklemeden, canlı (1:00,0–1:30,0)
+
+| # | Zaman | Söyle | Ekranda |
+| --- | --- | --- | --- |
+| 3.1 | 1:00,8 | İşte biz MarsTrail'i tam bunun için geliştirdik. | “MarsTrail” |
+| 3.2 | 1:04,6 | MarsTrail, astronota Dünya'yı beklemeden nereye kadar gidip güvenle dönebileceğini canlı söylüyor. | Tek cümlelik tanım |
+| 3.3 | 1:10,3 | Dönüş sınırını sabit hızla değil; araziye, yüke, kalan oksijene ve nabza göre hesaplıyoruz. | Dört etiket: arazi · yük · kalan O₂ · nabız |
+| 3.4 | 1:16,9 | Ayşe'nin nabzı 85'ten 150'ye çıkınca güvenli yeşil alanı 130 kilometrekareden 47'ye iniyor. | “130 → 47 km²” ve iki O₂ bölgesi haritası (nabız 85 / 150) |
+| 3.5 | 1:23,1 | Dört adım: hazırlan, planla, yürü, hayatta kal. | Dört adım kartı |
+
+*Konuşma 26.9 / 30 sn.*
+
+## 4 · Uygulama · Hazirlan, Planla: Yola çıkmadan önce (1:30,0–2:00,0)
+
+| # | Zaman | Söyle | Ekranda |
+| --- | --- | --- | --- |
+| 4.1 | 1:30,8 | Her astronotun profili var: oksijen, nabız, yük, batarya, su ve radyasyon. | Uygulama: Ayşe'nin profil formu |
+| 4.2 | 1:36,5 | Her noktanın tarihçesi var: ne zaman keşfedildi, Perseverance oraya hangi Sol'de geldi, ne gördü. | Uygulama: delta önü kartı (tarihçe, Sol 415 fotoğrafı) |
+| 4.3 | 1:43,6 | Kendi rotanı çizebiliyorsun; sistem engelleri, zorluğu ve yükseklik profilini gösteriyor, denenmemiş rotaysa uyarıyor. | Klip: rota çiziliyor, “Çizilen rota” kartı açılıyor |
+| 4.4 | 1:50,2 | Planla dediğinde en güvenli yolu buluyor ve oksijenden gün batımına yedi maddelik GO/NO-GO listesi çıkarıyor. | Klip: Üs → Delta → Three Forks planı, GO |
+
+*Konuşma 27.8 / 30 sn.*
+
+## 5 · Uygulama · Yürü, Hayatta Kal: Yolda bir şey ters giderse (2:00,0–2:30,0)
+
+| # | Zaman | Söyle | Ekranda |
+| --- | --- | --- | --- |
+| 5.1 | 2:00,8 | Yürüyüş başladı; oksijen canlı düşüyor, yolda not pini bırakabiliyorsun. | Klip: canlı yürüyüş, not pini ve bildirim |
+| 5.2 | 2:05,5 | Ayşe'nin nabzı 150'ye çıkıyor: güvenli alan daralıyor, dönüş noktası öne geliyor. | Klip: nabız 150, bölge daralıyor |
+| 5.3 | 2:11,2 | Ve telsiz kopuyor; son konumdan, kalan oksijenle bir arama alanı çıkıyor. | Klip: telsiz koptu, arama alanı ve İHA rotası |
+| 5.4 | 2:16,9 | İHA bu alanı zikzakla tarıyor, olasılığın yarısını 11,6 dakikada kapsıyor. | “İHA: %50'si 11,6 dk” kartı |
+| 5.5 | 2:22,1 | Ali için kurtarma rotası çiziliyor; Ali'nin kendi oksijeninin yetip yetmediğini de hesaplıyoruz. | Klip sonu: Ali'nin kurtarma rotası; “116 / 480 dk” kartı |
+
+*Konuşma 28.3 / 30 sn.*
+
+## 6 · Nasil Yaptik · Veri: 8 açık veri seti → 1,3 MB'lık harita (2:30,0–3:00,0)
+
+| # | Zaman | Söyle | Ekranda |
+| --- | --- | --- | --- |
+| 6.1 | 2:30,8 | NASA ve USGS'nin açık verisini kullandık: sekiz veri seti, yaklaşık 6 gigabayt. | “8 açık veri seti · ~6 GB” ve veri listesi |
+| 6.2 | 2:37,0 | Üç farklı projeksiyonu tek bir 70 metrelik ızgarada birleştirdik. | “3 → 1” |
+| 6.3 | 2:41,7 | 2.590 HiRISE karosunun 1.444'ü boştu, attık; jeoloji haritasında iki kaynak hatasını düzelttik. | “1.444 / 2.590” ve karo seçim haritası |
+| 6.4 | 2:47,9 | Eğim, kum, kaya ve termali tek bir zorluk skorunda birleştirdik. | Füzyon görseli ve formül |
+| 6.5 | 2:53,1 | Geriye tarayıcıda çalışan 1,3 megabaytlık bir harita kaldı. | “1,3 MB” |
+
+*Konuşma 27.3 / 30 sn.*
+
+## 7 · Nasil Yaptik · Model: Kendi YOLOv8 modelimiz (3:00,0–3:30,0)
+
+| # | Zaman | Söyle | Ekranda |
+| --- | --- | --- | --- |
+| 7.1 | 3:00,8 | Metre ölçeğindeki kumu ve kayayı görmek için kendi YOLOv8 modelimizi eğittik. | “YOLOv8 · HiRISE 25 cm” |
+| 7.2 | 3:06,5 | 250 HiRISE karosundaki 1.033 kutuyu tek tek elle kontrol ettik. | “250 karo · 1.033 kutu” ve iki etiketli karo |
+| 7.3 | 3:11,7 | Beş kurulumu karşılaştırdık; komşu karoları aynı tarafa koyarak veri sızıntısını engelledik. | Sızıntısız bölme cümlesi ve v1/v2 karşılaştırma grafiği |
+| 7.4 | 3:17,4 | Sonuç: hücre düzeyinde yüzde 78 dengeli doğruluk. | “%78” |
+| 7.5 | 3:21,2 | Rotayı Tobler formülü ve Dijkstra ile buluyoruz; sunucu yok, hesap 100 milisaniyenin altında. | “Tobler + Dijkstra · sunucusuz · < 100 ms” |
+
+*Konuşma 27.8 / 30 sn.*
+
+## 8 · Doğrulama: Perseverance'ın gerçek rotasıyla sınadık (3:30,0–4:00,0)
+
+| # | Zaman | Söyle | Ekranda |
+| --- | --- | --- | --- |
+| 8.1 | 3:30,8 | Peki haritamız doğru mu? | “Haritamız doğru mu?” |
+| 8.2 | 3:33,2 | Perseverance'ın gerçekten sürdüğü yolu modele hiç vermedik, sınav olarak sakladık. | Rota haritası (mavi: Perseverance) |
+| 8.3 | 3:38,4 | YOLO olmadan skorumuz rotayı ayırt edemiyordu: 0,498, yani yazı tura. YOLO'yla 0,649. | “0,498 → 0,649” |
+| 8.4 | 3:44,5 | Rover'ın geçtiği 52 hücrenin hiçbiri bizim haritamızda kumlu değil; çevresinde bu oran yüzde 49. | “%0” ve “%49” |
+| 8.5 | 3:51,6 | Yani NASA ekibinin seçtiği yolu bizim haritamız da güvenli buluyor. | “Rotanın %100'ü geçilebilir” |
+
+*Konuşma 26.9 / 30 sn.*
+
+## 9 · Rakip Analizi: Herkes bir parçayı yapıyor (4:00,0–4:30,0)
+
+| # | Zaman | Söyle | Ekranda |
+| --- | --- | --- | --- |
+| 9.1 | 4:00,8 | Bu alanda ciddi araçlar var, onları inceledik. | Karşılaştırma tablosunun başlığı |
+| 9.2 | 4:04,6 | MIT'nin SEXTANT'ı ve NASA'nın xGDS/Minerva paketi, analog sahalarda yürüyüş rotası ve görev planlıyor. | SEXTANT ve xGDS/Minerva satırları |
+| 9.3 | 4:11,2 | SPOC ve NOAH-H derin öğrenmeyle Mars arazisini sınıflandırıyor, Mars Trek verileri tarayıcıda gösteriyor. | SPOC, NOAH-H, Mars Trek satırları |
+| 9.4 | 4:17,9 | Bizim farkımız: canlı nabız ve oksijenle değişen dönüş bölgeleri, telsiz koptuğunda kurtarma planı ve hepsi açık veriyle, sunucusuz, tek sayfada. | Turuncu MarsTrail satırı ve “Farkımız” cümlesi |
+
+*Konuşma 27.8 / 30 sn.*
+
+## 10 · Hedef: Nerede olduklarını bilecekler (4:30,0–5:00,0)
+
+| # | Zaman | Söyle | Ekranda |
+| --- | --- | --- | --- |
+| 10.1 | 4:30,8 | Hedefimiz burada kalmak değil: Artemis'le Ay'ın güney kutbu, sonra Mars. | “Ay · Artemis” ve “Sonra Mars” kartları |
+| 10.2 | 4:36,0 | Sıradaki adımlar kask içi ekran, gerçek yürüyüş verisiyle kalibrasyon ve onaylanan rotalardan bir kütüphane. | Üç yol haritası kartı |
+| 10.3 | 4:43,1 | NASA Goddard'dan LRO bilim insanı James Rice, bugünkü haritalarla Shepard ve Mitchell'in kenara muhtemelen ulaşacağını söylüyor. | Alıntı kartı |
+| 10.4 | 4:51,2 | Biz o haritayı Mars için yaptık; QR koddan hemen deneyebilirsiniz, teşekkür ederiz. | QR kod ve “Teşekkürler!” |
+
+*Konuşma 27.4 / 30 sn.*
 
 ---
 
-## 0:00–0:14 · Apollo 14 (ekranda: Ay, nabız 150, "Geri dönün", ~30 m)
+## Jüri soruları (en olası 10)
 
-> **1971, Ay.** Shepard ve Mitchell, Cone Krateri'nin kenarını arıyor. Haritadaki işaretleri bulamıyorlar. / Shepard'ın nabzı **150**'ye çıkıyor. // Houston: "Geri dönün." Dönüyorlar. // Yıllar sonra uydu fotoğrafı gösterdi: kenara yalnızca **30 metre** kalmıştı.
+**1. Bu NASA'da zaten yok mu?**
 
-*Not: "30 metre" sayaç ~0:12,6'da duruyor; tam o anda söyle.*
+Parçaları var: SEXTANT ve xGDS/Minerva analog sahalarda rota ve görev planlıyor, SPOC ve NOAH-H araziyi sınıflandırıyor, Mars Trek veriyi gösteriyor. Bizim farkımız astronotun nabzını ve kalan oksijenini araziyle birleştirip dönüş sınırını canlı çizmek ve telsiz koptuğunda kurtarma planını aynı ekranda vermek.
 
-## 0:14–0:28 · Opportunity ve Spirit
+**2. Modelin doğruluğu düşük değil mi? (mAP50 0,33)**
 
-> **2005, Mars.** Opportunity, **30 santimlik** bir kum dalgasına saplandı; beş haftadan fazla çıkamadı. / **2009**'da Spirit, sert kabuğun altındaki yumuşak kuma gömüldü ve bir daha hiç hareket edemedi.
+Kutu düzeyinde düşük, çünkü kum alanı gibi sınırı belirsiz nesnelerde kutunun tam tutması zor. Biz kutu değil 70 metrelik hücrede yoğunluk kullanıyoruz; orada dengeli doğruluk %78, ve asıl kanıt Perseverance rotası: AUC 0,50'den 0,65'e çıktı.
 
-## 0:28–0:45 · Soru (ekranda: "Mars'ta Houston 3–22 dakika uzakta. Kim 'geri dön' diyecek?")
+**3. Haritanızın doğru olduğunu nereden biliyorsunuz?**
 
-> Senaryolar farklı, sonuç hep aynı. Sebep teknik yetersizlik değildi: **durum değişti, plan anında güncellenemedi.** / Rover saplanırsa yenisi gönderilir. Ama ya o bir astronotsa? // Mars'ta Houston **3 ile 22 dakika** uzakta; bugün 10,9 dakika. / O dakikalarda kim "geri dön" diyecek?
+Perseverance'ın gerçekten sürdüğü yolu modele hiç vermeden sınav olarak kullandık. Rotadaki 52 hücrenin hiçbiri kumlu değil, çevrede %49; bootstrap farkının %95 aralığı +0,12 ile +0,18.
 
-## 0:45–1:14 · MarsTrail (ekranda: logo, uygulama, 130 → 47 km², dört adım)
+**4. Formüllerdeki katsayılar nereden geliyor?**
 
-> Bizim cevabımız: **MarsTrail.** / Üslerin kuralı basit: "Dönebileceğin kadar uzaklaş." Biz bu kuralı sabit bir hızla değil; **araziye, yüke, kalan oksijene ve astronotun nabzına göre canlı** hesaplıyoruz. // Ayşe'nin nabzı 85'ten 150'ye çıktığında güvenli yeşil alanı **130 kilometrekareden 47'ye** iniyor. Bunu Dünya'yı beklemeden, o saniye görüyor. // Dört adım: **hazırlan, planla, yürü, ve beklenmedik anda hayatta kal.**
+Füzyon ağırlıkları, O₂ çarpanı ve yorgunluk payı bizim varsayımımız ve kodda gerekçesiyle tek yerde yazılı. Gerçek yürüyüş verisi gelince rota doğrulamasıyla kalibre edilebilecek şekilde tasarladık.
 
-## 1:14–1:56 · Veri (ekranda: 8 veri seti tablosu; 1:24 "3 → 1", 1:26 "1444 / 2590", 1:30 normalizasyon)
+**5. Mars'ta GPS yok, konumu nasıl biliyorsunuz?**
 
-> Bunu tahminle değil, **NASA'nın açık verisiyle** yaptık. Sekiz veri seti, yaklaşık **6 gigabayt**: Perseverance'ın 708 konum kaydı ve 46 kilometrelik sürüş izi, 72 Ingenuity uçuşu, THEMIS termal verisi, 20 metrelik yükseklik modeli, USGS jeoloji haritası, rover fotoğrafları ve 25 santimlik HiRISE görüntüleri. //
-> **Üç farklı projeksiyonu** tek bir 70 metrelik ızgarada birleştirdik. // **2.590** HiRISE karosunun **1.444**'ü boştu, attık. // Termal veriyi aykırı uçları kırparak 0 ile 1 arasına çektik; jeoloji haritasında iki kaynak hatası bulup düzelttik. / Sonunda 6 gigabayttan, tarayıcıda çalışan **1,3 megabaytlık** bir harita kaldı. Hiçbir sayıyı elle yazmadık; hepsini betikle ölçtük.
+Demoda konum simüle; gerçekte giysi IMU'su, adım sayımı, habitat ve rover radyo sinyalleri ve arazi eşleştirmesiyle bulunur. Telsiz koparsa son konum ve kalan oksijenden arama alanını zaten çıkarıyoruz.
 
-## 1:56–2:46 · Yöntem (ekranda: katmanlar üst üste; 2:05 füzyon, 2:09 YOLOv8, 2:13 Tobler + Dijkstra, 2:17 varsayımlar)
+**6. Veri sızıntısını nasıl önlediniz?**
 
-> Gözle görünmeyeni görmek için katmanları üst üste koyduk: **eğim, kum, kaya ve termal.** Termal veri, Spirit'i gömen o yumuşak kumu yörüngeden gösteriyor. // Her hücreye 0 ile 1 arasında bir **zorluk skoru** veriyoruz. //
-> Metre ölçeğindeki kumu ve kayayı görmek için **kendi YOLOv8 modelimizi** eğittik. 250 HiRISE karosunu ve **1.033 kutuyu** tek tek elle kontrol ettik. Beş farklı kurulumu karşılaştırdık. Komşu karoları hep aynı tarafa koyarak **veri sızıntısını** engelledik; ilk bölmemizde sekiz karonun sızdığını bu sayede yakaladık. Hücre düzeyinde dengeli doğruluk **yüzde 78.** //
-> Son adım: **Tobler** yürüyüş formülü ve **Dijkstra** algoritmasıyla her hücre için gidiş-dönüş süresi. Nabız arttıkça oksijen tüketimi artıyor. / Sunucu yok; hesap tarayıcıda **100 milisaniyenin altında.** *(kısaltılabilir:)* Bütün katsayılar varsayım ve kodda tek yerde; gerçek veriyle kalibre edilebilir.
+Komşu HiRISE karoları aynı sahneyi paylaştığı için karoları komşulukla gruplayıp her grubu ya eğitime ya sınava koyduk. İlk bölmemizde 30 sınav karosunun 8'inin sızdığını bu kontrolle bulup düzelttik.
 
-## 2:46–3:35 · Demo (ekranda: uygulama kaydı; alttaki altyazılarla eşleştir)
+**7. Etiketleri yapay zekâ mı yaptı?**
 
-| Zaman | Ekranda | Söyle |
-| --- | --- | --- |
-| 2:46–2:52 | Mars saati, Sol 34, Dünya gecikmesi → Jezero, O₂ bölgeleri | "Sol 34, Jezero Krateri. Üstte Mars saati ve Dünya gecikmesi. **Yeşil, sarı, kırmızı oksijen bölgeleri** her an açık." |
-| 2:52–2:56 | Nokta kartı: tarihçe + Perseverance fotoğrafı | "Her noktanın **tarihçesi** var: ne zaman keşfedildi, Perseverance oraya hangi Sol'de geldi, orada ne gördü." |
-| 2:56–3:00 | YOLO katmanı: turuncu kum, kırmızı kaya | "Turuncu, modelimizin bulduğu kum; kırmızı, kaya." |
-| 3:00–3:06 | **Rota çiz:** engeller, zorluk, yükseklik profili | "Ayşe **kendi rotasını çiziyor.** Sistem engelleri, zorluğu ve yükseklik profilini çıkarıyor; denenmemiş bir rotaysa uyarıyor." |
-| 3:06–3:10 | Plan: Üs → Delta → Three Forks · GO | "Plan hazır: **GO.**" |
-| 3:10–3:15 | Canlı yürüyüş → **not pini, bildirim** | "Yürüyüş başladı. Yolda bir kum dalgası görüyor, **not pini bırakıyor**; her olay anında bildirim olarak düşüyor." |
-| 3:15–3:19 | Nabız 150 → güvenli bölge daralıyor | "Nabzı **150**'ye çıkıyor: güvenli alan daralıyor, dönüş noktası öne geliyor." |
-| 3:19–3:21 | Telsiz koptu: arama alanı ve İHA | "Ve **telsiz kopuyor.** Son konumdan bir arama alanı çıkıyor; İHA zikzakla tarıyor." |
-| 3:21–3:35 | Ali için kurtarma rotası: kendi O₂'si yetiyor mu? | "Ali için kurtarma rotası çiziliyor; **Ali'nin kendi oksijeni de yetiyor mu**, onu da hesaplıyor. // Geç fark edilirse sistem 'yetişilemez' demeyi de biliyor." |
+Roboflow'un otomatik etiketi yalnızca taslak verdi; 250 karodaki 1.033 kutunun hepsini Elif tek tek kontrol edip düzeltti. Kodu Claude Code desteğiyle yazdık; etiket tanımları, eşikler ve doğrulama ekibin kararı.
 
-*Not: 3:21–3:35 ekran uzun süre aynı kalıyor; acele etme, son cümleyi rahat söyle.*
+**8. İnternet olmadan çalışır mı?**
 
-## 3:36–4:10 · Doğrulama (ekranda: rota haritası; 3:38 AUC sayacı; 3:44 kumlu hücre; 3:48 %100)
+Bütün hesaplar cihazda, sunucu yok; O₂ bölgeleri, rota ve kurtarma tarayıcıda hesaplanıyor. Taban harita görüntüleri şu an internetten geliyor; görev için harita paketini cihaza gömmek sıradaki adım.
 
-> Peki haritamız doğru mu? / Perseverance'ın **gerçek sürüş izini** modele hiç vermedik; sonra karşılaştırdık. // YOLO olmadan skorumuz HiRISE bölgesinde rotayı ayırt edemiyordu: **0,498**, yani yazı tura. YOLO'yu ekleyince **0,649.** // Rover'ın geçtiği **52 hücrenin hiçbiri** bizim haritamızda kumlu değil; çevresinde bu oran **yüzde 49.** // Ve rotanın **yüzde 100**'ü bizim haritamızda geçilebilir. NASA ekibinin seçtiği yolu, bizim haritamız da güvenli buluyor.
+**9. Rover rotası astronot için doğru bir ölçüt mü?**
 
-## 4:10–4:40 · Etki (ekranda: Artemis ve Mars · Ay · Artemis · Açık; 4:20 "MarsTrail ile bilecekler" ve YZ beyanı)
+Tam değil: tekerlek kuma insandan daha duyarlı ve rota bilim hedeflerine de gidiyor. Ama elimizdeki tek gerçek “tehlikeden kaçınma” verisi bu, ve ölçtüğümüz kumdan kaçınma astronot için de geçerli.
 
-> Hedefimiz burada kalmak değil. **Artemis**'le insanlar yeniden Ay'da, ardından Mars'ta yürüyecek. Aynı sistem **Ay'ın güney kutbundaki yürüyüşlere** uyarlanabilir. Bugün telefonda çalışıyor, yarın kask içi ekrana taşınabilir. // Sonraki adımlar: gerçek uzay yürüyüşü verisiyle kalibrasyon ve astronotların bıraktığı notlar onaylandıkça büyüyen bir **denenmiş rotalar** kütüphanesi. // Kodu yapay zekâ desteğiyle yazdık; etiketleri, kararları ve doğrulamayı biz yaptık.
+**10. Bunu gerçekten kim kullanır, sıradaki adım ne?**
 
-## 4:40–5:00 · Kapanış (ekranda: MarsTrail, Teşekkürler, QR)
-
-> Apollo 14 astronotları **nerede olduklarını bilmedikleri için** döndü. 2009'da uydu, ayak izlerinin kenardan 30 metre önce bittiğini gösterdi. / MarsTrail ile bilecekler. // Uygulama şu an canlı; **QR koddan** telefonunuzda deneyebilirsiniz. Teşekkür ederiz.
-
----
-
-## Değişiklikler: ilk taslağa göre ne düzeltildi, neden
-
-| Taslakta | Burada | Neden |
-| --- | --- | --- |
-| "Nabızları 150'ye çıkıyor" | "Shepard'ın nabzı 150" | Kaynak (Apollo 14 görev raporu) Shepard'ın nabzını veriyor. |
-| "Sunucu yok, internet gerekmiyor" | "Sunucu yok" | Taban harita (Mars Trek) ve Cesium internetten geliyor; "internet gerekmiyor" jüri denerse yanlış çıkar. |
-| "Hücre doğruluğumuz %78" | "Dengeli doğruluk %78" | Ölçülen değer dengeli doğruluk (0,778). Düz doğruluk 0,80. |
-| "NASA'nın bilim insanları: bugünkü haritalarla ulaşırlardı" | "2009'da uydu, izlerin kenardan 30 m önce bittiğini gösterdi" | İlk cümlenin kaynağını bulamadık. İkincisi NASA PIA12897'de yazıyor. |
-| "Yeni rotada her an kaydediliyor, not, fotoğraf, inceleniyor, onaylanıyor" | "Rota çiz + uyarı; not pini + bildirim"; inceleme/onay **sonraki adım** | Uygulamada inceleme ve onay yok. Fotoğraf yükleme yok, pin yalnızca metin. Çizilen rota kalıcı kaydedilmiyor. Jüri denerse görülür. |
-| "Dünya'da afet" | "Ay · Artemis" | İstendiği gibi değiştirildi (video ve belgeler). |
+Artemis yürüyüşlerinde ve ilk Mars görevlerinde astronot ve üs ekibi. Sıradaki adımlar kask içi ekran, gerçek yürüyüş verisiyle kalibrasyon ve astronotların onayladığı rotalardan büyüyen bir kütüphane.

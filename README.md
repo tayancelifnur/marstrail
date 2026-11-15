@@ -61,8 +61,9 @@ Hangi dosyanın ne yaptığı: [docs/KOD_REHBERI.md](docs/KOD_REHBERI.md).
 | [docs/SLAYTLAR.md](docs/SLAYTLAR.md) | 7 slayt, konuşma metinleri |
 | [docs/TESLIM.md](docs/TESLIM.md) | Form cevapları, NASA verileri, kaynaklar, YZ beyanı, Drive listesi |
 | [docs/veri_envanteri.md](docs/veri_envanteri.md) | Veri kaynakları, tarihler, çözünürlükler |
-| [docs/KONUSMA_METNI.md](docs/KONUSMA_METNI.md) | 5 dakikalık sunum videosuna saniye saniye konuşma metni |
-| `docs/sunum/` | `MarsTrail_sunum_v2.mp4` (5:00, sunumda oynatılan), `MarsTrail.pptx` (hareketli, demo gömülü), `MarsTrail_sunum.mp4` (2:24 kısa sürüm), `demo.mp4` (30 sn) |
+| [docs/KONUSMA_METNI.md](docs/KONUSMA_METNI.md) | Final sunum: 10 bölüm × 30 sn, cümle cümle numaralı konuşma metni (zaman kodu ve ekranda ne olduğu) + jüri soruları |
+| [docs/OZELLIKLER.md](docs/OZELLIKLER.md) | Uygulamada gerçekten çalışan bütün özellikler, özgün olanlar ve olmayanlar |
+| `docs/sunum/` | **`MarsTrail_final.mp4`** (5:00, konuşma metniyle eş zamanlı) ve **`MarsTrail_final.pptx`** (10 slayt, her cümle bir tıklama); önceki sürümler: `MarsTrail_sunum_v2.mp4`, `MarsTrail.pptx`, `MarsTrail_sunum.mp4`; `demo.mp4` (30 sn) |
 
 Veri: NASA/JPL-Caltech, USGS, ASU (THEMIS), University of Arizona (HiRISE). Uygulamada ve sunumda NASA logosu, bayrağı ya da görev arması kullanılmaz; kaynaklar metin olarak belirtilir.
 
