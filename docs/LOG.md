@@ -527,3 +527,14 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Düzeltme:** Haritada 2+ noktalı çizilmiş rota varsa (çizim bitmiş ya da sürüyor) sol paneldeki düğme önce rotayı plana çevirir (çizgiyi izleyen plan, Go/No-Go'da "Test edilmemiş rota"), sonra yürüyüşü başlatır. Plan yokken de çizimde 2 nokta olunca düğme açılır. Yürüyüş başlarken test edilmemiş rotada sarı uyarı da çıkar. Rota yoksa eskisi gibi mevcut plan yürür.
 - **Kontrol (gerçek fare tıklamasıyla):** (a) çizim sürerken → "Üs → Nokta 1 → Nokta 2 → Nokta 3 → Üs" yürünüyor, çizgiyi izliyor; (b) çizim bitince → aynı; (c) rota yokken → demo planı. JS hatası yok.
 - **Dosyalar:** `web/app.js`
+
+## G-ek · Kurtarma sonrası görünüm · Paz 15 Kas 2026, 11:20
+
+- **Sorun (Gözde, ekran görüntüsü):** Kurtarma animasyonu bitince harita acil durumdaki gibi kalıyordu (arama alanı, İHA zikzakı, "Son konum").
+- **Ne yapıldı:** Animasyon bitince `finishRescue`: ekran silinmez, sonuç görünümüne geçer.
+  - Harita: arama alanı ve İHA rotası soluk iz (dolgu %25, çizgiler %40); kurtarıcının yolu yeşil kurtarma izi; son konum "Bulundu · Ayşe · T+42 dk"; üste "Ayşe · Ali · üste döndü".
+  - Kart: "✓ Kurtarma tamamlandı · GÜVENDE" + olay özeti (telsiz koptu T+0 → İHA buldu T+42 → Ali vardı T+90 → üste T+159; Ayşe 169 dk, Ali 364 dk O₂). "Haritayı temizle" ve "↺ Tekrar oynat".
+  - Üst bar: Habitat ağı "bağlı", bildirim "Ayşe güvende, telsiz bağlantısı geri geldi."
+  - Başarısızsa "✗ Kurtarma başarısız · KAYIP", son konum kırmızı, telsiz kopuk kalır; "üste dönüş" ve kurtarıcı O₂ satırları gösterilmez.
+- **Kontrol:** Demo kurtarma → GÜVENDE, ağ bağlı; Tekrar oynat → acil görünüm + animasyon → yine sonuç; Haritayı temizle → çizim kalmadı; 120 dk geç fark etme → KAYIP. JS hatası yok.
+- **Dosyalar:** `web/app.js`

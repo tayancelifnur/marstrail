@@ -2731,13 +2731,96 @@
       if (tl) showToast(tl.survivable ? "ok" : "danger", fmtT(a.t), tl.survivable
         ? "Üste varıldı: " + rescue.lostName + " güvende (" + Math.round(tl.atBase) + " dk O₂)."
         : "Kurtarma başarısız: " + rescue.lostName + " üste canlı ulaşamadı.");
+      finishRescue(tl);
       return;
     }
     a.raf = requestAnimationFrame(rescueFrame);
   }
 
+  // Kurtarma bitince ekran silinmez, "sonuç" görünümüne geçer: arama alanı ve İHA rotası soluk iz olarak kalır,
+  // kurtarıcının yolu yeşil kurtarma izi, son konum "Bulundu", kart özet + zaman çizelgesi, telsiz bağlı.
+  // "Haritayı temizle" her şeyi kaldırır; "Tekrar oynat" acil durum görünümüne döner.
+  const DONE_FADE = 0.25; // soluk izlerin saydamlığı (göz kararı: okunur ama "aktif" görünmez)
+  function finishRescue(tl) {
+    if (!rescue.active || !rescue.result) return;
+    const ok = !!(tl && tl.survivable);
+    rescue.done = { ok, tl };
+    const { area, drone, buddy } = rescue.result;
+    if (rescue.layer) rescue.layer.alpha = DONE_FADE;
+    rescue.entities.splice(0).forEach((e) => viewer.entities.remove(e));
+    const fade = (hex) => Cesium.Color.fromCssColorString(hex).withAlpha(DONE_FADE + 0.15);
+    const line = (coords, color, width, dashed) => {
+      const e = rescueLine(coords, "#ffffff", width, dashed);
+      e.polyline.material = dashed ? new Cesium.PolylineDashMaterialProperty({ color, dashLength: 12 }) : color;
+      return e;
+    };
+    area.outlines.p90.forEach((l) => rescue.entities.push(line(l, fade("#ff9800"), 1.5)));
+    area.outlines.p50.forEach((l) => rescue.entities.push(line(l, fade("#ff1744"), 2)));
+    if (drone) rescue.entities.push(line(drone.waypoints, fade("#e0e0ff"), 1));
+    const trail = Cesium.Color.fromCssColorString(ok ? "#2ecc71" : "#ff1744");
+    if (buddy && buddy.ok) {
+      rescue.entities.push(line(buddy.to, trail, 4));
+      rescue.entities.push(line(buddy.back, trail, 4, !ok));
+    }
+    const last = rescue.input.last;
+    const tFound = tl ? Math.round(tl.foundT) : null;
+    rescue.entities.push(ok
+      ? planMarker(last.lon, last.lat, "#2ecc71", "Bulundu · " + rescue.lostName + (tFound != null ? " · T+" + tFound + " dk" : ""), 13)
+      : planMarker(last.lon, last.lat, "#ff1744", "Son konum · " + rescue.lostName, 13));
+    if (ok) rescue.entities.push(planMarker(Walkback.BASE.lon, Walkback.BASE.lat, "#2ecc71", rescue.lostName + " · " + rescue.rescuerName + " · üste döndü", 12));
+    document.body.classList.remove("emergency");
+    if (ok) {
+      setLink(true);
+      showToast("ok", "Habitat ağı", rescue.lostName + " güvende, telsiz bağlantısı geri geldi.");
+    }
+    showDetail(rescueDoneCard(ok, tl));
+  }
+
+  function rescueDoneCard(ok, tl) {
+    const { buddy } = rescue.result;
+    const t = (v) => "T+" + Math.round(v) + " dk";
+    const back = buddy && buddy.ok && tl ? tl.meetT + buddy.backMin : null;
+    const rows = [];
+    if (tl) {
+      rows.push(["Telsiz koptu", "T+0 dk (fark edilme: " + rescue.elapsed + " dk sonra)"]);
+      rows.push(["İHA buldu", t(tl.foundT) + " (%90 olasılık)"]);
+      rows.push([rescue.rescuerName + " vardı", t(tl.buddyT)]);
+      if (ok && back != null) rows.push(["Üste dönüş", t(back)]);
+      rows.push([rescue.lostName + " O₂ (üste)", ok ? Math.round(tl.atBase) + " dk" + (tl.spare ? " (yedek tüple)" : "") : "yetmedi"]);
+    }
+    if (ok && buddy && buddy.rescuerO2 != null) rows.push([rescue.rescuerName + " O₂ (üste)", Math.round(buddy.rescuerO2 - buddy.rescuerNeedMin) + " dk kaldı"]);
+    const clear = el("button", { type: "button", class: "primary" }, "Haritayı temizle");
+    clear.addEventListener("click", closeRescue);
+    const replay = el("button", { type: "button" }, "↺ Tekrar oynat");
+    replay.addEventListener("click", replayRescue);
+    return el("div", { class: "card rescue-card rescue-done" + (ok ? " ok" : " fail") },
+      el("span", { class: "chip", style: "--chip:" + (ok ? "#2ecc71" : "#ff1744") }, "Hayatta Kal"),
+      el("h3", null, ok ? "✓ Kurtarma tamamlandı" : "✗ Kurtarma başarısız"),
+      el("div", { class: "verdict-row" },
+        el("span", { class: "verdict " + (ok ? "go" : "nogo") }, ok ? "GÜVENDE" : "KAYIP"),
+        el("span", { class: "small muted" }, ok
+          ? rescue.lostName + " ve " + rescue.rescuerName + " üste döndü. Haritada yeşil çizgi kurtarma yolu, soluk alanlar arama izi."
+          : rescue.lostName + " üste canlı ulaşamadı: daha erken fark etmek ya da daha yakın kurtarıcı gerekirdi.")),
+      el("div", { class: "controls card-actions" }, clear, replay),
+      el("h4", null, "Olay özeti"),
+      kvList(rows),
+      el("p", { class: "muted small" }, "Süreler telsizin koptuğu andan (T+0). Katsayılar varsayım (rescue.js)."));
+  }
+
+  function replayRescue() {
+    rescue.done = null;
+    rescue.anim.t = 0;
+    rescue.anim.flags = {};
+    document.body.classList.add("emergency");
+    setLink(false);
+    drawRescue();
+    showDetail(rescueCard());
+    toggleRescueAnim();
+  }
+
   function closeRescue() {
     stopRescueAnim();
+    rescue.done = null;
     rescue.anim.t = 0;
     rescue.anim.flags = {};
     rescue.active = false;
