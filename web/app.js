@@ -2761,7 +2761,8 @@
     a.t += dt;
     const { drone, buddy } = rescue.result, f = a.flags;
     const o2 = rescueLostO2();
-    const cov = drone ? rescueCoverage(a.t) : 0;
+    const seenAt = droneSeenMin();
+    const cov = drone ? rescueCoverage(seenAt != null ? Math.min(a.t, seenAt) : a.t) : 0; // gördükten sonra tarama durur
     if ($("rsT")) {
       $("rsT").textContent = fmtT(a.t);
       $("rsO2").textContent = Math.max(0, Math.round(o2)) + " dk";
