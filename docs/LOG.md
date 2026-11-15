@@ -546,3 +546,10 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Ne yapıldı (app.js):** Çizilen rotada 15°'den dik hücreye (ya da komşusuna) düşen ara noktalar atılıyor → 281 m (planlayıcınınkiyle aynı, daha kötü değil). Çizilen/serbest rotada 15° üstü kesim varsa Go/No-Go'nun başına "Dik yamaç / krater · DİKKAT: X m boyunca 15° üstü (en dik N°)" ekleniyor. Demo planı aynı (243 dk, 5,52 km).
 - **Elif'e (walkback.js):** Krater duvarlarından kaçınmak için hücre maliyetine eğim cezası (ör. 15° üstü ×3) ya da geçilmez sınırını 20°'ye çekmek düşünülebilir. Teslimden önce değiştirilirse demo sayıları (E8/E11/E13) yeniden ölçülmeli.
 - **Dosyalar:** `web/app.js`
+
+## G-ek · İHA Ayşe'yi görünce durur · Paz 15 Kas 2026, 12:05
+
+- **İstek (Gözde):** İHA kayıp astronotu gördükten sonra zikzakın kalanını uçmasın.
+- **Ne yapıldı (yalnız animasyon, app.js):** İHA'nın kamera şeridinin yarısı (swath/2 = 57 m) son bilinen konumu ilk kez kapsadığı an "gördü" sayılır (demoda astronot son konumda bekliyor kabul). O andan sonra İHA astronotun üstünde bekler, "%50/%90 taradı" bildirimleri çıkmaz, "İHA Ayşe'yi gördü: tarama durdu, konum Ali'ye iletildi" bildirimi çıkar. Olay özetinde "İHA gördü" ve "Planlanan bulma (%90, karar buna göre)" ayrı satır. rescue.js'in kararı ve süreleri değişmedi.
+- **Kontrol:** Demo: İHA rotası 24,2 dk; animasyonun 9,1. dk'sında gördü (kopmadan T+29), İHA Ayşe'ye 0 m uzaklıkta bekliyor; özet: İHA gördü T+29, planlanan bulma T+42, üste T+159. JS hatası yok.
+- **Dosyalar:** `web/app.js`

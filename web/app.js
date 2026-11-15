@@ -2540,7 +2540,25 @@
   function rescueDronePos() {
     const d = rescue.result && rescue.result.drone;
     if (!d) return [Walkback.BASE.lon, Walkback.BASE.lat];
+    // Ayşe'yi gördükten sonra İHA taramayı bırakır, üstünde havada bekler (konumu kurtarıcıya iletir)
+    const seen = droneSeenMin();
+    if (seen != null && rescue.anim.t >= seen) return [rescue.input.last.lon, rescue.input.last.lat];
     return alongLine(d.waypoints, rescue.anim.t / d.minutes);
+  }
+
+  // İHA'nın kayıp astronotu gördüğü an (animasyon dakikası): kamera şeridinin yarısı (swath/2) içinden geçtiği ilk an.
+  // Demoda astronot son bilinen konumda bekliyor kabul edilir. rescue.js'in %90 bulma süresi (karar) ayrı, değişmez.
+  function droneSeenMin() {
+    const r = rescue.result, d = r && r.drone;
+    if (!d) return null;
+    if (r._seen !== undefined) return r._seen;
+    const last = rescue.input.last, half = d.swathM / 2;
+    r._seen = null;
+    for (let t = 0; t <= d.minutes; t += 0.05) {
+      const q = alongLine(d.waypoints, t / d.minutes);
+      if (distM({ lon: q[0], lat: q[1] }, last) <= half) { r._seen = t; break; }
+    }
+    return r._seen;
   }
 
   // Ali: 10 dk giyinme, sonra gidiş rotası (toMin), sonra birlikte dönüş (backMin); rota boyunca eşit hız varsayımı
@@ -2731,7 +2749,8 @@
   // Animasyon, İHA ve Ali'nin ikisi de bitene kadar sürer
   function rescueEndMin() {
     const { drone, buddy } = rescue.result;
-    return Math.max(drone ? drone.minutes : 0, buddy && buddy.ok ? DISPATCH_MIN + buddy.toMin + buddy.backMin : 0);
+    const seen = droneSeenMin();
+    return Math.max(drone ? (seen != null ? seen : drone.minutes) : 0, buddy && buddy.ok ? DISPATCH_MIN + buddy.toMin + buddy.backMin : 0);
   }
 
   function rescueFrame(now) {
@@ -2750,8 +2769,13 @@
       $("rsCov").textContent = "%" + Math.round(cov * 100);
     }
     const lab = fmtT(a.t);
-    if (drone && !f.d50 && drone.t50 != null && a.t >= drone.t50) { f.d50 = true; showToast("info", lab, "İHA en olası %50 alanı taradı."); }
-    if (drone && !f.d90 && a.t >= drone.t90) { f.d90 = true; showToast("info", lab, "İHA olasılığın %90'ını taradı."); }
+    const seen = droneSeenMin();
+    if (seen != null && !f.seen && a.t >= seen) {
+      f.seen = true;
+      showToast("ok", lab, "İHA " + rescue.lostName + "'yi gördü: tarama durdu, konum " + rescue.rescuerName + "'ye iletildi.");
+    }
+    if (drone && !f.seen && !f.d50 && drone.t50 != null && a.t >= drone.t50) { f.d50 = true; showToast("info", lab, "İHA en olası %50 alanı taradı."); }
+    if (drone && !f.seen && !f.d90 && a.t >= drone.t90) { f.d90 = true; showToast("info", lab, "İHA olasılığın %90'ını taradı."); }
     if (!f.go && a.t >= DISPATCH_MIN) { f.go = true; showToast("info", lab, rescue.rescuerName + " üsten çıktı."); }
     if (buddy && buddy.ok && !f.arr && a.t >= DISPATCH_MIN + buddy.toMin) {
       f.arr = true;
@@ -2818,7 +2842,9 @@
     const rows = [];
     if (tl) {
       rows.push(["Telsiz koptu", "T+0 dk (fark edilme: " + rescue.elapsed + " dk sonra)"]);
-      rows.push(["İHA buldu", t(tl.foundT) + " (%90 olasılık)"]);
+      const seen = droneSeenMin();
+      if (seen != null) rows.push(["İHA gördü", t(rescue.elapsed + seen) + " (tarama orada durdu)"]);
+      rows.push(["Planlanan bulma", t(tl.foundT) + " (%90 olasılık, karar buna göre)"]);
       rows.push([rescue.rescuerName + " vardı", t(tl.buddyT)]);
       if (ok && back != null) rows.push(["Üste dönüş", t(back)]);
       rows.push([rescue.lostName + " O₂ (üste)", ok ? Math.round(tl.atBase) + " dk" + (tl.spare ? " (yedek tüple)" : "") : "yetmedi"]);
