@@ -469,3 +469,12 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Pages:** gh CLI yok ve site hâlâ 404 (`has_pages: false`). Adımlar Elif'e verildi; canlı link TESLIM.md'de.
 - **Dosyalar:** `scripts/make_slides.py`, `docs/sunum/MarsTrail.pptx`, `docs/TESLIM.md`, `.gitignore`
 - **Nasıl çalıştırılır:** `venv\Scripts\python scripts\make_slides.py [--pdf]`
+
+## G-ek · E13 sonrası arayüz kontrolü, YZ beyanı, sunum v2 sayıları · Paz 15 Kas 2026, 10:10
+
+- **Kontrol (Elif'in 73e2eec'i):** `lost.name` iki yerde rescue.js'e gidiyor, `rescuer` profilin kopyası (adı içeriyor), eski Ali/Ayşe takası kapalı. E13 testi headless Chrome'da "E13 OK". Uygulamada iki senaryo denendi: Ayşe kayıp → "Ali kurtarmaya gidiyor", "Ayşe'nin O₂'si 279 dk"; Ali kayıp → "Ayşe kurtarmaya gidiyor", "Ali'nin O₂'si 280 dk". JS hatası yok.
+- **Düzeltildi:** Acil durum kartının dipnotunda kurtarıcı adı sabit "Ali" yazıyordu → `rescue.rescuerName`.
+- **Not:** app.js'teki "'yi / 'ye / 'nin" ekleri sabit; Ayşe ve Ali için doğru, başka adlarda rescue.js'teki `genitive` gibi bir yardımcı gerekir.
+- **TESLIM.md bölüm 4:** Arayüz, gözden geçirme, test, sunum ve demo videosunda Claude Code kullanımı yazıldı; "Sunum" maddesi içerik/akış kararı olarak netleştirildi.
+- **Sunum (repo dışında, `C:\Users\gozde\marstrail-presentation`):** v2 sayıları (250 karo, 1033 kutu, dengeli doğruluk 0,78, AUC 0,498 → 0,649, rota %0 / çevre %49 kum, kaya AUC 0,51) ve yeni hazard_ml/traversability katmanları. Demo videosu yeniden çekildi: YOLO sahnesi HiRISE kum şeridine yaklaşıyor, süre 29,87 sn.
+- **Dosyalar:** `web/app.js`, `docs/TESLIM.md`, `docs/LOG.md`

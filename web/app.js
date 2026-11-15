@@ -2428,7 +2428,7 @@
     }
     parts.push(el("p", { class: "muted small" },
       "Alan: son konumdan min(geçen süre, O₂/çarpan) içinde yürünebilen hücreler, olasılık ∝ 1/(1+süre), plan rotasına ≤150 m ise ×2. " +
-      "İHA: 100 m irtifa, 60° görüş → 115 m şerit, %20 örtüşme, 10 m/s. Ali: 10 dk hazırlık, birlikte dönüş %20 yavaş, 60 dk yedek O₂. Katsayılar varsayım (rescue.js)."));
+      "İHA: 100 m irtifa, 60° görüş → 115 m şerit, %20 örtüşme, 10 m/s. " + rescue.rescuerName + ": 10 dk hazırlık, birlikte dönüş %20 yavaş, 60 dk yedek O₂. Katsayılar varsayım (rescue.js)."));
     const card = el("div", { class: "card rescue-card" }, parts);
     if (drone) setTimeout(() => drawCoverage(canvas, drone), 0);
     return card;
