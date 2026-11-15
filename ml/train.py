@@ -5,9 +5,11 @@
     venv\\Scripts\\python ml\\train.py --name e6_s3 --model yolov8s.pt      # yolov8s, 3 sınıf
     venv\\Scripts\\python ml\\train.py --name e6_m2 --classes2              # kaya_alani → kaya
     venv\\Scripts\\python ml\\train.py --name e6_s2 --classes2 --model yolov8s.pt
+    venv\\Scripts\\python ml\\train.py --name e6v2_s2 --classes2 --model yolov8s.pt --data ml/dataset_merged   # 2. parti (merge_v2.py)
 
 Girdi : ml/dataset/ (Roboflow "marstrail-jezero v1-150karo", YOLOv8 export, 120 train / 30 valid)
-        --classes2 ile ml/dataset_2cls/ otomatik üretilir (aynı görüntüler, kaya_alani kutuları kaya'ya birleşir)
+        --data ile başka bir export (ör. ml/dataset_merged, 250 karo) seçilir
+        --classes2 ile <data>_2cls/ otomatik üretilir (aynı görüntüler, kaya_alani kutuları kaya'ya birleşir)
 Çıktı : ml/runs/<name>/ (Ultralytics: results.png, confusion_matrix*.png, weights/best.pt)
         docs/figures/<name>_metrics.json + <name>_*.png → ml/compare_runs.py karşılaştırır ve en iyi modeli
         ml/models/yolo_marstrail.pt yapar (E10 bunu kullanır).
@@ -22,13 +24,12 @@ from ultralytics import YOLO
 from ultralytics.utils import YAML
 
 ROOT = Path(__file__).resolve().parents[1]
-DS = ROOT / "ml" / "dataset"
-DS2 = ROOT / "ml" / "dataset_2cls"
+DS_DEFAULT = ROOT / "ml" / "dataset"
 FIG = ROOT / "docs" / "figures"
 EXPECTED = ["kaya", "kaya_alani", "kum_dalgasi"]
 
 
-def clean_data_yaml() -> Path:
+def clean_data_yaml(DS: Path) -> Path:
     """Roboflow'un data.yaml'ı '../train/images' gibi göreli yollar yazıyor ve olmayan 'test' bölümünü gösteriyor.
     Mutlak 'path' ile temiz bir kopya üretiyoruz. Sınıf sırası Roboflow'unkiyle aynı (etiket indisleri buna göre)."""
     src = YAML.load(DS / "data.yaml")
@@ -40,11 +41,12 @@ def clean_data_yaml() -> Path:
     return dst
 
 
-def two_class_yaml() -> Path:
+def two_class_yaml(DS: Path) -> Path:
     """Ablation B/C: kaya_alani (1) kutuları kaya'ya (0) birleşir, kum_dalgasi 2 → 1.
     Neden: kaya ile kaya_alani aynı dokunun iki ölçeği; v1 confusion matrix'te gerçek kayaların %18'i kaya_alani
     tahmin edildi ve kaya_alani'nin valid'de yalnızca 17 kutusu var. Haritaya giden bilgi ikisinde de "kayalık"."""
     remap = {0: 0, 1: 0, 2: 1}
+    DS2 = DS.parent / (DS.name + "_2cls")   # ml/dataset → ml/dataset_2cls (E6 ile aynı yol)
     if DS2.exists():
         shutil.rmtree(DS2)
     for split in ("train", "valid"):
@@ -83,10 +85,12 @@ def main():
     ap.add_argument("--optimizer", default="SGD")
     ap.add_argument("--lr0", type=float, default=0.01)
     ap.add_argument("--amp", action="store_true", help="fp16 karışık hassasiyet (v1'de ıraksadı; varsayılan kapalı)")
+    ap.add_argument("--data", default=str(DS_DEFAULT), help="Roboflow YOLOv8 export klasörü (train/, valid/, data.yaml)")
     ap.add_argument("--diag", action="store_true", help="sadece eğit; docs/figures'a yazma")
     args = ap.parse_args()
 
-    data = two_class_yaml() if args.classes2 else clean_data_yaml()
+    ds = Path(args.data) if Path(args.data).is_absolute() else ROOT / args.data
+    data = two_class_yaml(ds) if args.classes2 else clean_data_yaml(ds)
     (ROOT / "ml" / "weights").mkdir(exist_ok=True)
     model = YOLO(str(ROOT / "ml" / "weights" / args.model))  # COCO ön-eğitimli ağırlık; yoksa buraya indirilir
     model.add_callback("on_fit_epoch_end", nan_watch)
@@ -97,7 +101,7 @@ def main():
         project=str(ROOT / "ml" / "runs"), name=args.name, exist_ok=True,
         seed=0, deterministic=True,       # ablation koşuları aynı tohumla: fark ayardan gelsin, şanstan değil
         optimizer=args.optimizer, lr0=args.lr0, amp=args.amp,
-        cache="ram",                      # 150 karo × 640² küçük; diskten okuma darboğazı olmasın
+        cache="ram",                      # 150–250 karo × 640² küçük; diskten okuma darboğazı olmasın
         # --- Artırma (augmentation) seçimleri: Roboflow'da artırma YOK, hepsi burada ---
         hsv_h=0.0, hsv_s=0.0,             # görüntü gri (HiRISE pankromatik); renk tonu/doygunluk anlamsız
         hsv_v=0.3,                        # parlaklık ±%30: farklı güneş açısı / mozaik şeritleri arası ton farkı
@@ -125,7 +129,7 @@ def main():
         per_class[names[int(c)]] = {"P": round(float(p), 3), "R": round(float(r), 3),
                                     "mAP50": round(float(ap50), 3), "mAP50_95": round(float(ap), 3)}
     res = {
-        "task": "detect", "run": args.name, "model": args.model, "classes": list(names.values()),
+        "task": "detect", "run": args.name, "model": args.model, "data": ds.name, "classes": list(names.values()),
         "optimizer": args.optimizer, "lr0": args.lr0, "amp": args.amp,
         "epochs_requested": args.epochs, "imgsz": args.imgsz, "batch": args.batch, "patience": args.patience,
         "all": {"P": round(float(m.box.mp), 3), "R": round(float(m.box.mr), 3),

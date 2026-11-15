@@ -11,9 +11,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 FIG = ROOT / "docs" / "figures"
-RUNS = ["e6v1", "e6_m3", "e6_s3", "e6_m2", "e6_s2", "e6_cls_s"]
+RUNS = ["e6v1", "e6_m3", "e6_s3", "e6_m2", "e6_s2", "e6_cls_s", "e6v2_s2"]   # e6v2_s2: 250 karo (merge_v2.py), val farklı!
 LABEL = {"e6v1": "v1 (ıraksadı)", "e6_m3": "0) m, 3 sınıf", "e6_s3": "A) s, 3 sınıf",
-         "e6_m2": "B) m, 2 sınıf", "e6_s2": "C) s, 2 sınıf", "e6_cls_s": "D) s-cls, karo"}
+         "e6_m2": "B) m, 2 sınıf", "e6_s2": "C) s, 2 sınıf", "e6_cls_s": "D) s-cls, karo",
+         "e6v2_s2": "C-v2) s, 2 sınıf, 250 karo (başka val)"}
 
 
 def load(run):

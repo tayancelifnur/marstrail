@@ -264,16 +264,17 @@ Ham NASA/USGS verisinden tarayıcıdaki haritaya kadar her adım: ne aldık, ney
 | İndis | Sınıf | Tanım | Kutu boyu (p10 / medyan / p90) |
 | --- | --- | --- | --- |
 | 0 | `kaya` | Küçük yüzey engeli, metre ölçeğinde: kaya ya da küçük çukur. Gölgenin hangi yanda olduğuna bakmadan ayırt edilemiyor; astronot için ikisi de engel, bu yüzden tek sınıf. | 2,5 / 5,0 / 9,4 m |
-| 1 | `kaya_alani` | Yoğun kaya bölgesi. Grid hücresi 70 m olduğu için bölge ölçeği seçildi. | 10,8 / 23,9 / 65,1 m |
+| 1 | `kaya_alani` | **Yoğun engel alanı:** sık kaya ya da sık küçük çukur kümesi (v2 tanımı; v1'de "yoğun kaya bölgesi"). Grid hücresi 70 m olduğu için bölge ölçeği seçildi. | 10,8 / 23,9 / 65,1 m |
 | 2 | `kum_dalgasi` | Kum dalgası sırtları ya da sırtlarla dolu kum alanı. | 26,1 / 60,9 / 159,8 m |
 
 - **Etiketlenmeyenler:**
-  - Büyük çöküntü yamaçları ve gölgeleri: eğim DEM'den (D5) geliyor, aynı tehlike iki kez sayılmasın.
+  - Tek büyük krater/çöküntü, yamaçları ve gölgeleri: eğim DEM'den (D5) geliyor, aynı tehlike iki kez sayılmasın. Ayrım ölçekte: çok sayıda küçük çukur `kaya_alani`, tek büyük çukur etiketsiz.
   - Mozaik dikiş yerleri: arazi değil görüntüleme izi.
 - **Sınırlamalar** (ölçülen):
   - 237 `kum_dalgasi` kutusunun 74'ü karonun ≥ %80'ini kaplıyor. Bu karolarda kum "nesne" değil "karo türü" olarak etiketli; kum için model kısmen karo sınıflandırıcısı gibi öğrenir. E10'da çıktı zaten yoğunluk olarak grid'e gittiği için kabul edildi.
   - 15 negatif karonun 14'ünde etiketleme sırasında nesne bulundu. Tamamen boş karo 7 (train 6, valid 1). Yanlış pozitif riski E10'da kontrol edilecek.
   - `kaya_alani` en az örnekli sınıf (82 kutu). Valid kümesinde 17 kutu var; bu sınıfın mAP'i birkaç kutuyla değişebilir.
+  - **Tanım tutarlılığı:** 1. partide küçük çukur kümeleri tutarlı etiketlenmedi (bazıları `kaya_alani`, bazıları etiketsiz). 2. partide tanım "yoğun engel alanı" (kaya **veya** çukur kümesi) olarak netleşti; 1. partinin etiketleri değiştirilmedi. Ölçülen fark ve etkisi aşağıda, "2. parti ile yeniden eğitim" bölümünde.
   - Hepsi HiRISE mozaiğinin kapsadığı güneybatı bölümden. Başka aydınlatma/çözünürlükte genellemesi denenmedi.
 
 ### Etiket sayıları
@@ -396,6 +397,8 @@ Dört model arasındaki fark 0,016 mAP50, yani 30 karoluk val kümesinde gürül
 
 **Seçilen: C) YOLOv8s, 2 sınıf (`e6_s2`) → `ml/models/yolo_marstrail.pt`.** Seçim kaydı `ml/models/yolo_marstrail.json` dosyasında.
 
+> **Güncelleme (2. parti):** Aynı kurulum (C) 250 karoyla yeniden eğitildi ve önceden yazılmış karar kuralıyla v1'in yerine geçti (`e6v2_s2`). Ayrıntı aşağıda, "2. parti ile yeniden eğitim" bölümünde.
+
 Gerekçe:
 1. **E10'un sorusunda en iyisi:** Hücre düzeyinde dengeli doğruluk 0,657 ile en yüksek. Kayalık recall'u 0,36 ile en iyilerle eşit. Adil karşılaştırmada mAP50 0,327 ve kum_dalgasi mAP50 0,518 ile en yüksek. A'nın düz doğruluğu daha yüksek (0,833), ama kayalık hücrelerin 14'ünden yalnızca 2'sini buluyor. Astronot güvenliği için kayalığı kaçırmak, düzü yanlışlıkla kayalık saymaktan daha pahalı.
 2. **Eşitlikte küçük model:**
@@ -407,7 +410,7 @@ Gerekçe:
 **Sınırlar (sunumda söylenecek):**
 - Val kümesi küçük: 30 karo, 14 kayalık hücre. Farkların çoğu tek tek karolarla oynar.
 - Kaya tespiti zayıf: kaya mAP50 ~0,14.
-- Bu sonuç 2. parti etiketlerle (100 karo, ağırlıklı düz ve kayalık) yeniden doğrulanacak. Etiketler gelince aynı ablation ile en azından B ve C yeniden koşulacak; train/val bölmesi bitişik karo grupları korunarak yapılacak.
+- Bu val'de komşuluk sızıntısı da var: 30 val karosunun 8'i bir train karosuna bitişik (`ml/merge_v2.py` ölçtü). Bu tablodaki skorlar biraz iyimser olabilir; 2. parti karşılaştırmasında bu düzeltildi.
 
 Şekiller: [e6_s2_results.png](figures/e6_s2_results.png), [e6_s2_confusion_matrix_normalized.png](figures/e6_s2_confusion_matrix_normalized.png), [e6_s2_BoxPR_curve.png](figures/e6_s2_BoxPR_curve.png), [e6_s2_val_batch0_pred.jpg](figures/e6_s2_val_batch0_pred.jpg).
 
@@ -431,21 +434,83 @@ Gerekçe:
   - Kum: eolyen ≥ %60.
 - **Çıktı:** `ml/roboflow_upload_2.zip` (18 MB), `ml/tiles_manifest_2.csv`. Görsel: [figures/e6_batch2_selection.png](figures/e6_batch2_selection.png). Sayılar: [figures/e6_batch2_stats.json](figures/e6_batch2_stats.json).
 
+### 2. parti ile yeniden eğitim (ml/merge_v2.py, ml/train.py --data, ml/eval_merged.py)
+
+- **Veri seti:** Roboflow `marstrail-jezero` v2 "v2-250karo" (`ml/dataset_v2`). 250 karo = 1. partinin 150 karosu (etiketleri v1 ile birebir aynı, değişmemiş) + 2. partinin 100 karosu. Boş etiket dosyası 14, toplam 1033 kutu. Roboflow'da artırma yok.
+- **Neden:** v1 modeli kayalık hücrelerin yalnızca %36'sını buluyordu ve boş/düz örnek azdı. 2. parti tam bu açığı kapatmak için seçildi (40 kayalık, 53 düz, 7 kum).
+
+**Bitişik karo grupları ile bölme.** 160 m'lik komşu karolar aynı kum alanını ya da kaya sahasını paylaşır. Biri train'de diğeri val'de olursa model val'de gördüğü sahneyi tekrar görür (uzamsal sızıntı). Karolar 8-komşulukla bağlı bileşenlere ayrıldı: 250 karo → **203 bileşen** (176 tekil, en büyüğü 11 karo). Bileşenler bütün olarak tek tarafa gitti:
+1. v1'de train olan bir karoyu içeren bileşen → train. Böylece v1 modeli yeni val'deki hiçbir karoyu eğitimde görmemiş oluyor ve iki model aynı val'de adil karşılaştırılıyor.
+2. Yalnızca v1 val karolarından oluşan bileşen → val.
+3. Yalnızca yeni karolardan oluşan bileşenler → val toplamı %20 olana kadar kategoriye göre tabakalı ve sabit tohumla seçildi.
+
+| | Eski karo (1. parti) | Yeni karo (2. parti) | Toplam |
+| --- | --- | --- | --- |
+| train | 128 | 71 | 199 |
+| val | 22 | 29 | 51 |
+
+- **Atılan / taşınan:** Hiç karo atılmadı. v1 val'inin 8 karosu (bir v1 train karosuna bitişik oldukları için) train'e taşındı. Bu, **v1 val'inde de komşuluk sızıntısı olduğunu** gösteriyor: v1 tablolarındaki skorlar biraz iyimser olabilir.
+- **Kontrol:** Bölmeden sonra val ile train arasında bitişik karo çifti 0 (betik bunu `assert` ile doğruluyor).
+- **Görsel ve sayılar:** [e6v2_split.png](figures/e6v2_split.png), [e6v2_split.json](figures/e6v2_split.json), karo listesi `ml/split_merged.csv`.
+
+**Etiket tanımı farkı (ölçülen).** 2. partide `kaya_alani` "yoğun engel alanı" olarak etiketlendi (sık kaya **veya** sık küçük çukur kümesi). 1. partide çukur kümeleri tutarlı değildi.
+
+| | 1. parti (150 karo) | 2. parti (100 karo) |
+| --- | --- | --- |
+| Karo başına `kaya_alani` kutusu | 0,55 | 2,45 |
+| `kaya_alani` içeren karo | 25 (%17) | 66 (%66) |
+| `kaya` kutu kenarı p10 / medyan / p90 | 2,5 / 5,0 / 9,4 m | 3,5 / 6,9 / 15,6 m |
+| `kaya_alani` kutu kenarı p10 / medyan / p90 | 10,8 / 23,9 / 65,1 m | 12,4 / 25,2 / 69,2 m |
+
+- Farkın bir kısmı seçimden (2. partide 40 kayalık karo), bir kısmı tanımdan geliyor; ikisi ayrılamıyor.
+- 2 sınıflı modelde `kaya_alani` zaten `kaya`'ya birleşiyor, yani haritaya giden "kayalık" bilgisi iki partide aynı anlamda.
+- `kaya` kutularının büyümesi, E10'daki "kenarı ≥ 10 m kaya kutusu = kaya alanı" eşiğini (1. partinin p90'ından seçilmişti) biraz düşük bırakıyor. Eşik değiştirilmedi; 2 sınıflı modelde iki grup zaten aynı "kayalık" terimine gidiyor.
+
+**Eğitim.** Kurulum C ile aynı (YOLOv8s, 2 sınıf, SGD lr0 0,01, fp32, aynı artırmalar, seed 0); yalnız veri değişti.
+- 41 epoch (erken durma), en iyi epoch 21, 1,4 dk, NaN yok.
+
+**Karar kuralı (sonuçlar görülmeden `eval_merged.py`'ye yazıldı):** Yeni model ancak tüm val'de **hem** 2 sınıflı mAP50 **hem** hücre düzeyi dengeli doğruluk eski modelden yüksek ya da eşitse seçilir. İki ölçüt var, çünkü mAP50 kutuyu, hücre doğruluğu haritaya giden bilgiyi ölçüyor ve 51 karoluk val'de tek ölçütteki küçük artışa güvenmiyoruz.
+
+**Sonuç: aynı 51 karoluk val, iki model de bu karoları ilk kez görüyor.**
+
+| Model | mAP50 (2 sınıf) | kaya mAP50 (R) | kum mAP50 (R) | Hücre doğruluğu | Hücre dengeli doğruluk | duz R | kayalik P / R | kum R |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| v1 (`e6_s2`, 150 karo) | 0,308 | 0,138 (0,113) | 0,479 (0,473) | 0,725 | 0,692 | 0,803 | 0,870 / 0,364 | 0,910 |
+| **v2 (`e6v2_s2`, 250 karo)** | **0,330** | 0,200 (0,252) | 0,461 (0,364) | 0,799 | **0,778** | 0,859 | 0,738 / 0,564 | 0,910 |
+
+Eski ve yeni karolarda ayrı ayrı (tanım değişikliğinin etkisini ayırmak için):
+
+| Val alt kümesi | mAP50 v1 → v2 | Hücre dengeli doğruluk v1 → v2 | Not |
+| --- | --- | --- | --- |
+| 1. parti karoları (22) | 0,427 → 0,422 | 0,704 → 0,751 | duz R 0,77 → 0,68: yeni model, 1. partide etiketsiz kalmış çukur kümelerine "kayalık" diyor |
+| 2. parti karoları (29) | 0,217 → 0,255 | 0,650 → 0,744 | duz R 0,82 → 0,94, kayalik R 0,37 → 0,56 |
+
+- **Karar: v2 seçildi** (`ml/compare_runs.py --select e6v2_s2` → `ml/models/yolo_marstrail.pt`). Kural iki ölçütte de sağlandı.
+- **Yorum:**
+  - Asıl kazanç kayalık hücrelerde: recall 0,36 → 0,56. E10 için en çok istediğimiz buydu; v1 kayalığın çoğunu kaçırıyordu.
+  - Kaya kutu recall'u iki katına çıktı (0,11 → 0,25). Kum tespitinde kesinlik arttı (0,48 → 0,77) ama recall düştü (0,47 → 0,36). Hücre düzeyinde kum recall'u değişmedi (0,91), çünkü hücre kararı tek tek kutulara değil kaplama oranına bakıyor.
+  - 1. parti karolarında mAP50 aynı kaldı. Yani kazanç yalnızca "yeni tanımı öğrenmekten" gelmiyor; hücre doğruluğu eski karolarda da arttı.
+  - Bedeli: 1. parti karolarında düz recall'u düştü. Model, 1. partide etiketlenmemiş çukur kümelerini kayalık sayıyor. Bu, etiket tutarsızlığının ölçülebilir izi (aşağıda etiket denetimi de aynı şeyi gösteriyor).
+- **Sınırlar:** Val küçük (51 karo, 204 alt karo). Farklar için güven aralığı hesaplanmadı. Rakamlar tek bir tohumla eğitilmiş tek bir koşudan.
+- **Not:** Ultralytics'in kendi doğrulaması v2 için mAP50 0,355 diyor (`e6v2_s2_metrics.json`). Karşılaştırma tablosu ise iki model için de aynı kodla (`eval_merged.py`) hesaplandı, bu yüzden 0,330. İkisi de doğru, ölçüm kodu farklı (görüntü ön işleme ve gruplama).
+- **Görsel ve sayılar:** [e6v2_compare.png](figures/e6v2_compare.png), [e6v2_compare.json](figures/e6v2_compare.json), [e6v2_s2_results.png](figures/e6v2_s2_results.png), [e6v2_s2_confusion_matrix_normalized.png](figures/e6v2_s2_confusion_matrix_normalized.png).
+
 ## E10 · YOLO çıkarımı, füzyon ve D2 doğrulaması (ml/infer.py, scripts/prep_layers.py, scripts/validate.py)
 
 - **Neden:** Model bu adımda haritaya giriyor. E6'daki mAP modelin etiketlere ne kadar benzediğini ölçüyordu. Burada ürünün kendisi ölçülüyor: YOLO eklenince skor, gerçek bir gezginin seçtiği rotayı daha iyi açıklıyor mu?
-- **Model:** `e6_s2` (YOLOv8s, 2 sınıf). Model değişince yalnız `ml/models/yolo_marstrail.pt` değişir ve üç betik tekrar çalıştırılır; bütün sayılar bu dosyalardan yeniden üretilir.
+- **Model:** **`e6v2_s2`** (YOLOv8s, 2 sınıf, 250 karo). E10 önce v1 modeliyle (`e6_s2`) koşuldu; 2. parti gelince yalnız `ml/models/yolo_marstrail.pt` değişti ve üç betik tekrar çalıştırıldı. Aşağıdaki sayılar v2 modelinin; v1 sayıları karşılaştırma için parantez içinde ya da ayrı satırda.
 
 ### Çıkarım
 
 - **Karolar:** E5 ızgarasında NoData içermeyen bütün karolar: 1088 temiz + 58 dokusuz = **1146 karo** (1146 × 160 m × 160 m ≈ 29 km²). Tam çözünürlükte NoData yüzünden atılan karo 0.
 - **Ön işleme:** E5 ile aynı germe (60–219). Gri görüntü 3 kanala kopyalanıyor.
   - Fark: eğitim karoları Roboflow'dan JPG olarak geldi, çıkarım kayıpsız diziyle yapılıyor. Küçük bir alan kayması var; ölçülmedi.
-- **Süre:** RTX 5090'da 13,5 sn çıkarım, toplam 17 sn.
-- **Tespitler (güven ≥ 0,25):** 1551 kaya, 625 kaya alanı, 1986 kum dalgası. 1146 karonun 1078'inde en az bir tespit var.
+- **Süre:** RTX 5090'da 12,6 sn çıkarım, toplam 17 sn.
+- **Tespitler (güven ≥ 0,25):** 3078 kaya, 1185 kaya alanı, 1010 kum dalgası (v1: 1551 / 625 / 1986). 1146 karonun 1106'sında en az bir tespit var (v1: 1078).
+  - v2 iki kat fazla kaya buluyor ve daha az ama daha büyük kum kutusu çiziyor; E6v2'deki recall/kesinlik değişimiyle tutarlı.
   - Kaya alanı = kenarı ≥ 10 m olan kaya kutusu. Eşik ölçümden: etiketlerde kaya p90 9,4 m, kaya_alani p10 10,8 m.
-- **Dokusuz karolar:** 58 karonun 41'inde tespit var. Karo başına medyan 1 (dokulu karolarda 2). Çoğu karo boyu kum kutusu.
-  - Görsel kontrol ([e10_plain_examples.png](figures/e10_plain_examples.png)): E5'teki "dokusuz" ölçüsü 1/16 ön görünümde alınmıştı. Tam çözünürlükte bu karoların çoğunda ince kum dalgacıkları ya da koyu, düz kum örtüsü görünüyor.
+- **Dokusuz karolar:** 58 karonun 46'sında tespit var (v1: 41).
+  - Görsel kontrol (v1 modeliyle yapıldı, [e10_plain_examples.png](figures/e10_plain_examples.png)): E5'teki "dokusuz" ölçüsü 1/16 ön görünümde alınmıştı. Tam çözünürlükte bu karoların çoğunda ince kum dalgacıkları ya da koyu, düz kum örtüsü görünüyor.
   - Yani bunlar büyük olasılıkla yanlış pozitif değil. Yine de yer-gerçeği yok.
 
 ### Hücre yoğunluğu (256² grid, 70 m hücre; 1024² katman için de aynısı)
@@ -454,7 +519,7 @@ Gerekçe:
 - **Formüller** (E6'daki hücre kuralıyla aynı ölçek):
   - `kum_ml = kum_dalgası kutularının hücrede kapladığı oran`. E6'da "kum hücresi" eşiği 0,5.
   - `kaya_ml = clip(max(kaya_alanı_oranı / 0,2 , kaya_sayısı_ha / 6,25), 0, 1)`. E6'nın kayalık eşikleri (kaya alanı ≥ 0,1 ya da 80 m'de ≥ 2 kaya = 3,1/ha) tam 0,5'e denk geliyor.
-- **Kapsama:** HiRISE karoları hücrenin %50'sinden azını kaplıyorsa ML değeri yok sayılıyor (NaN). Bu kurala göre **5666 hücrede** ML var; bunların 2953'ünde kum_ml ≥ 0,5, 599'unda kaya_ml ≥ 0,5.
+- **Kapsama:** HiRISE karoları hücrenin %50'sinden azını kaplıyorsa ML değeri yok sayılıyor (NaN). Bu kurala göre **5666 hücrede** ML var; bunların 2768'inde kum_ml ≥ 0,5, 994'ünde kaya_ml ≥ 0,5 (v1: 2953 ve 599).
 - **Görsel:** [e10_density.png](figures/e10_density.png). Kum, ortadaki eolyen bandı (77,31–77,34°D) izliyor; kapsamdaki beyaz şeritler HiRISE görüntü şeritleri arasındaki boşluklar.
 
 ### Füzyon (prep_layers.py)
@@ -464,11 +529,11 @@ Gerekçe:
   - YOLO kapsamındaki hücrelerde: `kum = 0,5·eolyen_birim + 0,5·kum_ml`, `kaya = 0,5·jeoloji_vekili + 0,5·kaya_ml`. Kapsam dışında E3 aynen kalıyor.
 - **Neden ortalama:**
   - Jeoloji 1:75.000 ölçekli poligon; birim içindeki düz alanı göremez.
-  - YOLO 25 cm'de bakıyor ama mAP50'si 0,33.
+  - YOLO 25 cm'de bakıyor ama mAP50'si 0,33 (hücre dengeli doğruluğu 0,78).
   - İkisini kalibre edecek yer-gerçeği yok; eşit ağırlık en az varsayım gerektiren seçim.
   - YOLO yeni bir terim değil; aynı iki terimin daha ince ölçekli ikinci kaynağı. Füzyonun tek girdisi değil.
 - **Etkisi:**
-  - HiRISE kapsamında skor ortalama +0,013 değişti; ortalama mutlak değişim 0,034.
+  - HiRISE kapsamında skor ortalama +0,014 değişti; ortalama mutlak değişim 0,035.
   - Geçilmez hücre sayısı 150'de kaldı; YOLO hiçbir hücreyi 0,8 eşiğinin üstüne itmedi.
   - grid.json'daki `sand` alanı (Go/No-Go kum tuzağı) artık birleşik kum terimi ≥ 0,5 olan hücreler.
 - **Uygulamaya etkisi:** Üs, delta önü ve Three Forks kapsam dışında. E8, E11 ve E13 testleri yeni grid ile geçti; demo sayıları aynı. Yalnız üsten Cheyava Falls'a tek yön süre 278 dk'dan 279 dk'ya çıktı.
@@ -483,26 +548,29 @@ Gerekçe:
 | Bölge | | Rota medyanı | Rota dışı medyanı | AUC (rota daha kolay) | Rotanın geçilebilir oranı |
 | --- | --- | --- | --- | --- | --- |
 | Tüm alan (397 rota hücresi) | YOLO'suz | 0,216 | 0,224 | 0,562 | %100 |
-| | YOLO'lu | 0,217 | 0,224 | 0,569 | %100 |
+| | YOLO'lu, v1 modeli | 0,217 | 0,224 | 0,569 | %100 |
+| | **YOLO'lu, v2 modeli** | 0,216 | 0,224 | 0,571 | %100 |
 | HiRISE kapsamı (52 rota hücresi) | YOLO'suz | 0,397 | 0,395 | **0,498** | %100 |
-| | YOLO'lu | 0,360 | 0,404 | **0,626** | %100 |
+| | YOLO'lu, v1 modeli | 0,360 | 0,404 | 0,626 | %100 |
+| | **YOLO'lu, v2 modeli** | 0,360 | 0,409 | **0,649** | %100 |
 
 - **Bootstrap** (rota hücreleri 1000 kez yeniden örneklendi):
-  - HiRISE kapsamında AUC önce [0,427 – 0,569], sonra [0,571 – 0,678].
-  - **Fark [+0,099 – +0,156]**; 1000 örneğin hiçbirinde fark ≤ 0 değil.
+  - HiRISE kapsamında AUC önce [0,427 – 0,569], sonra [0,593 – 0,703] (v1 modeliyle [0,571 – 0,678]).
+  - **Fark [+0,120 – +0,181]** (v1 modeliyle [+0,099 – +0,156]); 1000 örneğin hiçbirinde fark ≤ 0 değil.
   - Komşu rota hücreleri birbirine benzediği için gerçek belirsizlik bundan biraz daha geniş; aralık alt sınır olarak okunmalı.
 - **Doğrudan test, YOLO yoğunlukları (HiRISE kapsamı):**
 
 | | Rota | Rota dışı | AUC |
 | --- | --- | --- | --- |
-| kum_ml ≥ 0,5 olan hücre | %3,8 | %52,6 | **0,781** [0,746 – 0,818] |
-| kaya_ml ≥ 0,5 olan hücre | %5,8 | %10,6 | 0,508 |
+| kum_ml ≥ 0,5 olan hücre | **%0** (52 hücrenin hiçbiri; v1: %3,8) | %49,3 (v1: %52,6) | **0,790** [0,763 – 0,802] (v1: 0,781) |
+| kaya_ml ≥ 0,5 olan hücre | %11,5 (v1: %5,8) | %17,6 (v1: %10,6) | 0,510 (v1: 0,508) |
 
 - **Yorum:**
   - HiRISE kapsamında jeoloji, termal ve eğimle kurulan skor rotayı rota dışından **hiç ayırt edemiyordu** (0,498).
-  - YOLO eklenince ayırt etmeye başladı (0,626). Rover, YOLO'nun kum dediği hücrelerden belirgin biçimde kaçınmış: rotanın %3,8'i, çevrenin %52,6'sı kum. Kendi modelimizin ölçülebilir katkısı bu.
-  - Kaya yoğunluğu rotayı ayırmıyor (0,508). Bu, E6'daki zayıf kaya tespitiyle tutarlı (kaya mAP50 ~0,14). Bir başka olasılık: rover ekibi metre ölçeğindeki kayaları rota üstünde hiç önemsemiyor olabilir.
-  - Tüm alanda etki küçük (0,562 → 0,569), çünkü rotanın yalnızca 52/397 hücresi HiRISE kapsamında.
+  - YOLO eklenince ayırt etmeye başladı: v1 modeliyle 0,626, v2 modeliyle **0,649**. Rover, YOLO'nun kum dediği hücrelerden belirgin biçimde kaçınmış: v2'ye göre rotadaki 52 hücrenin hiçbiri kumlu değil (ortalama kum_ml 0,011), çevrenin %49,3'ü kumlu. Kendi modelimizin ölçülebilir katkısı bu.
+  - 2. parti etiketlerle gelen iyileşme küçük ama aynı yönde (+0,023 AUC). Kazancın kaynağı yine kum, çünkü kaya hâlâ rotayı ayırmıyor.
+  - Kaya yoğunluğu rotayı ayırmıyor (0,510). v2 iki kat fazla kaya bulmasına rağmen değişmedi. Bu yüzden zayıf tespit tek açıklama değil: rover ekibi metre ölçeğindeki kayaları rota seçiminde 70 m ölçeğinde önemsemiyor olabilir, ya da rotanın geçtiği delta önü zaten kayalı.
+  - Tüm alanda etki küçük (0,562 → 0,571), çünkü rotanın yalnızca 52/397 hücresi HiRISE kapsamında.
   - Kartın sorusu: rotanın %100'ü bizim grid'imizde geçilebilir, YOLO'dan önce de sonra da.
 - **Sınırlar:**
   - 52 hücre az ve hepsi kapsamın kuzey kenarında.
@@ -510,14 +578,19 @@ Gerekçe:
   - Rotanın "kolay" arazi olması bir varsayım.
 - **Görsel ve sayılar:** [e10_validation.png](figures/e10_validation.png), [e10_validation.json](figures/e10_validation.json).
 
-### Etiket denetimi (model, etiketlenmiş 150 karoda)
+### Etiket denetimi (model, etiketlenmiş karolarda)
 
 - **Yöntem:** Model, Elif'in etiketlediği görüntülerin aynısında güven ≥ 0,5 ile çalıştırıldı. Aynı gruptaki (kaya + kaya alanı | kum) bir etiketle IoU < 0,1 olan ve merkezi hiçbir etiket kutusunun içine düşmeyen tespitler "olası kaçırılan etiket" sayıldı.
-- **Sonuç:** **40 tespit, 24 karoda.** 33'ü train, 7'si valid. Gruplara göre: 13 kaya, 16 kaya alanı, 11 kum.
-- **Görsel kontrol** ([e10_audit_examples.png](figures/e10_audit_examples.png), en güvenli 8 örnek):
+- **v1 modeliyle, 150 karoda:** **40 tespit, 24 karoda.** 33'ü train, 7'si valid. Gruplara göre: 13 kaya, 16 kaya alanı, 11 kum.
+- **Görsel kontrol (v1 modeli, en güvenli 8 örnek; görsel dosyası artık v2 sonucunu gösteriyor):**
   - Gerçek eksik etiket gibi görünenler: jz_r066_c015 ve jz_r065_c013'teki koyu kaya ya da çukurlar, jz_r036_c017'deki küçük kaya, jz_r031_c009'daki kaya kümesi.
   - Model hatası gibi görünenler: jz_r029_c021'de kırıklı parlak kaya "kum" sanılmış, jz_r047_c026'da pürüzlü yüzey "kum" sanılmış.
 - **Liste:** `ml/audit_missed_labels.csv`. 2. partiyle birlikte Roboflow'da gözden geçirilecek.
+- **v2 modeliyle, 250 karoda (güncel liste ve görsel):**
+  - **101 tespit, 57 karoda.** 90'ı train, 11'i valid. Gruplara göre 79 kaya, 22 kaya alanı, 0 kum.
+  - **80'i 1. parti karolarında (39 karo), 21'i 2. parti karolarında (18 karo).** Karo başına 0,53'e karşı 0,21. Yani etiketlenmemiş engel 1. partide 2,5 kat daha sık.
+  - Görsel kontrol ([e10_audit_examples.png](figures/e10_audit_examples.png)): en güvenli 8 örneğin 8'i de 1. parti karosu. 7'si bir yanı parlak, bir yanı koyu gölgeli küçük çukur ya da kaya. Tam da 1. partide tutarsız etiketlenen tür. 1'i (jz_r038_c011) büyük bir yamaç gölgesi; bu bir model hatası, çünkü yamaçlar etiketlenmiyor.
+  - v1 denetimindeki 11 "kum" bulgusu v2'de 0'a indi. v1'in kırıklı kayayı kum sanma hatası düzelmiş görünüyor.
 - **Sayılar:** [e10_infer_stats.json](figures/e10_infer_stats.json).
 
 ---
@@ -534,6 +607,6 @@ Gerekçe:
 | D6 | SIM 3464 jeoloji | 349 MB · 181 dosya, 13 katman, 1304 poligon | 19 sistem dosyası, 12 katman, 1186 poligon; 2 kaynak hatası düzeltildi | 118 poligon, 10 birim → 1024² | Reprojeksiyon, rasterize, katsayı tablosu |
 | D7 | Perseverance ham görüntüleri | 7 Sol · 1795 görüntü kaydı | 1785: kamera, alt kare, renkli/gri ikiz, açı, doku eşiği, 1 insan kontrolü | 10 fotoğraf (800 px, ~580 KB) | Kural tabanlı eleme hunisi + kenar şiddeti eşiği |
 | D8 | HiRISE 25 cm mozaiği | 5,47 GB zip · 76.576 × 107.264 px | Zip'te ortogörüntü dışındaki her şey (DTM, güven haritaları); 2590 karonun 1444'ü NoData, 58'i dokusuz | 150 karo (640², 28 MB) → etiket: E5 | Karolama, birim tabanlı aday seçimi, en uzak nokta örneklemesi, %0,5–99,5 germe |
-| E10 | YOLO çıkarımı + doğrulama | 1146 karo (1088 temiz + 58 dokusuz), 4162 tespit (güven ≥ 0,25) | Güven < 0,25; HiRISE kapsamı < %50 olan hücreler | 5666 hücrede kum_ml ve kaya_ml → füzyon; hazard_ml.png | Hücre yoğunluğu, jeoloji ile eşit ağırlık, D2 rotasıyla AUC (HiRISE: 0,498 → 0,626) |
-| E6 | YOLO etiketleri + model | 150 karo (D8), Roboflow ön etiket + elle düzeltme · 574 kutu | Geçersiz etiket 0; 2 sınıf için kaya_alani → kaya birleştirildi | YOLOv8s 2 sınıf: mAP50 0,327 (adil karşılaştırma), hücre dengeli doğruluk 0,657 | Transfer öğrenme, kararlı ayar (SGD, fp32), 5 koşuluk ablation, hücre düzeyi doğrulama |
+| E10 | YOLO çıkarımı + doğrulama | 1146 karo (1088 temiz + 58 dokusuz), 5273 tespit (güven ≥ 0,25) | Güven < 0,25; HiRISE kapsamı < %50 olan hücreler | 5666 hücrede kum_ml ve kaya_ml → füzyon; hazard_ml.png | Hücre yoğunluğu, jeoloji ile eşit ağırlık, D2 rotasıyla AUC (HiRISE: 0,498 → 0,649) |
+| E6 | YOLO etiketleri + model | 250 karo (D8; 150 + 100), Roboflow ön etiket + elle düzeltme · 1033 kutu | Geçersiz etiket 0; 2 sınıf için kaya_alani → kaya birleştirildi; v1 val'inden 8 bitişik karo train'e taşındı | YOLOv8s 2 sınıf (v2): mAP50 0,330, hücre dengeli doğruluk 0,778 (v1: 0,308 / 0,692, aynı val) | Transfer öğrenme, kararlı ayar (SGD, fp32), 5 koşuluk ablation, bitişiklik gruplu bölme, önceden yazılmış karar kuralı |
 | Füzyon | Geçilebilirlik + grid | D4 + D5 + D6 | – | 65.536 hücre (70 m), 150 geçilmez | Ağırlıklı toplam, Tobler, Dijkstra |

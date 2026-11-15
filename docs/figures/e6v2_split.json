@@ -1,0 +1,111 @@
+{
+  "tiles": 250,
+  "components": 203,
+  "component_sizes": {
+    "1": 176,
+    "2": 21,
+    "3": 3,
+    "4": 1,
+    "8": 1,
+    "11": 1
+  },
+  "split_tiles": {
+    "train_eski": 128,
+    "train_yeni": 71,
+    "valid_eski": 22,
+    "valid_yeni": 29
+  },
+  "empty_label_tiles": {
+    "train": 8,
+    "valid": 6
+  },
+  "v1_valid_moved_to_train": [
+    "jz_r025_c012",
+    "jz_r031_c016",
+    "jz_r034_c022",
+    "jz_r041_c023",
+    "jz_r047_c017",
+    "jz_r049_c017",
+    "jz_r056_c012",
+    "jz_r066_c015"
+  ],
+  "v1_valid_adjacent_to_v1_train": [
+    "jz_r025_c012",
+    "jz_r031_c016",
+    "jz_r034_c022",
+    "jz_r041_c023",
+    "jz_r047_c017",
+    "jz_r049_c017",
+    "jz_r056_c012",
+    "jz_r066_c015"
+  ],
+  "boxes": {
+    "train|eski|kaya": 205,
+    "train|eski|kaya_alani": 65,
+    "train|eski|kum_dalgasi": 213,
+    "train|yeni|kaya": 231,
+    "train|yeni|kaya_alani": 171,
+    "train|yeni|kum_dalgasi": 107,
+    "valid|eski|kaya": 50,
+    "valid|eski|kaya_alani": 17,
+    "valid|eski|kum_dalgasi": 24,
+    "valid|yeni|kaya": 81,
+    "valid|yeni|kaya_alani": 74,
+    "valid|yeni|kum_dalgasi": 31
+  },
+  "box_side_m_p10_med_p90": {
+    "eski|kaya": [
+      2.5,
+      5.0,
+      9.4
+    ],
+    "eski|kaya_alani": [
+      10.8,
+      23.9,
+      65.1
+    ],
+    "eski|kum_dalgasi": [
+      26.1,
+      60.9,
+      159.8
+    ],
+    "yeni|kaya": [
+      3.5,
+      6.9,
+      15.6
+    ],
+    "yeni|kaya_alani": [
+      12.4,
+      25.2,
+      69.2
+    ],
+    "yeni|kum_dalgasi": [
+      25.6,
+      44.4,
+      151.4
+    ]
+  },
+  "boxes_per_tile": {
+    "eski|kaya": 1.7,
+    "eski|kaya_alani": 0.55,
+    "eski|kum_dalgasi": 1.58,
+    "yeni|kaya": 3.12,
+    "yeni|kaya_alani": 2.45,
+    "yeni|kum_dalgasi": 1.38
+  },
+  "tiles_with_class": {
+    "eski|kaya": 37,
+    "eski|kaya_alani": 25,
+    "eski|kum_dalgasi": 136,
+    "yeni|kaya": 66,
+    "yeni|kaya_alani": 66,
+    "yeni|kum_dalgasi": 66
+  },
+  "val_new_by_category": {
+    "duz": 15,
+    "kayalik": 10,
+    "duz_dokusuz": 2,
+    "kum": 2
+  },
+  "cross_split_adjacent_pairs": 0
+}

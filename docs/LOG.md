@@ -403,3 +403,32 @@ Her kartın sonunda: kart, saat, ne yapıldı, değişen dosyalar, nasıl çalı
 - **Uçtan uca demo (headless Chrome, 1440×900, ×300):** Demo'yu sıfırla → Jezero → Planla (GO, 4 sa 3 dk, 5,5 km) → Yürüyüşü başlat → nabız 150 → T+27'de Telsiz koptu (KURTARILABİLİR) → Aramayı oynat (üste varış, 305 dk O₂) → Acil durumu kapat (ağ "bağlı"). Toplam 49 sn, JS hatası yok.
 - **Kalan:** gerçek telefonda link testi (Pages açılınca), 08:30'da kod dondurma (öneri: `git tag demo-v1`).
 - **Not:** Bu makineden registry.npmjs.org'a erişilemiyor; yerel kopyalı Cesium derlemesi burada denenemedi, GitHub'da adım geçti.
+## E6 · 2. parti ile yeniden eğitim + etiket tanımı güncellemesi · Paz 15 Kas 2026, 09:30
+
+- **Ne yapıldı:**
+  - `ml/dataset_v2` kontrol edildi: 250 karo, 236'sında kutu, 1033 kutu. Eski 150 karonun etiketleri v1 ile aynı.
+  - `ml/merge_v2.py`: 8-komşuluk bileşenleriyle bölme yapıldı (203 bileşen). Sonuç: train 199 karo, val 51 karo; val ile train arasında bitişik çift 0. v1 val'inin 8 karosu bir train karosuna bitişikti, train'e taşındı.
+  - `train.py --data` ile YOLOv8s 2 sınıf eğitildi (`e6v2_s2`, 1,4 dk, en iyi epoch 21).
+  - `eval_merged.py`: aynı val üzerinde karşılaştırma ve önceden yazılmış karar kuralı.
+- **Sonuç:**
+  - mAP50 0,308 → 0,330, hücre dengeli doğruluk 0,692 → 0,778, kayalık recall 0,36 → 0,56 → **v2 seçildi**.
+  - E10 yeniden koşuldu: HiRISE AUC 0,498 → 0,649 (v1 ile 0,626), fark %95 [+0,12, +0,18]. Rotada kumlu hücre %0, çevrede %49,3. Kaya hâlâ 0,51.
+  - Denetim (250 karo): 101 tespit / 57 karo. 80'i 1. partide (karo başına 0,53'e karşı 0,21).
+  - E8, E11, E13 testleri geçti; demo sayıları aynı.
+- **Etiket tanımı:** `kaya_alani` = yoğun engel alanı (sık kaya veya sık küçük çukur kümesi). Tek büyük krater/yamaç etiketlenmiyor. 1. partide çukur kümeleri tutarsız; bu bir sınırlama olarak `ETIKETLEME.md`, `DATA_PIPELINE.md` ve `TESLIM.md`'ye yazıldı.
+- **Dosyalar:** `ml/merge_v2.py`, `ml/train.py`, `ml/eval_merged.py`, `ml/compare_runs.py`, `ml/infer.py`, `ml/split_merged.csv`, `ml/audit_missed_labels.csv`, `ml/ETIKETLEME.md`, `docs/DATA_PIPELINE.md`, `docs/TESLIM.md`, `docs/figures/e6v2_*`, `docs/figures/e10_*`, `web/data/grid.json`, `web/data/layers/{traversability,hazard_ml}.png`, `.gitignore`
+- **Nasıl çalıştırılır:**
+  - Önce `venv\Scripts\python ml\merge_v2.py`.
+  - Sonra `ml\train.py --name e6v2_s2 --classes2 --model yolov8s.pt --data ml/dataset_merged`.
+  - Sonra `ml\eval_merged.py --data ml/dataset_merged --runs e6_s2 e6v2_s2 --out docs/figures/e6v2_compare.json --decide`.
+  - Ardından `ml\compare_runs.py --select e6v2_s2` → `ml\infer.py` → `scripts\prep_layers.py` → `scripts\validate.py`.
+- **Varsayımlar:**
+  - Val oranı %20 (v1 ile aynı); yeni bileşenler kategoriye göre tabakalı, seed 0.
+  - Karar kuralı: mAP50 ve hücre dengeli doğruluk ikisi de ≥ v1.
+  - Kaya → kaya alanı eşiği 10 m değiştirilmedi (2. partide kaya p90 15,6 m).
+
+## E14 · Sunum malzemesi (docs/SLAYTLAR.md) · Paz 15 Kas 2026, 09:30
+
+- **Ne yapıldı:** 7 slayt hazırlandı: hikâye, MarsTrail, veri hattı, yöntemler, demo, doğrulama, etki + YZ. Her slaytta başlık, 3–4 madde, konuşma metni (toplam 4:40 + 0:20 pay) ve görsel yolu var. Sonuna jüri için 10 soru ve cevap eklendi.
+- **Dosyalar:** `docs/SLAYTLAR.md`, `docs/figures/e6v2_compare.png` (slayt 4)
+- **Not:** Doğrulama slaytında güncel modelin sayıları kullanılıyor (0,649; %0 / %49). İlk taslaktaki 0,626 ve %3,8 / %52,6, 1. parti modelinin sayılarıydı.

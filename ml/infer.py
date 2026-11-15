@@ -45,7 +45,8 @@ import tile_for_yolo as T  # noqa: E402
 MODEL = ROOT / "ml" / "models" / "yolo_marstrail.pt"
 PROC = ROOT / "data" / "processed"
 FIG = ROOT / "docs" / "figures"
-DS = ROOT / "ml" / "dataset"
+# Etiket denetimi: birleşik 250 karo (merge_v2.py) varsa onda, yoksa 1. partinin 150 karosunda
+DS = ROOT / "ml" / "dataset_merged" if (ROOT / "ml" / "dataset_merged").exists() else ROOT / "ml" / "dataset"
 CONF_STORE = 0.10   # saklanan en düşük güven (eşik sonradan değiştirilebilsin diye)
 CONF = 0.25         # yoğunlukta kullanılan eşik: Ultralytics varsayılanı; E6 hücre düzeyi doğrulaması bu eşikle yapıldı
 CONF_AUDIT = 0.50   # etiket denetimi: "yüksek güven"
@@ -163,7 +164,7 @@ def densities(tiles, names, crs, tr, n):
 
 
 def audit(model, names):
-    """Etiketlenmiş 150 karoda (Elif'in gördüğü JPG'lerin aynısı) yüksek güvenli ama etiketle eşleşmeyen tespitler.
+    """Etiketlenmiş karolarda (DS: 250 ya da 150; Elif'in gördüğü JPG'lerin aynısı) yüksek güvenli ama etiketle eşleşmeyen tespitler.
     Eşleşme: aynı gruptaki (kaya+kaya_alani | kum) bir etiketle IoU ≥ 0,1 ya da tespit merkezi etiket kutusunun içinde
     (bölge ölçekli etiketler küçük tespitleri içerebilir)."""
     group = lambda nm: "kum" if nm == "kum_dalgasi" else "kaya"   # noqa: E731
@@ -280,7 +281,8 @@ def main():
         "grid_cells_kum_ge_0_5": int((D["kum_ml"][v] >= 0.5).sum()),
         "grid_cells_kaya_ge_0_5": int((D["kaya_ml"][v] >= 0.5).sum()),
         "kum_ml_mean": round(float(np.nanmean(D["kum_ml"])), 3), "kaya_ml_mean": round(float(np.nanmean(D["kaya_ml"])), 3),
-        "audit": {"conf_min": CONF_AUDIT, "unmatched": len(rows),
+        "audit": {"dataset": DS.name, "tiles_labeled": sum(1 for _ in DS.glob("*/images/*.*")),
+                  "conf_min": CONF_AUDIT, "unmatched": len(rows),
                   "by_split": {s: sum(r["split"] == s for r in rows) for s in ("train", "valid")},
                   "by_group": {g: sum(r["group"] == g for r in rows) for g in ("kaya", "kaya_alani", "kum")},
                   "tiles": len({r["tile"] for r in rows})},

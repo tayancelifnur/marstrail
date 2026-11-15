@@ -149,11 +149,11 @@ Haritada her zaman açık duran yeşil/sarı/kırmızı O₂ bölgeleri, astrono
 
 Bu projede **Claude Code** (Anthropic, Claude Opus 5.5) kodlama asistanı olarak, ekibin denetiminde kullanıldı.
 
-- **YZ'nin yaptığı:** Veri indirme ve işleme scriptlerinin yazılması: `scripts/download_data.py`, `make_dummies.py`, `prep_layers.py`, `pipeline_stats.py`, `build_regions.py`, `tile_for_yolo.py`, `ml/train.py`, `ml/dataset_stats.py`. Algoritma dosyalarının taslakları. Belgelerin (DATA_PIPELINE, envanter, bu dosya) ilk taslakları.
+- **YZ'nin yaptığı:** Veri indirme ve işleme scriptlerinin yazılması: `scripts/download_data.py`, `make_dummies.py`, `prep_layers.py`, `pipeline_stats.py`, `build_regions.py`, `tile_for_yolo.py`, `ml/train.py`, `ml/dataset_stats.py`, `ml/make_cls_dataset.py`, `ml/train_cls.py`, `ml/compare_runs.py`, `ml/eval_merged.py`, `ml/merge_v2.py`, `ml/infer.py`, `scripts/tile_batch2.py`, `scripts/validate.py`. Algoritma dosyalarının taslakları. Belgelerin (DATA_PIPELINE, envanter, bu dosya, SLAYTLAR) ilk taslakları.
 - **İnsanların yaptığı:**
   - Proje fikri, hikâye ve senaryo.
   - Veri seçimi; formül, eşik ve katsayı kararları.
-  - YOLO etiketleri. Ön etiketleme Roboflow Auto Label (GPT-6.1 Terra) ile yapıldı. 150 karonun hepsi Elif tarafından tek tek kontrol edildi; yanlış, eksik ve fazla kutular elle düzeltildi. Sınıf tanımları ve neyin etiketlenmeyeceği insan kararı (`ml/ETIKETLEME.md`).
+  - YOLO etiketleri. Ön etiketleme Roboflow Auto Label (GPT-6.1 Terra) ile yapıldı. 250 karonun (1. parti 150, 2. parti 100) hepsi Elif tarafından tek tek kontrol edildi; yanlış, eksik ve fazla kutular elle düzeltildi. Sınıf tanımları ve neyin etiketlenmeyeceği insan kararı (`ml/ETIKETLEME.md`): `kaya_alani` = yoğun engel alanı (sık kaya veya sık küçük çukur kümesi); tek büyük krater/yamaç etiketlenmedi çünkü eğim DEM'den geliyor. Sınırlama: 1. partide çukur kümeleri tutarlı etiketlenmedi.
   - Arayüz tasarımı.
   - Her çıktının kontrolü: haritaların gözle doğrulanması, sayıların scriptten üretilmesi.
   - Sunum.

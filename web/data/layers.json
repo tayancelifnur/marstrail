@@ -177,7 +177,7 @@
         "label": "Saydam: düşük yoğunluk ya da HiRISE kapsamı dışında"
       }
     ],
-    "source": "Kendi YOLOv8 modelimiz (e6_s2), HiRISE 25 cm ortomozaik (USGS/JPL-Caltech/Univ. of Arizona); 70 m hücre yoğunluğu",
+    "source": "Kendi YOLOv8 modelimiz (e6v2_s2), HiRISE 25 cm ortomozaik (USGS/JPL-Caltech/Univ. of Arizona); 70 m hücre yoğunluğu",
     "bbox": [
       77.28,
       18.293,

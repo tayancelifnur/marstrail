@@ -1,0 +1,381 @@
+{
+  "data": "ml/dataset_merged",
+  "e6_s2": {
+    "tum": {
+      "detect": {
+        "classes_trained": 2,
+        "images": 51,
+        "per_class": {
+          "kaya": {
+            "P": 0.358,
+            "R": 0.113,
+            "mAP50": 0.138,
+            "mAP50_95": 0.042
+          },
+          "kum_dalgasi": {
+            "P": 0.475,
+            "R": 0.473,
+            "mAP50": 0.479,
+            "mAP50_95": 0.381
+          }
+        },
+        "all": {
+          "mAP50": 0.308,
+          "mAP50_95": 0.211
+        }
+      },
+      "cell": {
+        "subtiles": 204,
+        "accuracy": 0.725,
+        "balanced_accuracy": 0.692,
+        "per_class": {
+          "duz": {
+            "P": 0.6,
+            "R": 0.803
+          },
+          "kayalik": {
+            "P": 0.87,
+            "R": 0.364
+          },
+          "kum": {
+            "P": 0.826,
+            "R": 0.91
+          }
+        },
+        "confusion": {
+          "duz": {
+            "duz": 57,
+            "kayalik": 1,
+            "kum": 13
+          },
+          "kayalik": {
+            "duz": 33,
+            "kayalik": 20,
+            "kum": 2
+          },
+          "kum": {
+            "duz": 5,
+            "kayalik": 2,
+            "kum": 71
+          }
+        }
+      }
+    },
+    "eski": {
+      "detect": {
+        "classes_trained": 2,
+        "images": 22,
+        "per_class": {
+          "kaya": {
+            "P": 0.365,
+            "R": 0.06,
+            "mAP50": 0.155,
+            "mAP50_95": 0.055
+          },
+          "kum_dalgasi": {
+            "P": 0.646,
+            "R": 0.708,
+            "mAP50": 0.7,
+            "mAP50_95": 0.643
+          }
+        },
+        "all": {
+          "mAP50": 0.427,
+          "mAP50_95": 0.349
+        }
+      },
+      "cell": {
+        "subtiles": 88,
+        "accuracy": 0.83,
+        "balanced_accuracy": 0.704,
+        "per_class": {
+          "duz": {
+            "P": 0.654,
+            "R": 0.773
+          },
+          "kayalik": {
+            "P": 0.833,
+            "R": 0.357
+          },
+          "kum": {
+            "P": 0.911,
+            "R": 0.981
+          }
+        },
+        "confusion": {
+          "duz": {
+            "duz": 17,
+            "kayalik": 1,
+            "kum": 4
+          },
+          "kayalik": {
+            "duz": 8,
+            "kayalik": 5,
+            "kum": 1
+          },
+          "kum": {
+            "duz": 1,
+            "kayalik": 0,
+            "kum": 51
+          }
+        }
+      }
+    },
+    "yeni": {
+      "detect": {
+        "classes_trained": 2,
+        "images": 29,
+        "per_class": {
+          "kaya": {
+            "P": 0.213,
+            "R": 0.252,
+            "mAP50": 0.14,
+            "mAP50_95": 0.041
+          },
+          "kum_dalgasi": {
+            "P": 0.247,
+            "R": 0.452,
+            "mAP50": 0.293,
+            "mAP50_95": 0.177
+          }
+        },
+        "all": {
+          "mAP50": 0.217,
+          "mAP50_95": 0.109
+        }
+      },
+      "cell": {
+        "subtiles": 116,
+        "accuracy": 0.647,
+        "balanced_accuracy": 0.65,
+        "per_class": {
+          "duz": {
+            "P": 0.58,
+            "R": 0.816
+          },
+          "kayalik": {
+            "P": 0.882,
+            "R": 0.366
+          },
+          "kum": {
+            "P": 0.667,
+            "R": 0.769
+          }
+        },
+        "confusion": {
+          "duz": {
+            "duz": 40,
+            "kayalik": 0,
+            "kum": 9
+          },
+          "kayalik": {
+            "duz": 25,
+            "kayalik": 15,
+            "kum": 1
+          },
+          "kum": {
+            "duz": 4,
+            "kayalik": 2,
+            "kum": 20
+          }
+        }
+      }
+    }
+  },
+  "e6v2_s2": {
+    "tum": {
+      "detect": {
+        "classes_trained": 2,
+        "images": 51,
+        "per_class": {
+          "kaya": {
+            "P": 0.314,
+            "R": 0.252,
+            "mAP50": 0.2,
+            "mAP50_95": 0.063
+          },
+          "kum_dalgasi": {
+            "P": 0.77,
+            "R": 0.364,
+            "mAP50": 0.461,
+            "mAP50_95": 0.372
+          }
+        },
+        "all": {
+          "mAP50": 0.33,
+          "mAP50_95": 0.218
+        }
+      },
+      "cell": {
+        "subtiles": 204,
+        "accuracy": 0.799,
+        "balanced_accuracy": 0.778,
+        "per_class": {
+          "duz": {
+            "P": 0.693,
+            "R": 0.859
+          },
+          "kayalik": {
+            "P": 0.738,
+            "R": 0.564
+          },
+          "kum": {
+            "P": 0.959,
+            "R": 0.91
+          }
+        },
+        "confusion": {
+          "duz": {
+            "duz": 61,
+            "kayalik": 7,
+            "kum": 3
+          },
+          "kayalik": {
+            "duz": 24,
+            "kayalik": 31,
+            "kum": 0
+          },
+          "kum": {
+            "duz": 3,
+            "kayalik": 4,
+            "kum": 71
+          }
+        }
+      }
+    },
+    "eski": {
+      "detect": {
+        "classes_trained": 2,
+        "images": 22,
+        "per_class": {
+          "kaya": {
+            "P": 0.293,
+            "R": 0.209,
+            "mAP50": 0.177,
+            "mAP50_95": 0.072
+          },
+          "kum_dalgasi": {
+            "P": 0.827,
+            "R": 0.583,
+            "mAP50": 0.667,
+            "mAP50_95": 0.587
+          }
+        },
+        "all": {
+          "mAP50": 0.422,
+          "mAP50_95": 0.329
+        }
+      },
+      "cell": {
+        "subtiles": 88,
+        "accuracy": 0.852,
+        "balanced_accuracy": 0.751,
+        "per_class": {
+          "duz": {
+            "P": 0.714,
+            "R": 0.682
+          },
+          "kayalik": {
+            "P": 0.667,
+            "R": 0.571
+          },
+          "kum": {
+            "P": 0.945,
+            "R": 1.0
+          }
+        },
+        "confusion": {
+          "duz": {
+            "duz": 15,
+            "kayalik": 4,
+            "kum": 3
+          },
+          "kayalik": {
+            "duz": 6,
+            "kayalik": 8,
+            "kum": 0
+          },
+          "kum": {
+            "duz": 0,
+            "kayalik": 0,
+            "kum": 52
+          }
+        }
+      }
+    },
+    "yeni": {
+      "detect": {
+        "classes_trained": 2,
+        "images": 29,
+        "per_class": {
+          "kaya": {
+            "P": 0.324,
+            "R": 0.27,
+            "mAP50": 0.219,
+            "mAP50_95": 0.064
+          },
+          "kum_dalgasi": {
+            "P": 0.695,
+            "R": 0.221,
+            "mAP50": 0.291,
+            "mAP50_95": 0.196
+          }
+        },
+        "all": {
+          "mAP50": 0.255,
+          "mAP50_95": 0.13
+        }
+      },
+      "cell": {
+        "subtiles": 116,
+        "accuracy": 0.759,
+        "balanced_accuracy": 0.744,
+        "per_class": {
+          "duz": {
+            "P": 0.687,
+            "R": 0.939
+          },
+          "kayalik": {
+            "P": 0.767,
+            "R": 0.561
+          },
+          "kum": {
+            "P": 1.0,
+            "R": 0.731
+          }
+        },
+        "confusion": {
+          "duz": {
+            "duz": 46,
+            "kayalik": 3,
+            "kum": 0
+          },
+          "kayalik": {
+            "duz": 18,
+            "kayalik": 23,
+            "kum": 0
+          },
+          "kum": {
+            "duz": 3,
+            "kayalik": 4,
+            "kum": 19
+          }
+        }
+      }
+    }
+  },
+  "decision": {
+    "rule": "mAP50 (2 sınıf) ve hücre dengeli doğruluk ikisi de >= eski",
+    "old": "e6_s2",
+    "new": "e6v2_s2",
+    "mAP50": [
+      0.308,
+      0.33
+    ],
+    "cell_balanced_accuracy": [
+      0.692,
+      0.778
+    ],
+    "selected": "e6v2_s2"
+  }
+}
